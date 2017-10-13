@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+mkdir -p $HOME/src/{github.com,keybase}
+
+if (! which brew > /dev/null) ; then
+ echo "You don't seem to have Homebrew installed. Installing now..."
+ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+ brew doctor
+fi
+
+for i in `ls install`; do 
+  ./install/$i
+done
+
+

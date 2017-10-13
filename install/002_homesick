@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+gem install homesick
+ORIGIN=$(git remote show origin | grep Fetch | awk '{print $3}')
+homesick clone $ORIGIN
+homesick link dotfiles
+

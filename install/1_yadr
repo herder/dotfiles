@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ ! -e "$HOME/.yadr" ]; then
+echo ".yadr dir not found, installing..."
+sh -c "`curl -fsSL https://raw.githubusercontent.com/skwp/dotfiles/master/install.sh `"
+fi
+cd ~/.yadr
+git pull --rebase
+#rake update
