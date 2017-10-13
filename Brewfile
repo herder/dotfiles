@@ -2,11 +2,19 @@ brew 'mas'
 
 mas 'Xcode', id: 497799835
 
+#JVM stuff
+cask 'java'
+brew 'gradle'
+brew 'maven'
+brew 'kotlin'
+brew 'scala'
+brew 'clojure'
+
 brew 'openconnect'
 brew 'rabbitmq'
 brew 'elasticsearch'
 brew 'lua'
-cask 'java'
+
 brew 'vim'
 brew 'curl'
 cask 'iterm2'
