@@ -1,0 +1,3 @@
+export LUA_PATH='/Users/nikher/.luarocks/share/lua/5.2/?.lua;/Users/nikher/.luarocks/share/lua/5.2/?/init.lua;/usr/local/share/lua/5.2/?.lua;/usr/local/share/lua/5.2/?/init.lua;/usr/local/lib/lua/5.2/?.lua;/usr/local/lib/lua/5.2/?/init.lua;./?.lua'
+export LUA_CPATH='/Users/nikher/.luarocks/lib/lua/5.2/?.so;/usr/local/lib/lua/5.2/?.so;/usr/local/lib/lua/5.2/loadall.so;./?.so'
+export PATH='/Users/nikher/.luarocks/bin:/usr/local/bin:/Users/nikher/.jenv/shims:/Users/nikher/.cargo/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Users/nikher/.yadr/bin:/Users/nikher/.yadr/bin/yadr:/Users/nikher/bin/boxfuse:/usr/local/opt/go/libecex/bin:/Users/nikher/bin/go/bin:/Users/nikher/bin/istio/bin:/Users/nikher/bin/scripts'
