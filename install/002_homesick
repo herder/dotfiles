@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 gem install homesick
+homesick clone keybase://private/herder/secrets
+homesick link secrets
 ORIGIN=$(git remote show origin | grep Fetch | awk '{print $3}')
 homesick clone $ORIGIN
 homesick link dotfiles
-homesick clone keybase://private/herder/secrets
-homesick link secrets
+
