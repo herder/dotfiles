@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ ! -d "$HOME/.hammerspoon" ];
+then
+  git clone git@github.com:herder/awesome-hammerspoon.git $HOME/.hammerspoon
+fi
+cd $HOME/.hammerspoon
+git pull git@github.com:herder/awesome-hammerspoon.git
+cd -
