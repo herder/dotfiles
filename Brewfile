@@ -1,6 +1,14 @@
 brew 'mas'
 mas 'Xcode', id: 497799835
 
+tap 'caskroom/fonts'
+cask 'font-hasklig'
+cask 'font-hack'
+cask 'font-source-code-pro'
+
+tap 'pivotal/tap'
+brew 'springboot'
+
 brew 'ant'
 brew 'aws-shell'
 brew 'bash'
@@ -72,5 +80,6 @@ cask 'tunnelblick'
 cask 'vagrant'
 cask 'viber'
 cask 'virtualbox'
+cask 'virtualbox-extension-pack'
 cask 'visualvm'
 cask 'vlc'
