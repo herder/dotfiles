@@ -1,6 +1,4 @@
 -- Specify Spoons which will be loaded
-hs.alert("LOADIN")
-print("LOADING...")
 hspoon_list = {
     "AClock",
     "BingDaily",
@@ -95,32 +93,32 @@ hsconsole_keys = {"alt", "Z"}
    hs.spotify.previous()
    end)
 
-   hs.hotkey.bind({}, "f8", function()
-     hs.spotify.playpause()
-     end)
+	 hs.hotkey.bind({}, "f8", function()
+		 hs.spotify.playpause()
+	 end)
 
-     hs.hotkey.bind({}, "f9", function()
-       hs.spotify.next()
-       end)
+	 hs.hotkey.bind({}, "f9", function()
+		 hs.spotify.next()
+	 end)
 
-       hs.hotkey.bind({}, "f11", function()
-         playing = hs.spotify.isPlaying()
+	 hs.hotkey.bind({}, "f11", function()
+		 playing = hs.spotify.isPlaying()
 
-           if playing then
-               hs.spotify.volumeDown()
-                 else
-                     output = hs.audiodevice.defaultOutputDevice()
-                         output:setVolume(output:volume() - 10)
-                           end
-                           end)
+		 if playing then
+			 hs.spotify.volumeDown()
+		 else
+			 output = hs.audiodevice.defaultOutputDevice()
+			 output:setVolume(output:volume() - 10)
+		 end
+	 end)
 
-                           hs.hotkey.bind({}, "f12", function()
-                             playing = hs.spotify.isPlaying()
+	 hs.hotkey.bind({}, "f12", function()
+		 playing = hs.spotify.isPlaying()
 
-                               if playing then
-                                   hs.spotify.volumeUp()
-                                     else
-                                         output = hs.audiodevice.defaultOutputDevice()
-                                             output:setVolume(output:volume() + 10)
-                                               end
-                                               end)
+		 if playing then
+			 hs.spotify.volumeUp()
+		 else
+			 output = hs.audiodevice.defaultOutputDevice()
+			 output:setVolume(output:volume() + 10)
+		 end
+	 end)
