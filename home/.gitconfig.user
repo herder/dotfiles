@@ -1,4 +1,7 @@
 [user]
 	name = Niklas Herder
 	email = niklas.herder@gmail.com
-
+[pull]
+	rebase = true
+[hub]
+	host = github.schibsted.io
