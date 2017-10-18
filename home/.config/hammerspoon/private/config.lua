@@ -89,36 +89,38 @@ hstype_keys = {"alt", "V"}
 -- Toggle Hammerspoon console
 hsconsole_keys = {"alt", "Z"}
 -- Remap media keys to Spotify-priority equivalents
- hs.hotkey.bind({}, "f7", function()
-   hs.spotify.previous()
-   end)
+hs.hotkey.bind({"ctrl"}, "f7", function()
+	hs.spotify.previous()
+	hs.spotify.displayCurrentTrack()
+end)
 
-	 hs.hotkey.bind({}, "f8", function()
-		 hs.spotify.playpause()
-	 end)
+hs.hotkey.bind({"ctrl"}, "f8", function()
+	hs.spotify.playpause()
+end)
 
-	 hs.hotkey.bind({}, "f9", function()
-		 hs.spotify.next()
-	 end)
+hs.hotkey.bind({"ctrl"}, "f9", function()
+	hs.spotify.next()
+	hs.spotify.displayCurrentTrack()
+end)
 
-	 hs.hotkey.bind({}, "f11", function()
-		 playing = hs.spotify.isPlaying()
+hs.hotkey.bind({"ctrl"}, "f11", function()
+	playing = hs.spotify.isPlaying()
 
-		 if playing then
-			 hs.spotify.volumeDown()
-		 else
-			 output = hs.audiodevice.defaultOutputDevice()
-			 output:setVolume(output:volume() - 10)
-		 end
-	 end)
+	if playing then
+		hs.spotify.volumeDown()
+	else
+		output = hs.audiodevice.defaultOutputDevice()
+		output:setVolume(output:volume() - 10)
+	end
+end)
 
-	 hs.hotkey.bind({}, "f12", function()
-		 playing = hs.spotify.isPlaying()
+hs.hotkey.bind({"ctrl"}, "f12", function()
+	playing = hs.spotify.isPlaying()
 
-		 if playing then
-			 hs.spotify.volumeUp()
-		 else
-			 output = hs.audiodevice.defaultOutputDevice()
-			 output:setVolume(output:volume() + 10)
-		 end
-	 end)
+	if playing then
+		hs.spotify.volumeUp()
+	else
+		output = hs.audiodevice.defaultOutputDevice()
+		output:setVolume(output:volume() + 10)
+	end
+end)
