@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+echo "Upgrading System apps..."
+mas upgrade
+echo "Upgrading Homebrew packages..."
+brew update
+ORIGIN=$(git remote show origin | grep Fetch | awk '{print $3}')
+
+DIR=$(mktemp -d)
+git clone $ORIGIN $DIR
+brew bundle --file=$DIR/Brewfile
+
+cd $HOME/.yadr
+git pull --recurse-submodules=true
+rake update
+
+homesick pull secrets
+homesick pull dotfiles
+homesick link secrets
+homesick link dotfiles
