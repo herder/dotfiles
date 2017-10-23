@@ -1,1 +1,1 @@
-export PATH="${PATH}:${HOME}/bin/dotfiles/scripts/"
+export PATH="${PATH}:${HOME}/bin/dotfiles/scripts"
