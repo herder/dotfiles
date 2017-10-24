@@ -1,2 +1,3 @@
 inoremap jk <esc>
 set number relativenumber
+set shell=zsh\ -l
