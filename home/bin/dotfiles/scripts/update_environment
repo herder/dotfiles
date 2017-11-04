@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+echo "Running softwareupdate..."
+softwareupdate -i -a
 echo "Upgrading System apps..."
 mas upgrade
+xcode-select --install
 echo "Updating Ruby Gems..."
 sudo gem update --system
 gem update
