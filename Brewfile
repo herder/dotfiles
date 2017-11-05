@@ -1,6 +1,7 @@
 brew 'mas'
 mas 'Xcode', id: 497799835
 mas 'Wunderlist', id: 410628904
+tap 'caskroom/versions'
 tap 'caskroom/fonts'
 cask 'font-hasklig'
 cask 'font-hack'
@@ -76,8 +77,6 @@ cask 'google-chrome'
 cask 'google-cloud-sdk'
 cask 'iterm2'
 cask 'java'
-cask 'java7'
-cask 'jce-unlimited-strength-policy'
 cask 'jetbrains-toolbox'
 cask 'keybase'
 cask 'lastpass'
