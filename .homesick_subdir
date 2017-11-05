@@ -1,2 +1,3 @@
 .config/hammerspoon
+.config/nvim
 bin/dotfiles/scripts
