@@ -5,3 +5,12 @@
 	rebase = true
 [hub]
 	host = github.schibsted.io
+[core]
+  filemode = true
+[url "git@github.schibsted.io"]
+  insteadOf = sch
+[url "https://github.com/"]
+  insteadOf = ghh:
+[url "git@github.com"]
+  insteadOf = gh
+
