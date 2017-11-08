@@ -1,1 +1,0 @@
-/Users/nikher/.vimrc
