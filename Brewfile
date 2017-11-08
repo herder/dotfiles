@@ -42,6 +42,8 @@ brew 'luajit'
 brew 'macvim', args: ["--custom-icons", "--with-override-system-vim", "--with-lua", "--with-luajit"]
 brew 'maven'
 brew 'netcat'
+brew 'neovim'
+brew 'nexus', restart_service: true
 brew 'node'
 brew 'npm'
 brew 'openconnect'
