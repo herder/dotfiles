@@ -1,0 +1,5 @@
+#!/bin/zsh
+USER=nikher
+#USER=niklas.herder@schibsted.com
+echo $USER
+sudo openconnect --user="$USER" --cafile="$HOME/.ssh/thawte Primary Root CA.pem" vpn-remote.schibsted.se
