@@ -7,9 +7,14 @@ if (! which brew > /dev/null) ; then
  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
  brew doctor
 fi
+ROOT_PATH=$(git rev-parse --show-toplevel)
+export DOTFILES_PATH=$ROOT_PATH
 
 for i in `ls install`; do 
   ./install/$i
 done
 
+DOTFILES_PATH_FILE="$HOME/.zsh.after/dotfiles_path.zsh"
+touch $DOTFILES_PATH_FILE
+grep DOTFILES_PATH $DOTFILES_PATH_FILE || echo "export DOTFILES_PATH=$ROOT_PATH" >> $DOTFILES_PATH_FILE
 

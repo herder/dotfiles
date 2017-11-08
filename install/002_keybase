@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-brew cask install keybase
+which keybase > /dev/null || brew cask install keybase
 keybase login
-if [ ! -d "$HOME/src/git/keybase/secrets" ];
+SECRETS_DIR="$HOME/src/git/keybase/secrets"
+if [ ! -d "$SECRETS_DIR" ];
 then
-  git clone keybase://private/herder/secrets $HOME/src/git/keybase/secrets
+  git clone keybase://private/herder/secrets $SECRETS_DIR
 fi
+chmod -r 0400 $SECRETS_DIR/.ssh/
