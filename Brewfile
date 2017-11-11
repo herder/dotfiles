@@ -54,6 +54,7 @@ brew 'rabbitmq', restart_service: :changed
 brew 'reattach-to-user-namespace'
 brew 'rsync'
 brew 'ruby'
+brew 'rustup-init'
 brew 'sbt'
 brew 'scala'
 brew 'screen'
