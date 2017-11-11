@@ -1,0 +1,3 @@
+#!/bin/bash
+rustc >/dev/null 2>&1 || rustup-init -y --default-host x86_64-apple-darwin --default-toolchain stable --no-modify-path
+
