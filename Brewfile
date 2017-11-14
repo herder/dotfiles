@@ -1,8 +1,11 @@
 brew 'mas'
 mas 'Xcode', id: 497799835
 mas 'Wunderlist', id: 410628904
+:update
 tap 'caskroom/versions'
 tap 'caskroom/fonts'
+
+tap 'buo/cask-upgrade'
 cask 'font-hasklig'
 cask 'font-hack'
 cask 'font-source-code-pro'
@@ -82,6 +85,7 @@ cask 'gitter'
 cask 'google-chrome'
 cask 'google-cloud-sdk'
 cask 'iterm2'
+cask 'java8'
 cask 'java'
 cask 'jetbrains-toolbox'
 cask 'keybase'
