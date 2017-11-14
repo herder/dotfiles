@@ -20,6 +20,8 @@ brew update
 echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
 brew bundle --file=$DOTFILES_PATH/Brewfile
 
+echo "Upgrading casks..."
+brew cu -y
 cd $HOME/.yadr
 git checkout -f
 git pull --recurse-submodules=true
