@@ -54,6 +54,7 @@ brew 'node'
 brew 'npm'
 brew 'openconnect'
 brew 'openssh'
+brew 'openssl'
 brew 'rabbitmq', restart_service: :changed
 brew 'reattach-to-user-namespace'
 brew 'rsync'
