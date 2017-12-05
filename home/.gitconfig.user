@@ -13,4 +13,5 @@
   insteadOf = ghh:
 [url "git@github.com"]
   insteadOf = gh
-
+[url "ghe.spotify.net"]
+  insteadOf = spo
