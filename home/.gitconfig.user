@@ -4,14 +4,12 @@
 [pull]
 	rebase = true
 [hub]
-	host = github.schibsted.io
+  host = ghe.spotify.net
 [core]
   filemode = true
-[url "git@github.schibsted.io"]
-  insteadOf = sch
 [url "https://github.com/"]
   insteadOf = ghh:
 [url "git@github.com"]
   insteadOf = gh
-[url "ghe.spotify.net"]
+[url "git@ghe.spotify.net"]
   insteadOf = spo
