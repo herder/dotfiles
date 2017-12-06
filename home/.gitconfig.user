@@ -1,6 +1,6 @@
 [user]
 	name = Niklas Herder
-	email = niklas.herder@gmail.com
+  useConfigOnly = true
 [pull]
 	rebase = true
 [hub]
