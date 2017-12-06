@@ -56,7 +56,7 @@ brew 'nexus', restart_service: true
 brew 'node'
 brew 'npm'
 brew 'openconnect'
-brew 'openssh'
+#brew 'openssh'
 brew 'openssl'
 brew 'rabbitmq', restart_service: :changed
 brew 'reattach-to-user-namespace'
