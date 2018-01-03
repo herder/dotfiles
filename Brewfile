@@ -1,7 +1,13 @@
 brew 'mas'
 mas 'Xcode', id: 497799835
 mas 'Wunderlist', id: 410628904
+mas 'Todoist', id: 585829637
 :update
+
+# Todoist cli: https://github.com/sachaos/todoist
+tap 'sachaos/todoist'
+brew 'todoist'
+
 tap 'caskroom/versions'
 tap 'caskroom/fonts'
 
@@ -67,6 +73,7 @@ brew 'node'
 brew 'openconnect'
 #brew 'openssh'
 brew 'openssl'
+brew 'peco'
 brew 'postgresql'
 brew 'rabbitmq', restart_service: :changed
 brew 'reattach-to-user-namespace'
