@@ -75,6 +75,7 @@ brew 'openconnect'
 brew 'openssl'
 brew 'peco'
 brew 'postgresql'
+brew 'pyenv'
 brew 'rabbitmq', restart_service: :changed
 brew 'reattach-to-user-namespace'
 brew 'rename'
