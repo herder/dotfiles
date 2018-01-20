@@ -35,6 +35,7 @@ brew 'springboot'
 brew 'spring-completion'
 
 brew 'ant'
+brew 'avro-tools'
 brew 'aws-shell'
 brew 'bash'
 brew 'clojure'
