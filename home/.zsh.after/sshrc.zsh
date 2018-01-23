@@ -1,1 +1,1 @@
-alias ssh='sshrc'
+#alias ssh='sshrc'
