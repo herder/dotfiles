@@ -1,3 +1,5 @@
+docker-machine status >/dev/null || docker-machine create --driver=xhyve default
+
 docker-machine env default >/dev/null || docker-machine restart default
 
 eval "$(docker-machine env default)"
