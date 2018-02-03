@@ -36,6 +36,8 @@ brew 'spring-completion'
 
 brew 'ant'
 brew 'avro-tools'
+brew 'asciinema'
+brew 'asciinema2gif'
 brew 'aws-shell'
 brew 'bash'
 brew 'clojure'
