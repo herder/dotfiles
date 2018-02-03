@@ -13,6 +13,7 @@ tap 'caskroom/fonts'
 
 tap 'spotify/sptaps', 'git@ghe.spotify.net:shared/homebrew-spotify.git'
 brew 'spotify/sptaps/hmtools'
+brew 'helios'
 brew 'styx-cli'
 brew 'hades-cli'
 
