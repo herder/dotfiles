@@ -1,3 +1,4 @@
 .config/hammerspoon
 .config/nvim
+.config/tmuxinator
 bin/dotfiles/scripts
