@@ -1,0 +1,1 @@
+scutil --dns | grep 'search domain' | tail -n1 | awk '{print $(NF)}'
