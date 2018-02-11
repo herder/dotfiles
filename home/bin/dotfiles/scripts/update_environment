@@ -3,12 +3,14 @@
 sudo true
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-echo "Running softwareupdate..."
-softwareupdate -i -a
+if [[ $OSTYPE == "darwin"* ]] ; then
+  echo "Running softwareupdate..."
+  softwareupdate -i -a
 
-echo "Upgrading System apps..."
-mas upgrade
-xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
+  echo "Upgrading System apps..."
+  mas upgrade
+  xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
+fi
 
 echo "Updating Ruby Gems..."
 sudo gem update --system
@@ -19,6 +21,31 @@ brew update
 
 echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
 brew bundle --file=$DOTFILES_PATH/Brewfile
+
+#Install OS-specific apps
+for i in $DOTFILES_PATH/brewfiles/os/* ; do
+  if [[ $OSTYPE == "`basename $i`"* ]] ; then 
+    echo "Installing from $i"; 
+    brew bundle --file=$i;
+  fi ; 
+done
+
+#Install apps for specific domains
+for i in $DOTFILES_PATH/brewfiles/domain/* ; do
+  if [[ $(getdomain) == "`basename $i`"* ]] ; then 
+    echo "Installing from $i"; 
+    brew bundle --file=$i;
+  fi ; 
+done
+
+#Install apps for specific ssid:s
+for i in $DOTFILES_PATH/brewfiles/ssid/* ; do
+  if [[ $(getssid) == "`basename $i`"* ]] ; then 
+    echo "Installing from $i"; 
+    brew bundle --file=$i;
+  fi ; 
+done
+
 
 echo "Upgrading casks..."
 brew cu -a -y

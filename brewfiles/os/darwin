@@ -1,0 +1,38 @@
+#OSX-specific stuff
+
+brew 'mas'
+mas 'Xcode', id: 497799835
+mas 'Wunderlist', id: 410628904
+mas 'Todoist', id: 585829637
+
+cask 'Hammerspoon'
+cask 'Wavebox'
+cask 'aerial'
+cask 'airdroid'
+cask 'calibre'
+cask 'deluge'
+cask 'dropbox'
+cask 'firefox'
+cask 'gitter'
+cask 'google-chrome'
+cask 'google-cloud-sdk'
+cask 'iterm2'
+cask 'jetbrains-toolbox'
+cask 'keybase'
+cask 'keepassx'
+cask 'lastpass'
+cask 'licecap'
+cask 'minikube'
+cask 'mullvad'
+cask 'little-snitch'
+cask 'plex-media-player'
+cask 'skitch'
+cask 'skype'
+cask 'spotify'
+cask 'tunnelblick'
+#cask 'vagrant'
+cask 'viber'
+cask 'virtualbox'
+cask 'virtualbox-extension-pack'
+cask 'visualvm'
+cask 'vlc'
