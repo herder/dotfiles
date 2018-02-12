@@ -4,8 +4,8 @@ PS1+='${VIMODE}'
 #   '$' for normal insert mode
 #   a big red 'I' for command mode - to me this is 'NOT insert' because red
 function zle-line-init zle-keymap-select {
-    INSERT='%F{yellow}i%f%b '
-    NORMAL='%F{blue}n%f%b '
+    INSERT='%F{yellow}+%f%b '
+    NORMAL='%F{blue}:%f%b '
     VIMODE="${${KEYMAP/vicmd/$NORMAL}/(main|viins)/$INSERT}"
     zle reset-prompt
 }
