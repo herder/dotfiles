@@ -1,1 +1,1 @@
-#alias ssh='sshrc'
+compdef sshrc=ssh
