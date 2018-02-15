@@ -6,6 +6,7 @@ set show-all-if-ambiguous on
 # Ignore case
 set completion-ignore-case on
 
+set show-mode-in-prompt on
 ###########################################################
 # Keymaps for when we're in command mode (e.g., after hitting ESC)
 set keymap vi-command
@@ -13,4 +14,3 @@ set keymap vi-command
 ###########################################################
 # Keymaps for when we're in insert (i.e., typing stuff in) mode
 set keymap vi-insert
-bind '"jk":vi-movement-mode'
