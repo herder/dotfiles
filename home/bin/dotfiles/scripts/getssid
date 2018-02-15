@@ -1,1 +1,1 @@
-/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | egrep '^\s*SSID' | awk '{print $(NF)}'
+/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | egrep '^\s*SSID' | awk -F ': ' '{print $(NF)}'
