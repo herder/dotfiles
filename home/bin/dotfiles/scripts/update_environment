@@ -54,7 +54,9 @@ git checkout -f
 git pull --recurse-submodules=true
 rake update
 
+echo "Pulling secrets"
 homesick pull secrets
+echo "Pulling dotfiles"
 homesick pull dotfiles
 homesick link secrets
 homesick link dotfiles
