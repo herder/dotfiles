@@ -92,7 +92,7 @@ brew 'tig'
 brew 'tmux'
 brew 'tmuxinator-completion'
 brew 'unrar'
-brew 'vim'
+brew 'vim', args: [ "--with-override-system-vim", "--with-lua", "--with-luajit"]
 brew 'watch'
 brew 'weechat'
 brew 'wget'
