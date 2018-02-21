@@ -1,5 +1,7 @@
 export VIMINIT="let \$MYVIMRC='$SSHHOME/.sshrc.d/.vimrc' | source \$MYVIMRC"
 export INPUTRC=$SSHHOME/.sshrc.d/.inputrc
+export VISUAL=vim
+export EDITOR=vim
 export ZDOTDIR=$SSHHOME/.sshrc.d/
 set show-mode-in-prompt on
 set -o vi
