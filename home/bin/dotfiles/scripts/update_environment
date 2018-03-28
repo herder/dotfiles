@@ -20,13 +20,13 @@ echo "Updating Homebrew packages..."
 brew update
 
 echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
-brew bundle --file=$DOTFILES_PATH/Brewfile
+brew bundle -v --file=$DOTFILES_PATH/Brewfile
 
 #Install OS-specific apps
 for i in $DOTFILES_PATH/brewfiles/os/* ; do
   if [[ $OSTYPE == "`basename $i`"* ]] ; then 
     echo "Installing from $i"; 
-    brew bundle --file=$i;
+    brew bundle -v --file=$i;
   fi ; 
 done
 
@@ -34,7 +34,7 @@ done
 for i in $DOTFILES_PATH/brewfiles/domain/* ; do
   if [[ $(getdomain) == "`basename $i`"* ]] ; then 
     echo "Installing from $i"; 
-    brew bundle --file=$i;
+    brew bundle -v  --file=$i;
   fi ; 
 done
 
@@ -42,7 +42,7 @@ done
 for i in $DOTFILES_PATH/brewfiles/ssid/* ; do
   if [[ $(getssid) == "`basename $i`"* ]] ; then 
     echo "Installing from $i"; 
-    brew bundle --file=$i;
+    brew bundle -v --file=$i;
   fi ; 
 done
 
@@ -51,7 +51,7 @@ echo "Upgrading casks..."
 brew cu -a -y
 cd $HOME/.yadr
 git checkout -f
-git pull --recurse-submodules=true
+git pull --rebase --recurse-submodules=true
 rake update
 
 echo "Pulling secrets"
