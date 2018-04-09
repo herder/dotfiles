@@ -24,11 +24,18 @@ echo "Ensuring latest Python version..."
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | tail -n1 | grep -v '*' | xargs pyenv global
 
+echo "Ensuring latest npm version..."
+source $HOME/.zsh.after/nvm.zsh && nvm install-latest-npm
+
+echo "Adding any new JVMs on the system to jenv..."
+for i in /Library/Java/JavaVirtualMachines/* ; do echo 'n' | jenv add $i/Contents/Home > /dev/null; done
+
 echo "Updating Homebrew packages..."
 brew update
 
 echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
 brew bundle -v --file=$DOTFILES_PATH/Brewfile
+
 
 #Install OS-specific apps
 for i in $DOTFILES_PATH/brewfiles/os/* ; do
@@ -59,9 +66,12 @@ done
 
 echo "Upgrading casks..."
 brew cu -a -y
+
+echo "Updating yadr..."
 cd $HOME/.yadr
 git checkout -f
 git pull --rebase --recurse-submodules=true
+gem install bundle
 rake update
 
 echo "Pulling secrets"
@@ -70,3 +80,6 @@ echo "Pulling dotfiles"
 homesick pull dotfiles
 homesick link secrets
 homesick link dotfiles
+
+echo "Cleaning up..."
+brew cleanup
