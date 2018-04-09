@@ -58,7 +58,7 @@ brew 'lastpass-cli'
 brew 'leiningen'
 brew 'lua'
 brew 'luajit'
-brew 'macvim', args: ["--custom-icons", "--with-override-system-vim", "--with-lua", "--with-luajit"]
+#brew 'macvim', args: ["--custom-icons", "--with-override-system-vim", "--with-lua"]
 brew 'maven'
 brew 'minicom'
 brew 'netcat'
@@ -94,7 +94,7 @@ brew 'tig'
 brew 'tmux'
 brew 'tmuxinator-completion'
 brew 'unrar'
-brew 'vim', args: [ "--with-override-system-vim", "--with-lua", "--with-luajit"]
+brew 'vim', args: [ "--with-override-system-vi", "--with-lua"]
 brew 'watch'
 brew 'weechat'
 brew 'wget'
