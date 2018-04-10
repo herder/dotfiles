@@ -16,11 +16,9 @@ cask 'caskroom/versions/java6'
 cask 'java8'
 cask 'java'
 tap 'pivotal/tap'
-brew 'springboot'
 
 tap 'cloudfoundry/tap'
 brew 'springboot'
-brew 'spring-completion'
 
 brew 'ant'
 brew 'avro-tools'
