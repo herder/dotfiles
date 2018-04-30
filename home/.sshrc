@@ -8,3 +8,4 @@ export ZDOTDIR=$SSHHOME/.sshrc.d/
 set show-mode-in-prompt on
 set -o vi
 bind '"jk":vi-movement-mode'
+source $SSHHOME/.sshrc.d/.domains

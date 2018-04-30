@@ -1,0 +1,7 @@
+DOMAIN=`grep domain /etc/resolv.conf | cut -d ' ' -f2`
+for i in `ls $SSHHOME/.sshrc.d/domains/*` ; do
+  if [[ $DOMAIN == *"`basename $i`" ]]; then
+    echo "Found domain $DOMAIN"
+    source $i
+  fi
+done
