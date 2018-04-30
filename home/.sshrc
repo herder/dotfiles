@@ -21,3 +21,4 @@ tmuxrc() {
     SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc /usr/bin/tmux -S $TMUXDIR/tmuxserver $@
 }
 export SHELL=`which bash`
+alias tmux='tmuxrc'
