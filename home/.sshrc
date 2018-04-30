@@ -9,3 +9,15 @@ set show-mode-in-prompt on
 set -o vi
 bind '"jk":vi-movement-mode'
 source $SSHHOME/.sshrc.d/.domains
+
+tmuxrc() {
+    local TMUXDIR=/tmp/sshrc-tmuxserver
+    if ! [ -d $TMUXDIR ]; then
+        rm -rf $TMUXDIR
+        mkdir -p $TMUXDIR
+    fi
+    rm -rf $TMUXDIR/.sshrc.d
+    cp -r $SSHHOME/.sshrc $SSHHOME/bashsshrc $SSHHOME/sshrc $SSHHOME/.sshrc.d $TMUXDIR
+    SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc /usr/bin/tmux -S $TMUXDIR/tmuxserver $@
+}
+export SHELL=`which bash`
