@@ -63,7 +63,6 @@ brew 'minicom'
 brew 'netcat'
 brew 'neovim'
 brew 'nexus', restart_service: true
-brew 'node'
 brew 'nvm'
 brew 'openconnect'
 #brew 'openssh'
