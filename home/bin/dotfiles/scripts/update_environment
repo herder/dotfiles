@@ -68,6 +68,9 @@ brew bundle --file=$TEMP_BREWFILE
 echo "Upgrading casks..."
 brew cu -a -y
 
+echo "Upgrading docker-machine..."
+docker-machine upgrade
+
 echo "Updating yadr..."
 cd $HOME/.yadr
 git checkout -f
