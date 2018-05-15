@@ -3,6 +3,7 @@ export INPUTRC=$SSHHOME/.sshrc.d/.inputrc
 export SCREENRC=$SSHHOME/.sshrc.d/.screenrc
 export VISUAL=vim
 export EDITOR=vim
+export PSQLRC=$SSHHOME/.sshrc.d/.psqlrc
 export PATH="PATH:$HOME/.local/bin:$PATH"
 export ZDOTDIR=$SSHHOME/.sshrc.d/
 set show-mode-in-prompt on
