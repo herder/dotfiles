@@ -20,6 +20,7 @@ tap 'pivotal/tap'
 tap 'cloudfoundry/tap'
 brew 'springboot'
 
+brew 'agda'
 brew 'ant'
 brew 'avro-tools'
 brew 'asciinema'
