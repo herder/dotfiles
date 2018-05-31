@@ -1,0 +1,6 @@
+for i in `ls $SSHHOME/.sshrc.d/hosts/*` ; do
+  if [[ $HOSTNAME == *"`basename $i`" ]]; then
+    echo "Applying config for $HOSTNAME from file $i"
+    source $i
+  fi
+done

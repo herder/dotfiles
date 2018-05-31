@@ -10,6 +10,8 @@ set show-mode-in-prompt on
 set -o vi
 bind '"jk":vi-movement-mode'
 source $SSHHOME/.sshrc.d/.domains
+source $SSHHOME/.sshrc.d/.hosts
+
 
 tmuxrc() {
     local TMUXDIR=/tmp/sshrc-tmuxserver
