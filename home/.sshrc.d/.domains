@@ -1,5 +1,5 @@
 DOMAIN=`grep domain /etc/resolv.conf | cut -d ' ' -f2`
-for i in `ls $SSHHOME/.sshrc.d/domains/*` ; do
+for i in `find $SSHHOME/.sshrc.d/domains/ -type f` ; do
   if [[ $DOMAIN == *"`basename $i`" ]]; then
     echo "Applying config for $DOMAIN from file $i"
     source $i
