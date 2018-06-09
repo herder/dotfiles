@@ -12,24 +12,6 @@ if [[ $OSTYPE == "darwin"* ]] ; then
   xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
 fi
 
-echo "Ensuring latest Ruby version..."
-rbenv install -l | grep -v - | tail -1 | xargs rbenv install
-rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
-
-echo "Updating Ruby Gems..."
-sudo gem update --system
-gem update
-
-echo "Ensuring latest Python version..."
-pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
-pyenv versions | tail -n1 | grep -v '*' | xargs pyenv global
-
-echo "Ensuring latest npm version..."
-source $HOME/.zsh.after/nvm.zsh && nvm install-latest-npm
-
-echo "Adding any new JVMs on the system to jenv..."
-for i in /Library/Java/JavaVirtualMachines/* ; do echo 'n' | jenv add $i/Contents/Home > /dev/null; done
-
 echo "Updating Homebrew packages..."
 brew update
 
@@ -67,6 +49,25 @@ brew bundle --file=$TEMP_BREWFILE
 
 echo "Upgrading casks..."
 brew cu -a -y
+
+echo "Ensuring latest Ruby version..."
+rbenv install -l | grep -v - | tail -1 | xargs rbenv install
+rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
+
+echo "Updating Ruby Gems..."
+sudo gem update --system
+gem update
+
+echo "Ensuring latest Python version..."
+pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
+pyenv versions | tail -n1 | grep -v '*' | xargs pyenv global
+
+echo "Ensuring latest npm version..."
+source $HOME/.zsh.after/nvm.zsh && nvm install-latest-npm
+
+echo "Adding any new JVMs on the system to jenv..."
+for i in /Library/Java/JavaVirtualMachines/* ; do echo 'n' | jenv add $i/Contents/Home > /dev/null; done
+
 
 echo "Upgrading docker-machine..."
 docker-machine upgrade
