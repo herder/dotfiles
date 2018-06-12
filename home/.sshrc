@@ -25,3 +25,12 @@ tmuxrc() {
 }
 export SHELL=`which bash`
 alias tmux='tmuxrc'
+
+if [[ ! -d ~/.fzf/ ]]; then
+  git clone https://github.com/junegunn/fzf.git ~/.fzf/
+  cd ~/.fzf
+  ./install --all
+  cd -
+fi
+source ~/.fzf.bash
+

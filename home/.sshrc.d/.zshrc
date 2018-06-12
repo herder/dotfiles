@@ -48,3 +48,11 @@ zle -N edit-command-line
 if [[ "$RPS1" == "" && "$RPROMPT" == "" ]]; then
   RPS1='$(vi_mode_prompt_info)'
 fi
+
+if [[ ! -d ~/.fzf/ ]]; then
+  git clone https://github.com/junegunn/fzf.git ~/.fzf/
+  cd ~/.fzf
+  ./install -all
+  cd ~
+fi
+source ~/.fzf.bash
