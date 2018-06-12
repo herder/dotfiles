@@ -6,7 +6,7 @@ export EDITOR=vim
 export PSQLRC=$SSHHOME/.sshrc.d/.psqlrc
 export PATH="PATH:$HOME/.local/bin:$PATH"
 export ZDOTDIR=$SSHHOME/.sshrc.d/
-set show-mode-in-prompt on
+bind 'set show-mode-in-prompt on'
 set -o vi
 bind '"jk":vi-movement-mode'
 source $SSHHOME/.sshrc.d/.domains
