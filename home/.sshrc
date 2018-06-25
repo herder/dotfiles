@@ -9,12 +9,14 @@ export ZDOTDIR=$SSHHOME/.sshrc.d/
 bind 'set show-mode-in-prompt on'
 set -o vi
 bind '"jk":vi-movement-mode'
+rsync -ar --delete $SSHHOME/.sshrc.d/ $HOME/.sshrc.d
 source $SSHHOME/.sshrc.d/.bash_profile
 source $SSHHOME/.sshrc.d/.bash_prompt.sh
 source $SSHHOME/.sshrc.d/.domains
 source $SSHHOME/.sshrc.d/.hosts
 
-
+command -v lessopen && export LESSOPEN="|lesspipe.sh %s";
+command -v lesspipe && eval $(lesspipe)
 tmuxrc() {
     local TMUXDIR=/tmp/sshrc-tmuxserver
     if ! [ -d $TMUXDIR ]; then
@@ -37,4 +39,3 @@ fi
 source ~/.fzf.bash
 
 cp -f $SSHHOME/.sshrc ~
-rsync -ar --delete $SSHHOME/.sshrc.d/ $HOME/.sshrc.d
