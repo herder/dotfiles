@@ -15,8 +15,8 @@ source $SSHHOME/.sshrc.d/.bash_prompt.sh
 source $SSHHOME/.sshrc.d/.domains
 source $SSHHOME/.sshrc.d/.hosts
 
-command -v lessopen && export LESSOPEN="|lesspipe.sh %s";
-command -v lesspipe && eval $(lesspipe)
+command -v lessopen 2>&1 > /dev/null && export LESSOPEN="|lesspipe.sh %s";
+command -v lesspipe 2>&1 > /dev/null && eval $(lesspipe)
 tmuxrc() {
     local TMUXDIR=/tmp/sshrc-tmuxserver
     if ! [ -d $TMUXDIR ]; then
