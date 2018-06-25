@@ -7,6 +7,8 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * :PlugInstall --sync
 endif
 
+silent !mkdir -p ~/.vim_undo
+set undodir=~/.vim_undo
 call plug#begin('~/.vim/plugged')
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
