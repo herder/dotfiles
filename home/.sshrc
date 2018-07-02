@@ -9,11 +9,11 @@ export ZDOTDIR=$SSHHOME/.sshrc.d/
 bind 'set show-mode-in-prompt on'
 set -o vi
 bind '"jk":vi-movement-mode'
+
+#Make sure sshrc config is transferred to new host
+alias con='sshrc'
+cp -f $SSHHOME/.sshrc ~
 rsync -ar --delete $SSHHOME/.sshrc.d/ $HOME/.sshrc.d
-source $SSHHOME/.sshrc.d/.bash_profile
-source $SSHHOME/.sshrc.d/.bash_prompt.sh
-source $SSHHOME/.sshrc.d/.domains
-source $SSHHOME/.sshrc.d/.hosts
 
 command -v lessopen 2>&1 > /dev/null && export LESSOPEN="|lesspipe.sh %s";
 command -v lesspipe 2>&1 > /dev/null && eval $(lesspipe)
@@ -36,6 +36,11 @@ if [[ ! -d ~/.fzf/ ]]; then
   ./install --all
   cd -
 fi
+
+source $SSHHOME/.sshrc.d/.bash_profile
+source $SSHHOME/.sshrc.d/.bash_prompt.sh
+source $SSHHOME/.sshrc.d/.domains
+source $SSHHOME/.sshrc.d/.hosts
 source ~/.fzf.bash
 
 cp -f $SSHHOME/.sshrc ~
