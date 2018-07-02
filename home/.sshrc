@@ -30,6 +30,7 @@ tmuxrc() {
 export SHELL=`which bash`
 alias tmux='tmuxrc'
 
+#Install FZF if needed
 if [[ ! -d ~/.fzf/ ]]; then
   git clone https://github.com/junegunn/fzf.git ~/.fzf/
   cd ~/.fzf
@@ -43,4 +44,5 @@ source $SSHHOME/.sshrc.d/.domains
 source $SSHHOME/.sshrc.d/.hosts
 source ~/.fzf.bash
 
-cp -f $SSHHOME/.sshrc ~
+#Enable tab completion for the 'con' alias
+complete -f con ssh
