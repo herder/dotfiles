@@ -61,7 +61,7 @@ function prompt_command() {
 
 	# Show hostname inside SSH session
 	local host_prompt=
-	[ -n "$remote" ] && host_prompt="@$YELLOW$HOSTNAME$NOCOLOR"
+	[ -n "$remote" ] && host_prompt="@${COLOR:-$YELLOW}$HOSTNAME$NOCOLOR"
 
 	# Show delimiter if user or host visible
 	local login_delimiter=
