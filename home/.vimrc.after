@@ -7,3 +7,15 @@ if executable('rg')
   let g:ctrlp_use_caching = 0
 endif
 set wildignore+=*/.git/*,*/tmp/*,*.swp
+"
+" ================ Persistent Undo ==================
+" Keep undo history across sessions, by storing in file.
+" Only works all the time.
+if has('persistent_undo') && isdirectory(expand('~').'/.vim_undo')
+  silent !mkdir ~/.vim_undo > /dev/null 2>&1
+  set undodir=~/.vim_undo
+  set undofile
+endif
+
+
+nnoremap Q @@
