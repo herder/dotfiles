@@ -4,7 +4,7 @@ export SCREENRC=$SSHHOME/.sshrc.d/.screenrc
 export VISUAL=vim
 export EDITOR=vim
 export PSQLRC=$SSHHOME/.sshrc.d/.psqlrc
-export PATH="PATH:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 export ZDOTDIR=$SSHHOME/.sshrc.d/
 bind 'set show-mode-in-prompt on'
 set -o vi
