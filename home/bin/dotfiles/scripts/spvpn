@@ -1,0 +1,15 @@
+#!/bin/bash -xe
+
+# Dependencies: strongswan >= 5.1
+
+
+USER=niklash
+AUTOSITE=$(dig +short clientvpn.gslb.spotify.com | head -n1 | grep -oE '(sto|ash|sjc|lon)');
+SITE=${1:-$AUTOSITE};
+echo connecting $USER to $SITE
+sudo ipsec stroke user-creds clientvpn-$SITE $USER && sudo ipsec up clientvpn-$SITE;
+if sudo ipsec status | grep --color=auto ESTABLISHED > /dev/null; then
+    echo -e '\e[0;32m\033[1mSuccess\033[0m!';
+else
+    echo -e '\e[0;31m\033[1mError\033[0m';
+fi
