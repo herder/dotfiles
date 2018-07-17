@@ -26,7 +26,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'https://github.com/vim-airline/vim-airline'
 Plug 'https://github.com/vim-airline/vim-airline-themes'
-Plug 'chrisbra/csv.vim'
+Plug 'vim-scripts/csv.vim', {'for': 'csv'}
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'vim-syntastic/syntastic'
