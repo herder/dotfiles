@@ -2,7 +2,7 @@
 
 if [ ! -e "$HOME/.yadr" ]; then
 echo ".yadr dir not found, installing..."
-sh -c "`curl -fsSL https://raw.githubusercontent.com/skwp/dotfiles/master/install.sh `"
+sh -c "`curl -fsSL https://raw.githubusercontent.com/herder/dotfiles-1/master/install.sh `"
 fi
 cd ~/.yadr
 git pull --rebase
