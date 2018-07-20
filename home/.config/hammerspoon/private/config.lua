@@ -27,7 +27,7 @@ hsapp_list = {
     {key = 'm', name = 'Wavebox'},
 --    {key = 'p', name = 'mpv'},
     {key = 's', name = 'Spotify'},
-    {key = 't', name = 'iTerm'},
+    {key = 't', name = 'Alacritty'},
     {key = 'v', id = 'com.apple.ActivityMonitor'},
     {key = 'w', name = 'Wunderlist'},
     {key = 'y', id = 'com.apple.systempreferences'},
