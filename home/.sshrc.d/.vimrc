@@ -31,4 +31,5 @@ Plug 'junegunn/fzf.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'rust-lang/rust.vim', {'for': 'rust'}
+Plug 'elzr/vim-json', {'for': 'json'}
 call plug#end()
