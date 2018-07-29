@@ -23,13 +23,15 @@ call plug#begin('~/.vim/plugged')
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-speeddating'
+Plug 'tpope/vim-endwise' 
+Plug 'tpope/vim-unimpaired'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'https://github.com/vim-airline/vim-airline'
 Plug 'https://github.com/vim-airline/vim-airline-themes'
 Plug 'vim-scripts/csv.vim', {'for': 'csv'}
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/limelight.vim'
-Plug 'vim-syntastic/syntastic'
-Plug 'rust-lang/rust.vim', {'for': 'rust'}
-Plug 'elzr/vim-json', {'for': 'json'}
+Plug 'w0rp/ale'
+Plug 'sheerun/vim-polyglot'
+Plug 'airblade/vim-gitgutter'
 call plug#end()
