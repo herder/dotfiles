@@ -1,0 +1,16 @@
+*~
+*un~
+.netrwhist
+*.swp
+.VimballRecord
+view
+.netrwhist
+autoload
+backups
+bundle
+plugged
+sessions
+spell
+tmp
+view
+tags
