@@ -56,3 +56,8 @@ if [[ ! -d ~/.fzf/ ]]; then
   cd ~
 fi
 source ~/.fzf.bash
+
+if [[ ! -d ~/.tmux/plugins/tmp ]]; then
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
+

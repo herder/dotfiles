@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+pyenv virtualenv 3.7.0 vim
