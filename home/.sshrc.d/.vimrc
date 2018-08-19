@@ -1,4 +1,9 @@
 :set number relativenumber
+set nocompatible
+
+
+let mapleader=","
+
 :inoremap jk <esc>
 
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -25,13 +30,16 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-endwise' 
 Plug 'tpope/vim-unimpaired'
+Plug 'Lokaltog/vim-easymotion'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'https://github.com/vim-airline/vim-airline'
 Plug 'https://github.com/vim-airline/vim-airline-themes'
-Plug 'vim-scripts/csv.vim', {'for': 'csv'}
+" Plug 'vim-scripts/csv.vim', {'for': 'csv'}
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'w0rp/ale'
 Plug 'sheerun/vim-polyglot'
 Plug 'airblade/vim-gitgutter'
 call plug#end()
+
+so $SSHHOME/.sshrc.d/vim/settings.vim
