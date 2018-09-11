@@ -25,21 +25,23 @@ endif
 :let g:csv_delim_test = ',;|'
 
 call plug#begin('~/.vim/plugged')
-Plug 'tpope/vim-sensible'
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-speeddating'
-Plug 'tpope/vim-endwise' 
-Plug 'tpope/vim-unimpaired'
+" Plug 'vim-scripts/csv.vim', {'for': 'csv'}
 Plug 'Lokaltog/vim-easymotion'
+Plug 'airblade/vim-gitgutter'
+Plug 'christoomey/vim-tmux-navigator'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'https://github.com/vim-airline/vim-airline'
 Plug 'https://github.com/vim-airline/vim-airline-themes'
-" Plug 'vim-scripts/csv.vim', {'for': 'csv'}
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/limelight.vim'
-Plug 'w0rp/ale'
 Plug 'sheerun/vim-polyglot'
-Plug 'airblade/vim-gitgutter'
+Plug 'tomtom/tcomment_vim'
+Plug 'tpope/vim-endwise' 
+Plug 'tpope/vim-sensible'
+Plug 'tpope/vim-speeddating'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-unimpaired'
+Plug 'w0rp/ale'
 call plug#end()
 
 so $SSHHOME/.sshrc.d/vim/settings.vim
