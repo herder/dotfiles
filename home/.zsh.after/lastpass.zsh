@@ -1,7 +1,7 @@
 
 function pwcopy() {
   lpass sync
-  local acct=$(lpass ls | fzf | awk '{print $(NF)}' | sed 's/\]//g')
+  local acct=$(lpass ls --long | fzf | awk '{print $(NF-2)}' | sed 's/\]//g')
   if [ ! -z $acct ]; then
     lpass show -c --password "$acct"
   fi
