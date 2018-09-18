@@ -22,7 +22,7 @@ brew 'springboot'
 
 brew 'agda'
 brew 'ant'
-brew 'avro-tools'
+brew 'gcs-avro-tools'
 brew 'asciinema'
 brew 'asciinema2gif'
 brew 'aws-shell'
