@@ -13,3 +13,4 @@ fco() {
   git checkout $(echo "$target" | awk '{print $2}')
 }
 alias git='noglob lab'
+compdef lab=git
