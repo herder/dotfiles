@@ -1,6 +1,8 @@
 [user]
 	name = Niklas Herder
   useConfigOnly = true
+[fetch]
+  prune = true
 [pull]
 	rebase = true
 [hub]
