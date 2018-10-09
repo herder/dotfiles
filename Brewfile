@@ -7,6 +7,9 @@ brew 'todoist'
 tap 'caskroom/versions'
 tap 'caskroom/fonts'
 
+tap 'typelead/eta'
+brew 'etlas'
+
 tap 'buo/cask-upgrade'
 cask 'font-hasklig'
 cask 'font-hack'
