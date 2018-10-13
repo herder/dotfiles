@@ -105,6 +105,7 @@ brew 'tmuxinator-completion'
 brew 'typescript'
 brew 'unrar'
 brew 'vim', args: [ "--with-override-system-vi", "--with-lua"]
+brew 'vit'
 brew 'watch'
 brew 'weechat', args: ["--with-aspell", "--with-curl", "--with-python", "--with-perl", "--with-ruby", "--with-lua", "--with-guile"]
 brew 'wget'
