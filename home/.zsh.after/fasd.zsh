@@ -15,7 +15,7 @@ unalias j 2>/dev/null
 j() {
     [ $# -gt 0 ] && fasd_cd -d "$*" && return
     local dir
-    dir="$(fasd -Rdl "$1" | fzf -1 -0 --no-sort +m)" && cd "${dir}" || return 1
+    dir="$(fasd -Rdl "$1" | fzf-tmux -1 -0 --no-sort +m)" && cd "${dir}" || return 1
 }
 
 # fasd & fzf - use $EDITOR to edit file. Pick best matched file using `fasd`
@@ -24,7 +24,7 @@ unalias e 2>/dev/null
 e() {
     [ $# -gt 0 ] && fasd -f -e ${EDITOR} "$*" && return
     local file
-    file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)" && ${EDITOR} "${file}" || return 1
+    file="$(fasd -Rfl "$1" | fzf-tmux -1 -0 --preview 'bat {}' --no-sort +m)" && ${EDITOR} "${file}" || return 1
 }
 
 # fe [FUZZY PATTERN] - Open the selected file with the default editor
@@ -42,7 +42,7 @@ unalias o 2>/dev/null
 o() {
     [ $# -gt 0 ] && fasd -a -e open "$*" && return
     local res
-    res="$(fasd -Rla "$1" | fzf -1 -0 --no-sort +m)"
+    res="$(fasd -Rla "$1" | fzf-tmux -1 -0 --no-sort +m)"
     if [[ -d "${res}" ]]; then
        open "${res}"
     else
