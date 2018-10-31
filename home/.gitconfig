@@ -94,7 +94,7 @@
 [mergetool]
   prompt = false
 [mergetool "mvimdiff"]
-  cmd="vim -c 'Gdiff' $MERGED"     # use fugitive.vim for 3-way merge
+  cmd="nvim -c 'Gdiff' $MERGED"     # use fugitive.vim for 3-way merge
   keepbackup=false
 [merge]
   summary = true
@@ -110,7 +110,7 @@
   default = upstream
 [core]
   autocrlf = input
-  editor = vim
+  editor = nvim
   excludesfile = ~/.yadr/git/gitignore
 [advice]
   statusHints = false
@@ -125,3 +125,5 @@
   enabled = true
 [include]
   path = .gitconfig.user
+[user]
+	name = Niklas Herder
