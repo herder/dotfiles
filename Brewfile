@@ -7,6 +7,8 @@ brew 'todoist'
 tap 'caskroom/versions'
 tap 'caskroom/fonts'
 
+brew 'heroku/brew/heroku'
+
 tap 'typelead/eta'
 brew 'etlas'
 
