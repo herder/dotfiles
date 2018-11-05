@@ -3,6 +3,7 @@ brew 'spotify/sptaps/hmtools'
 brew 'helios'
 brew 'styx-cli'
 brew 'hades-cli'
+brew 'data-endpoints-cli'
 
 tap 'spotify/public'
 brew 'scio'
