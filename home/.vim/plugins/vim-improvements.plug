@@ -1,6 +1,12 @@
 Plug 'AndrewRadev/splitjoin.vim'
-Plug 'Raimondi/delimitMate'
-Plug 'Shougo/neocomplete'
+" Plug 'Raimondi/delimitMate'
+if has('nvim')
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+else
+  Plug 'Shougo/deoplete.nvim'
+  Plug 'roxma/nvim-yarp'
+  Plug 'roxma/vim-hug-neovim-rpc'
+endif
 Plug 'briandoll/change-inside-surroundings.vim'
 Plug 'godlygeek/tabular'
 Plug 'tomtom/tcomment_vim'
@@ -10,7 +16,7 @@ Plug 'kristijanhusak/vim-multiple-cursors'
 Plug 'Keithbsmiley/investigate.vim'
 Plug 'chrisbra/NrrwRgn'
 Plug 'christoomey/vim-tmux-navigator'
-Plug 'MarcWeber/vim-addon-mw-utils'
+" Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'bogado/file-line'
 Plug 'mattn/webapi-vim'
 Plug 'sjl/gundo.vim'
@@ -27,5 +33,5 @@ Plug 'vim-scripts/AutoTag'
 Plug 'vim-scripts/lastpos.vim'
 Plug 'vim-scripts/sudo.vim'
 Plug 'goldfeld/ctrlr.vim'
-"Plug 'editorconfig/editorconfig-vim'
+Plug 'editorconfig/editorconfig-vim'
 
