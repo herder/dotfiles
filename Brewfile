@@ -79,7 +79,6 @@ brew 'maven'
 brew 'minicom'
 brew 'netcat'
 brew 'neovim'
-brew 'nexus', restart_service: true
 brew 'nvm'
 brew 'openconnect'
 #brew 'openssh'
