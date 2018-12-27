@@ -83,6 +83,8 @@ git pull --rebase --recurse-submodules=true
 gem install bundle
 rake update
 
+bundle install --gemfile $DOTFILES_PATH/gem/Gemfile
+
 echo "Pulling secrets"
 homesick pull secrets
 echo "Pulling dotfiles"
