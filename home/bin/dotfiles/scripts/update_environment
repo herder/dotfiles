@@ -61,7 +61,7 @@ gem update
 
 echo "Ensuring latest Python version..."
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
-pyenv versions | tail -n1 | grep -v '*' | xargs pyenv global
+pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 
 echo "Upgrading pip packages..."
 pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
