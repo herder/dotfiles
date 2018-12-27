@@ -54,3 +54,4 @@ export CLICOLOR=1
 
 [ -n "$LESSPIPE" ] && export LESSOPEN="| ${LESSPIPE} %s"
 
+for config_file in $SSHHOME/.sshrc.d/include/bash/*.bash; do echo "Sourcing $config_file";  source $config_file; done
