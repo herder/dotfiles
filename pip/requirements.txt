@@ -1,4 +1,4 @@
-neovim
+pynvim
 msgpack
 python-language-server
 greenlet
