@@ -1,4 +1,5 @@
 .config/hammerspoon
 .config/nvim
 .config/tmuxinator
+.config/alacritty
 bin/dotfiles/scripts
