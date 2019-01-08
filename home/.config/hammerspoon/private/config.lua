@@ -72,7 +72,7 @@ hsman_keys = {"alt", "H"}
 hscountdM_keys = {"alt", "I"}
 
 -- Lock computer's screen
-hslock_keys = {"alt", "L"}
+hslock_keys = {{"ctrl","alt"}, "L"}
 
 -- resizeM environment keybinding: Windows manipulation
 hsresizeM_keys = {"alt", "R"}
