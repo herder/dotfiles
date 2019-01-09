@@ -6,6 +6,6 @@ function add_key {
    ssh-add -l |grep -q `ssh-keygen -lf $key  | awk '{print $2}'` || ssh-add -K "$key"
 }
 
-for i in `gfind ~/.ssh/keys -type f | egrep -v '.pub$'` ; do add_key "$i" ; done
+for i in `find ~/.ssh/keys -type f | egrep -v '.pub$'` ; do add_key "$i" ; done
 
 
