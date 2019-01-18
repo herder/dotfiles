@@ -94,3 +94,6 @@ homesick link dotfiles
 
 echo "Cleaning up..."
 brew cleanup
+echo "Removing dangling symlinks..."
+find $HOME -type l -exec test ! -e {} \; -print | xargs rm
+echo "All done!"
