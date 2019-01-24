@@ -1,5 +1,6 @@
 export PATH="$HOME/.jenv/shims:${PATH}"
-source "/usr/local/Cellar/jenv/0.4.4/libexec/libexec/../completions/jenv.zsh"
+
+source "/usr/local/var/homebrew/linked/jenv/libexec/completions/jenv.zsh"
 jenv rehash 2>/dev/null
 export JENV_LOADED=1
 unset JAVA_HOME
