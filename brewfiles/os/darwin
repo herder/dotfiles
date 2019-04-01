@@ -5,6 +5,9 @@ mas 'Xcode', id: 497799835
 mas 'Wunderlist', id: 410628904
 mas 'Todoist', id: 585829637
 
+tap 'crisidev/homebrew-chunkwm'
+brew 'chunkwm', args: ["--with-tmp-logging"]
+brew 'koekeishiya/formulae/skhd', args: ["--with-logging"]
 #Needed by Inkscape among others
 cask 'xquartz'
 
