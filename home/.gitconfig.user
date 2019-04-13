@@ -1,6 +1,9 @@
 [user]
 	name = Niklas Herder
   useConfigOnly = true
+  signingkey = 58005EEFAA62E835
+[commit]
+  gpgsign = true
 [fetch]
   prune = true
 [pull]
