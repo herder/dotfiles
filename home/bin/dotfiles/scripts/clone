@@ -14,7 +14,7 @@ f="${f#ftp://}"
 f="${f#scp://}"
 f="${f#scp://}"
 f="${f#sftp://}"
- 
+
 ## Remove username and/or username:password part of URL  ##
 f="${f#*:*@}"
 f="${f#*@}"
@@ -30,10 +30,10 @@ fi
 
 ## Resolve site and user
 SITE_AND_USER="${f%/*}"
-if grep ':' <<<"$SITE_AND_USER" >/dev/null ; then 
+if grep ':' <<<"$SITE_AND_USER" >/dev/null ; then
   GIT_USER="${SITE_AND_USER#*:}"
   SITE="${SITE_AND_USER%:*}"
-else 
+else
   GIT_USER="${SITE_AND_USER##*/}"
   SITE="${SITE_AND_USER%/*}"
 fi
