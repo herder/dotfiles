@@ -2,4 +2,9 @@
 .config/nvim
 .config/tmuxinator
 .config/alacritty
+.config/feh
+.config/i3-regolith
+.config/i3blocks
+.config/compton
+.config/rofi
 bin/dotfiles/scripts
