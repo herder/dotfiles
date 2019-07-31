@@ -168,7 +168,7 @@ fi
       dir_writable dir vcs)
 
   typeset -ga POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
-      status command_execution_time root_indicator background_jobs custom_rprompt time)
+      virtualenv status command_execution_time root_indicator background_jobs custom_rprompt time)
 
   if (( ${PURE_POWER_USE_P10K_EXTENSIONS:-1} )); then
     local p="\${\${\${KEYMAP:-0}:#vicmd}:+${${vi_insert//\\/\\\\}//\}/\\\}}}"
@@ -244,6 +244,8 @@ fi
   typeset -g POWERLEVEL9K_CUSTOM_RPROMPT=custom_rprompt
   typeset -g POWERLEVEL9K_CUSTOM_RPROMPT_BACKGROUND=none
   typeset -g POWERLEVEL9K_CUSTOM_RPROMPT_FOREGROUND=012
+
+  typeset -g POWERLEVEL9K_VIRTUALENV_BACKGROUND=none
 
   function custom_rprompt() {}  # redefine this to show stuff in custom_rprompt segment
 } "$@"
