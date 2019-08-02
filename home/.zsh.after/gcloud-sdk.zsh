@@ -1,4 +1,5 @@
-source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc'
-source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc'
+GCLOUD_HOME="/usr/share/google-cloud-sdk"
+# source '$GCLOUD_HOME/path.zsh.inc'
+source "$GCLOUD_HOME/completion.zsh.inc"
 
 
