@@ -243,7 +243,7 @@ focus_follows_mouse no
 bar {
   font pango:Deja Vu Sans Medium 12
   separator_symbol "|"
-  status_command i3blocks
+  status_command SCRIPT_DIR=$HOME/src/git/github.com/vivien/i3blocks-contrib i3blocks
   tray_output none
 
   colors {
@@ -261,7 +261,7 @@ bar {
 # Run other programs with i3
 
 # Composite manager
-exec --no-startup-id compton -f --config /etc/xdg/compton.conf
+exec --no-startup-id compton -f --config $HOME/.config/compton/compton.conf
 
 # Lanuch the shortcut Conky window on first login
 exec --no-startup-id /usr/bin/regolith-ftue.sh
