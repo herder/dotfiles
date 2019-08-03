@@ -331,7 +331,82 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  (setq org-agenda-files (list "~/org" "~/org/personal" "~/org/work"))
+
+  (require 'org-protocol)
+  (server-start)
+  (with-eval-after-load 'org
+    (add-to-list 'org-modules 'org-protocol)
+    )
+
+  (with-eval-after-load 'evil (
+                               evil-set-initial-state 'org-brain-visualize-mode 'emacs)
+                        )
+
+  (setq-default dotspacemacs-configuration-layers
+                '((auto-completion :variables
+                                   auto-completion-enable-snippets-in-popup t
+                                   auto-completion-complete-with-key-sequence jk)))
+  (setq rust-format-on-save t)
+  (setq magit-repository-directories (list "~/src/git/"))
+  (setq org-todo-keywords
+        (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+          (sequence "WAITING(w)" "HOLD(h)" "|" "CANCELLED(c)" "PHONE" "MEETING"))))
+
+  (setq org-agenda-files (list "~/org" "~/org/personal" "~/org/work" "~/org/brain"))
+
+  (setq org-link-file-path-type 'adaptive)
+  ;; Allow automatically handing of created/expired meta data.
+  (require 'org-expiry)
+  ;; Configure it a bit to my liking
+  (setq
+   ;; Name of property when an item is created
+   org-expiry-created-property-name "CREATED"
+   ;; Don't show everything in the agenda view
+   org-expiry-inactive-timestamps   t)
+  (defun mrb/insert-created-timestamp()
+    "Insert a CREATED property using org-expiry.el for TODO entries"
+    (org-expiry-insert-created)
+    (org-back-to-heading)
+    (org-end-of-line)
+    (insert " "))
+  ;; Automatically add tags when state changes occur
+  (setq org-todo-state-tags-triggers
+        (quote (("CANCELLED" ("CANCELLED" . t))
+                ("WAITING" ("WAITING" . t))
+                ("HOLD" ("WAITING") ("HOLD" . t))
+                (done ("WAITING") ("HOLD"))
+                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+
+  (setq org-agenda-custom-commands
+        '(
+          ("n" todo "NEXT")
+          ("w" todo "WAITING")
+          ("c" todo "CANCELLED")
+          ("d" "Agenda + Next Actions" ((agenda) (todo "NEXT")))
+          )
+        )
+
+  ;; Source: https://www.suenkler.info/docs/emacs-orgmode/
+  (setq org-capture-templates
+        (quote(
+                                    ;; Create Todo under GTD.org -> Work -> Tasks
+                                    ;; file+olp specifies to full path to fill the Template
+                                    ("w" "Work TODO" entry (file+olp "~/org/GTD.org" "Work" "Tasks")
+                                     "* TODO %? \n:PROPERTIES:\n:CREATED: %U\n:END:")
+                                    ;; Create Todo under GTD.org -> Private -> Tasks
+                                    ;; file+olp specifies to full path to fill the Template
+                                    ("p" "Private TODO" entry (file+olp "~/org/GTD.org" "Private" "Tasks")
+                                     "* TODO %? \n:PROPERTIES:\n:CREATED: %U\n:END:")
+                                    ("P" "Protocol" entry (file+headline "~/org/refile.org" "Inbox")
+                                     "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
+                                    ("L" "Protocol Link" entry (file+headline "~/org/refile.org" "Inbox")
+                                     "* %? [[%:link][%:description]] \nCaptured On: %U")
+                                    )
+              )
+        )
+
 )
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -350,3 +425,24 @@ you should place your code here."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(defun dotspacemacs/emacs-custom-settings ()
+  "Emacs custom settings.
+This is an auto-generated function, do not modify its content directly, use
+Emacs customize menu instead.
+This function is called at the very end of Spacemacs initialization."
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files (list "~/org" "~/org/work" "~/org/personal"))
+ '(package-selected-packages
+   (quote
+    (yasnippet-snippets proof-general org-brain doom-modeline attrap clojure-mode counsel swiper ivy lsp-mode treemacs company-web auto-yasnippet ac-ispell helm-company helm-c-yasnippet fuzzy web-completion-data company-statistics company yasnippet auto-complete flycheck-pos-tip pos-tip flycheck web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode ox-gfm unfill mwim smeargle orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct evil-magit magit transient git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+)
