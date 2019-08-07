@@ -41,6 +41,9 @@ values."
      coq
      helm
      auto-completion
+     (auto-completion :variables
+                        auto-completion-enable-snippets-in-popup t
+                        auto-completion-complete-with-key-sequence "jk")
      better-defaults
      csv
      clojure
