@@ -58,7 +58,11 @@ values."
      kotlin
      markdown
      org
-     (org :variables org-enable-github-support t)
+     (org :variables
+          org-enable-hugo-support t
+          org-enable-jira-support t
+          org-enable-reveal-js-support t
+          org-enable-github-support t)
      rust
      ;; (shell :variables
      ;;        shell-default-height 30
