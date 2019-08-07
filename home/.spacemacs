@@ -76,6 +76,8 @@ values."
    dotspacemacs-additional-packages '()
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
+
+   dotspacemacs-use-spacelpa t
    ;; A list of packages that will not be installed and loaded.
    dotspacemacs-excluded-packages '()
    ;; Defines the behaviour of Spacemacs when installing packages.
@@ -93,6 +95,15 @@ This function is called at the very startup of Spacemacs initialization
 before layers configuration.
 You should not put any user code in there besides modifying the variable
 values."
+
+; Some combination of GNU TLS and Emacs fail to retrieve archive
+; contents over https.
+; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/etw48ux
+; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=34341
+(if (and (version< emacs-version "26.3") (>= libgnutls-version 30600))
+    (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+)
+
   ;; This setq-default sexp is an exhaustive list of all the supported
   ;; spacemacs settings.
   (setq-default
