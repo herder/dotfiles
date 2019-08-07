@@ -352,25 +352,25 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
-  (require 'org-protocol)
-  (server-start)
-  (with-eval-after-load 'org
-    (add-to-list 'org-modules 'org-protocol)
-    )
+;; org-mode base configurations
 
-  (with-eval-after-load 'evil (
-                               evil-set-initial-state 'org-brain-visualize-mode 'emacs)
-                        )
-
-  (setq-default dotspacemacs-configuration-layers
-                '((auto-completion :variables
-                                   auto-completion-enable-snippets-in-popup t
-                                   auto-completion-complete-with-key-sequence jk)))
-  (setq rust-format-on-save t)
-  (setq magit-repository-directories (list "~/src/git/"))
-  (setq org-todo-keywords
+   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-          (sequence "WAITING(w)" "HOLD(h)" "|" "CANCELLED(c)" "PHONE" "MEETING"))))
+          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
+
+(setq org-todo-keyword-faces
+      (quote (
+              ("TODO" :foreground "red" :weight bold)
+              ("NEXT" :foreground "yellow" :weight bold)
+              ("DONE" :foreground "forest green" :weight bold)
+              ("WAITING" :foreground "orange" :weight bold)
+              ("HOLD" :foreground "magenta" :weight bold)
+              ("CANCELLED" :foreground "forest green" :weight bold)
+              ("MEETING" :foreground "forest green" :weight bold)
+              ("PHONE" :foreground "forest green" :weight bold)
+              )
+             )
+      )
 
   (setq org-agenda-files (list "~/org" "~/org/personal" "~/org/work" "~/org/brain"))
 
@@ -382,22 +382,27 @@ you should place your code here."
    ;; Name of property when an item is created
    org-expiry-created-property-name "CREATED"
    ;; Don't show everything in the agenda view
-   org-expiry-inactive-timestamps   t)
+   org-expiry-inactive-timestamps  t)
   (defun mrb/insert-created-timestamp()
     "Insert a CREATED property using org-expiry.el for TODO entries"
     (org-expiry-insert-created)
     (org-back-to-heading)
     (org-end-of-line)
     (insert " "))
+
   ;; Automatically add tags when state changes occur
   (setq org-todo-state-tags-triggers
-        (quote (("CANCELLED" ("CANCELLED" . t))
+        (quote (
+                ("CANCELLED" ("CANCELLED" . t))
                 ("WAITING" ("WAITING" . t))
                 ("HOLD" ("WAITING") ("HOLD" . t))
                 (done ("WAITING") ("HOLD"))
                 ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
                 ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))
+                )
+               )
+        )
 
   (setq org-agenda-custom-commands
         '(
