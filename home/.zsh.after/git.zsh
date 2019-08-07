@@ -12,5 +12,6 @@ fco() {
     fzf-tmux -l30 -- --no-hscroll --ansi +m -d "\t" -n 2) || return
   git checkout $(echo "$target" | awk '{print $2}')
 }
-alias git='noglob lab'
+alias git='noglob hub'
+compdef hub=git
 compdef lab=git
