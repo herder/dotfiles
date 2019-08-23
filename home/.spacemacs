@@ -354,6 +354,13 @@ you should place your code here."
 
 ;; org-mode base configurations
 
+  ;; Auto refresh files when they have changed
+  (global-auto-revert-mode t)
+
+  (setq org-enforce-todo-checkbox-dependencies t)
+
+  (setq org-enforce-todo-dependencies t)
+
    (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
           (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
