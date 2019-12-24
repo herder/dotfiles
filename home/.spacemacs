@@ -31,7 +31,8 @@ values."
 
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(ruby
+   '(yaml
+     ruby
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -61,6 +62,8 @@ values."
      (org :variables
           org-enable-hugo-support t
           org-enable-jira-support t
+          jiralib-url "https://jira.spotify.net:443"
+          org-jira-working-dir "~/org/jira"
           org-enable-reveal-js-support t
           org-enable-github-support t)
      rust
@@ -167,8 +170,8 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(zen-and-art
-                        spacemacs-dark
+   dotspacemacs-themes '(spacemacs-dark
+                         zen-and-art
                          spacemacs-light)
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -250,7 +253,7 @@ values."
    dotspacemacs-enable-paste-transient-state nil
    ;; Which-key delay in seconds. The which-key buffer is the popup listing
    ;; the commands bound to the current keystroke sequence. (default 0.4)
-   dotspacemacs-which-key-delay 0.4
+   dotspacemacs-which-key-delay 0.2
    ;; Which-key frame position. Possible values are `right', `bottom' and
    ;; `right-then-bottom'. right-then-bottom tries to display the frame to the
    ;; right; if there is insufficient space it displays it at the bottom.
@@ -333,7 +336,8 @@ values."
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
    ;; (default nil)
    dotspacemacs-whitespace-cleanup 'trailing
-   ))
+
+  ))
 
 (defun dotspacemacs/user-init ()
   "Initialization function for user code.
@@ -352,107 +356,30 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
-;; org-mode base configurations
 
   ;; Auto refresh files when they have changed
-  (global-auto-revert-mode t)
-
-  (setq org-enforce-todo-checkbox-dependencies t)
-
-  (setq org-enforce-todo-dependencies t)
-
-   (setq org-todo-keywords
-        (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
-
-(setq org-todo-keyword-faces
-      (quote (
-              ("TODO" :foreground "red" :weight bold)
-              ("NEXT" :foreground "yellow" :weight bold)
-              ("DONE" :foreground "forest green" :weight bold)
-              ("WAITING" :foreground "orange" :weight bold)
-              ("HOLD" :foreground "magenta" :weight bold)
-              ("CANCELLED" :foreground "forest green" :weight bold)
-              ("MEETING" :foreground "forest green" :weight bold)
-              ("PHONE" :foreground "forest green" :weight bold)
-              )
-             )
-      )
-
-  (setq org-agenda-files (list "~/org" "~/org/personal" "~/org/work" "~/org/brain"))
-
-  (setq org-link-file-path-type 'adaptive)
-  ;; Allow automatically handing of created/expired meta data.
-  (require 'org-expiry)
-  ;; Configure it a bit to my liking
-  (setq
-   ;; Name of property when an item is created
-   org-expiry-created-property-name "CREATED"
-   ;; Don't show everything in the agenda view
-   org-expiry-inactive-timestamps  t)
-  (defun mrb/insert-created-timestamp()
-    "Insert a CREATED property using org-expiry.el for TODO entries"
-    (org-expiry-insert-created)
-    (org-back-to-heading)
-    (org-end-of-line)
-    (insert " "))
-
-  ;; Automatically add tags when state changes occur
-  (setq org-todo-state-tags-triggers
-        (quote (
-                ("CANCELLED" ("CANCELLED" . t))
-                ("WAITING" ("WAITING" . t))
-                ("HOLD" ("WAITING") ("HOLD" . t))
-                (done ("WAITING") ("HOLD"))
-                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))
-                )
-               )
-        )
-
-  (setq org-agenda-custom-commands
-        '(
-          ("n" todo "NEXT")
-          ("w" todo "WAITING")
-          ("c" todo "CANCELLED")
-          ("d" "Agenda + Next Actions" ((agenda) (todo "NEXT")))
-          )
-        )
-
-  ;; Source: https://www.suenkler.info/docs/emacs-orgmode/
-  (setq org-capture-templates
-        (quote(
-                                    ;; Create Todo under GTD.org -> Work -> Tasks
-                                    ;; file+olp specifies to full path to fill the Template
-                                    ("w" "Work TODO" entry (file+olp "~/org/GTD.org" "Work" "Tasks")
-                                     "* TODO %? \n:PROPERTIES:\n:CREATED: %U\n:END:")
-                                    ;; Create Todo under GTD.org -> Private -> Tasks
-                                    ;; file+olp specifies to full path to fill the Template
-                                    ("p" "Private TODO" entry (file+olp "~/org/GTD.org" "Private" "Tasks")
-                                     "* TODO %? \n:PROPERTIES:\n:CREATED: %U\n:END:")
-                                    ("P" "Protocol" entry (file+headline "~/org/refile.org" "Inbox")
-                                     "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
-                                    ("L" "Protocol Link" entry (file+headline "~/org/refile.org" "Inbox")
-                                     "* %? [[%:link][%:description]] \nCaptured On: %U")
-                                    )
-              )
-        )
-
-
-  ;; org-protocol: capture links and snippets
-  (require 'org-protocol)
-  (server-start)
-  (with-eval-after-load 'org
-    (add-to-list 'org-modules 'org-protocol)
-    )
+  (global-auto-revert-mode 1)
+  ;; ...but that's not enough to auto-refresh background buffers
+  ;; see https://stackoverflow.com/a/54369503
 
   (with-eval-after-load 'evil (
                                evil-set-initial-state 'org-brain-visualize-mode 'emacs)
                         )
 
-  (setq rust-format-on-save t)
   (setq magit-repository-directories (list "~/src/git/"))
+
+  ;; Load custom config files
+  (setq custom-config-dir "~/.config/spacemacs/")
+
+  (defun nh/load-custom (file)
+   (load-file (concat custom-config-dir file))
+    )
+
+  (nh/load-custom "org-mode.el")
+  (nh/load-custom "org-protocol.el")
+  (nh/load-custom "org-hugo.el")
+  (nh/load-custom "rust.el")
+
 )
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -483,10 +410,16 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#080808" "#d70000" "#67b11d" "#875f00" "#268bd2" "#af00df" "#00ffff" "#b2b2b2"])
+ '(custom-safe-themes
+   (quote
+    ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" default)))
+ '(evil-want-Y-yank-to-eol nil)
  '(org-agenda-files (list "~/org" "~/org/work" "~/org/personal"))
  '(package-selected-packages
    (quote
-    (ox-hugo org-brain doom-modeline shrink-path cider attrap lsp-mode treemacs company-web auto-yasnippet ac-ispell helm-company helm-c-yasnippet fuzzy web-completion-data company-statistics company yasnippet auto-complete flycheck-pos-tip pos-tip flycheck web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode ox-gfm unfill mwim smeargle orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct evil-magit magit transient git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+    (dap-mode bui tree-mode web-beautify toml-mode tide typescript-mode rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake racer ox-reveal noflet minitest livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc intero hlint-refactor hindent helm-hoogle haskell-snippets flycheck-rust flycheck-haskell ensime sbt-mode scala-mode company-tern dash-functional tern company-ghci company-ghc ghc haskell-mode company-emacs-eclim eclim company-cabal coffee-mode cmm-mode clojure-snippets multiple-cursors paredit peg lv cider-eval-sexp-fu cider sesman parseedn clojure-mode parseclj a chruby cargo rust-mode bundler inf-ruby adoc-mode markup-faces company-web auto-yasnippet ac-ispell helm-company helm-c-yasnippet fuzzy web-completion-data company-statistics company yasnippet auto-complete flycheck-pos-tip pos-tip flycheck web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode ox-gfm unfill mwim smeargle orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct evil-magit magit transient git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
