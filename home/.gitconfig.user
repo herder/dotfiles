@@ -14,9 +14,5 @@
   host = ghe.spotify.net
 [core]
   filemode = true
-[url "https://github.com/"]
-  insteadOf = ghh:
-[url "git@github.com"]
-  insteadOf = gh
-[url "git@ghe.spotify.net"]
-  insteadOf = spo
+[include "./gitconfig.work"]
+
