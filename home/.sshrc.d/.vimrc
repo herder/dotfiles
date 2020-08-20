@@ -26,24 +26,20 @@ endif
 
 call plug#begin('~/.vim/plugged')
 " Plug 'vim-scripts/csv.vim', {'for': 'csv'}
-Plug 'Lokaltog/vim-easymotion'
 Plug 'airblade/vim-gitgutter'
 Plug 'christoomey/vim-tmux-navigator'
-Plug 'godlygeek/tabular'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'dhruvasagar/vim-table-mode'
+Plug 'easymotion/vim-easymotion'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'https://github.com/vim-airline/vim-airline'
-Plug 'https://github.com/vim-airline/vim-airline-themes'
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/limelight.vim'
+Plug 'itchyny/lightline.vim'
+Plug 'junegunn/goyo.vim'
+Plug 'nathanaelkane/vim-indent-guides'
 Plug 'rafi/awesome-vim-colorschemes'
+Plug 'reedes/vim-colors-pencil'
 Plug 'sheerun/vim-polyglot'
 Plug 'tomtom/tcomment_vim'
-Plug 'tpope/vim-endwise' 
-Plug 'tpope/vim-sensible'
-Plug 'tpope/vim-speeddating'
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-unimpaired'
-Plug 'w0rp/ale'
+Plug 'vim-syntastic/syntastic'
 call plug#end()
 
 so $SSHHOME/.sshrc.d/vim/settings.vim
