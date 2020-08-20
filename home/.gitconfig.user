@@ -1,5 +1,6 @@
 [user]
 	name = Niklas Herder
+  email = niklas.herder@gmail.com
   useConfigOnly = true
   signingkey = 58005EEFAA62E835
 [commit]
@@ -10,9 +11,10 @@
 	rebase = true
 [rebase]
   autoStash = true
-[hub]
-  host = ghe.spotify.net
 [core]
   filemode = true
-[include "./gitconfig.work"]
+  pager = "diff-so-fancy | less --tabs=4 -RFX"
+[include]
+  path = ~/.gitconfig.work 
+
 
