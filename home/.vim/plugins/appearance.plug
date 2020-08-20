@@ -1,9 +1,0 @@
-Plug 'chrisbra/color_highlight'
-Plug 'itchyny/lightline.vim'
-Plug 'jby/tmux.vim'
-Plug 'xsunsmile/showmarks'
-Plug 'https://github.com/vim-airline/vim-airline'
-Plug 'https://github.com/vim-airline/vim-airline-themes'
-Plug 'rafi/awesome-vim-colorschemes'
-" Required for Gblame in terminal vim
-Plug 'godlygeek/csapprox'
