@@ -1,9 +1,4 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block, everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+#zmodload zsh/zprof
 
 #Ensure zgen is present
 #
@@ -15,7 +10,6 @@ source "${HOME}/.zgen/zgen.zsh"
 # Create init script if it doesn't exist
 
 if ! zgen saved; then
-  zgen load romkatv/powerlevel10k powerlevel10k
 
   zgen prezto editor key-bindings 'vi'
   zgen prezto editor dot-expansion 'yes'
@@ -28,12 +22,13 @@ if ! zgen saved; then
   #Zprezto plugins
   #
 
+  zgen prezto utility
   zgen prezto environment
 
   zgen prezto archive
-  zgen prezto autosuggestions
   zgen prezto command-not-found
   zgen prezto completion
+  zgen prezto autosuggestions
   zgen prezto directory
   zgen prezto docker
 
@@ -53,15 +48,16 @@ if ! zgen saved; then
   zgen prezto syntax-highlighting
   zgen prezto terminal
   zgen prezto tmux
-  zgen prezto utility
 
-  zgen load willghatch/zsh-hooks
+  # zgen load willghatch/zsh-hooks
   
-  zgen load zsh-users/zsh-syntax-highlighting.git
-  zgen load zsh-users/zsh-history-substring-search.git
-  zgen load tarruda/zsh-autosuggestions.git
-
   zgen load junegunn/fzf shell
+  zgen load Aloxaf/fzf-tab plugin
+  zgen load matthieusb/zsh-sdkman
+  zgen load zsh-users/zsh-completions
+  zgen load zpm-zsh/clipboard
+
+  zgen oh-my-zsh plugins/node
 
   zgen save
 
@@ -69,6 +65,7 @@ fi
 
 autoload -Uz add-zsh-hook
 
+export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
 # Customize to your needs...
 # Load any user customizations prior to load
 # #
@@ -87,6 +84,12 @@ fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-(( ! ${+functions[p10k]} )) || p10k finalize
+[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh
+
+eval "$(starship init zsh)"
+#zprof
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
