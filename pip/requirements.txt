@@ -2,3 +2,5 @@ pynvim
 msgpack
 python-language-server
 greenlet
+yq
+tomlq
