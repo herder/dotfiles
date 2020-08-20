@@ -7,4 +7,5 @@ endif
 
 " COLORSCHEME NAME
 set background=dark
-colorscheme PaperColor
+syntax enable
+colorscheme tender
