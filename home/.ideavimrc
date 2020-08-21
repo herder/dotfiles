@@ -1,12 +1,17 @@
 :set number relativenumber
 :inoremap jk <esc>
 :set surround
-
+:set ideajoin
+:set easymotion
+:set surround
+:set commentary
 :set hlsearch
 :set scrolloff=3
 :set ignorecase smartcase
 :set showmode
 :set history=1000
+:set timeoutlen=500
+:set ttimeoutlen=5
 
 
 " easy system clipboard copy/paste
@@ -86,3 +91,8 @@ nnoremap g<c-i> <c-i>
 nnoremap / :action Find<cr>
 " but preserve ideavim search
 nnoremap g/ /
+
+source ~/.intellimacs/spacemacs.vim
+source ~/.intellimacs/extra.vim
+source ~/.intellimacs/major.vim
+" source ~/.intellimacs/hybrid.vim
