@@ -1,1 +1,75 @@
-/home/niklash/src/git/github.com/gpakosz/.tmux/.tmux.conf.local
+# Ring the bell if any background window rang a bell
+set -g bell-action any
+
+# Default termtype. If the rcfile sets $TERM, that overrides this value.
+# Ensure Truecolor support
+# See https://github.com/jwilm/alacritty/issues/109
+set -g default-terminal screen-256color
+set -ga terminal-overrides ',*256col*:Tc'
+
+bind-key ^D detach-client
+
+bind-key s split-window -p 50 -c "#{pane_current_path}"
+bind-key ^S split-window -p 50 -c "#{pane_current_path}"
+bind-key v split-window -h -p 50 -c "#{pane_current_path}"
+bind-key ^V split-window -h -p 50 -c "#{pane_current_path}"
+
+# Smart pane switching with awareness of vim splits
+is_vim_emacs='echo "#{pane_current_command}" | \
+             grep -iqE "((^|\/)g?(view|kubectl|n?vim?x?)(diff)?$)|emacs|emacsclient"'
+
+bind -n C-h if-shell "$is_vim_emacs" "send-keys C-h" "select-pane -L"
+bind -n C-j if-shell "$is_vim_emacs" "send-keys C-j" "select-pane -D"
+bind -n C-k if-shell "$is_vim_emacs" "send-keys C-k" "select-pane -U"
+bind -n C-l if-shell "$is_vim_emacs" "send-keys C-l" "select-pane -R"
+bind -n 'C-\' if-shell "$is_vim_emacs" 'send-keys C-\' "select-pane -l"
+
+bind -Tcopy-mode-vi C-h if-shell "$is_vim_emacs" "send-keys C-h" "select-pane -L"
+bind -Tcopy-mode-vi 'C-\' if-shell "$is_vim_emacs" 'send-keys C-\' "select-pane -l"
+bind -Tcopy-mode-vi C-j if-shell "$is_vim_emacs" "send-keys C-j" "select-pane -D"
+bind -Tcopy-mode-vi C-k if-shell "$is_vim_emacs" "send-keys C-k" "select-pane -U"
+bind -Tcopy-mode-vi C-l if-shell "$is_vim_emacs" "send-keys C-l" "select-pane -R"
+
+bind-key b set-option status
+
+set -g status-keys vi
+
+setw -g mode-keys vi
+
+# set first window to index 1 (not 0) to map more to the keyboard layout...
+set-option -g base-index 1
+set -g renumber-windows on
+set-window-option -g mouse on
+set-window-option -g pane-base-index 1
+
+unbind r
+bind r source-file ~/.tmux.conf \; display "Reloaded!"
+
+bind c new-window -c "#{pane_current_path}"
+
+# easily toggle synchronization (mnemonic: e is for echo)
+# sends input to all panes in a given window.
+bind E setw synchronize-panes off
+bind e setw synchronize-panes on
+
+unbind C-b
+set -g prefix C-'\'
+
+# No escape time for vi mode
+set -sg escape-time 10
+
+set -g history-limit 10000
+
+set -g assume-paste-time 0
+
+# set -g @override_copy_command 'xclip -sel clip -i'
+
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-battery'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'tmux-plugins/tmux-open'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-yank'
+
+run '~/.tmux/plugins/tpm/tpm'
