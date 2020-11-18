@@ -7,6 +7,9 @@
 #Load zgen (https://github.com/tarjoilija/zgen )
 source "${HOME}/.zgen/zgen.zsh"
 
+autoload -U edit-command-line
+zle -N edit-command-line 
+bindkey -M vicmd v edit-command-line
 # Create init script if it doesn't exist
 
 if ! zgen saved; then
