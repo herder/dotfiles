@@ -1,5 +1,5 @@
-setxkbmap -option caps:ctrl_modifier
-pidof xcape >/dev/null || xcape -e Caps_Lock=Escape
+# setxkbmap -option caps:ctrl_modifier
+# pidof xcape >/dev/null || xcape -e Caps_Lock=Escape
 
 #Fix overly sensitive touchpad
 # xinput --set-prop 12 "Synaptics Tap Action" 0 0 0 0 0 0 0
@@ -8,4 +8,4 @@ pidof xcape >/dev/null || xcape -e Caps_Lock=Escape
 #Natural scroll
 #This does not seem to work when setting via Gnome/gsettings
 # synclient VertScrollDelta=-100
-synclient HorizScrollDelta=-100
+# synclient HorizScrollDelta=-100
