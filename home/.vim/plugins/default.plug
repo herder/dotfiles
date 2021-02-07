@@ -21,3 +21,7 @@ Plug 'reedes/vim-colors-pencil'
 Plug 'sheerun/vim-polyglot'
 Plug 'tomtom/tcomment_vim'
 Plug 'vim-syntastic/syntastic'
+Plug 'vim-scripts/zenburn'
+Plug 'kaicataldo/material.vim', { 'branch': 'main' }
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
