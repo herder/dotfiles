@@ -5,7 +5,8 @@ export VISUAL=vim
 export EDITOR=vim
 export PSQLRC=$SSHHOME/.sshrc.d/.psqlrc
 export PATH="$HOME/.local/bin:$PATH"
-PATH="/home/linuxbrew/.linuxbrew/sbin:/home/linuxbrew/.linuxbrew/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="/home/linuxbrew/.linuxbrew/sbin:/home/linuxbrew/.linuxbrew/bin:$PATH"
 export ZDOTDIR=$SSHHOME/.sshrc.d/
 export TERM=xterm-256color
 bind 'set show-mode-in-prompt on'
@@ -30,6 +31,7 @@ tmuxrc() {
     cp -r $SSHHOME/.sshrc $SSHHOME/bashsshrc $SSHHOME/sshrc $SSHHOME/.sshrc.d $TMUXDIR
     SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc /usr/bin/tmux -f $SSHHOME/.sshrc.d/.tmux.conf -S $TMUXDIR/tmuxserver $@
 }
+
 export SHELL=`which bash`
 alias tmux='tmuxrc'
 
@@ -49,9 +51,25 @@ if [[ ! -d ~/.tmux/plugins/tpm ]]; then
 fi
 
 source $SSHHOME/.sshrc.d/.bash_profile
+
+#Source default bash prompt
 source $SSHHOME/.sshrc.d/.bash_prompt.sh
+
+if [[ ! -d ~/.local/bin ]]; then
+  mkdir -p ~/.local/bin
+fi
+
+#Try to use starship prompt 
+if which starship >/dev/null 2>&1 ; then
+  eval "$(starship init bash)"
+elif type curl >/dev/null 2>&1 ; then 
+  export BIN_DIR=~/.local/bin; curl -fsSL https://starship.rs/install.sh | bash 
+  eval "$(starship init bash)"
+fi
+
 source $SSHHOME/.sshrc.d/.domains
 source $SSHHOME/.sshrc.d/.hosts
+
 source ~/.fzf.bash
 
 #Enable tab completion for the 'con' alias
