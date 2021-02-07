@@ -8,4 +8,5 @@ endif
 " COLORSCHEME NAME
 set background=dark
 syntax enable
-colorscheme tender
+" colorscheme tender
+colorscheme material
