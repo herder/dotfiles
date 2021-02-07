@@ -73,14 +73,13 @@ export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PR
 # Load any user customizations prior to load
 # #
 if [ -d $HOME/.zsh.before/ ]; then
-  if [ "$(ls -A $HOME/.zsh.before/)" ]; then
+  if [ "$(/bin/ls -A $HOME/.zsh.before/)" ]; then
     for config_file ($HOME/.zsh.before/*.zsh) source $config_file
   fi
 fi
 
-
 if [ -d $HOME/.zsh.after/ ]; then
-  if [ "$(ls -A $HOME/.zsh.after/)" ]; then
+  if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
     for config_file ($HOME/.zsh.after/*.zsh) source $config_file
   fi
 fi
