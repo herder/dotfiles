@@ -4,3 +4,5 @@ disabled = true
 disabled = false
 [java]
 disabled = false
+[directory]
+truncate_to_repo = false
