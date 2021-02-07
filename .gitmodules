@@ -1,3 +1,9 @@
 [submodule "home/.intellimacs"]
 	path = home/.intellimacs
 	url = git@github.com:MarcoIeni/intellimacs.git
+[submodule "home/.config/kitty-themes"]
+	path = home/.config/kitty-themes
+	url = git@github.com:dexpota/kitty-themes.git
+[submodule "home/.config/kitty/themes"]
+	path = home/.config/kitty/themes
+	url = git@github.com:dexpota/kitty-themes.git

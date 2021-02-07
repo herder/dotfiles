@@ -4,6 +4,7 @@
 .config/hammerspoon
 .config/i3blocks
 .config/fish
+.config/kitty
 .config/nvim
 .config/regolith
 .config/rofi
