@@ -21,10 +21,14 @@ f="${f#*@}"
 ## Remove rest of urls ##
 #f=${f%%/*}
 
+logerr() {
+ >&2 echo $@
+}
+
 ## Check that cleaned url has parseable format
 if [[ ! ( $f =~ .*[:/].*/.*$ ) ]] ; then
-    echo "Could not parse uri: $REPO_URL"
-    echo "Make sure it's a valid git url"
+    logerr "Could not parse uri: $REPO_URL"
+    logerr "Make sure it's a valid git url"
     exit 1;
 fi
 
@@ -42,21 +46,23 @@ REPO="${f##*/}"
 ## Remove any traliing '.git' in the repo name
 REPO="${REPO%.git}"
 
-echo "SITE: $SITE"
-echo "USER: $GIT_USER"
-echo "REPO: $REPO"
+# echo "SITE: $SITE"
+# echo "USER: $GIT_USER"
+# echo "REPO: $REPO"
 
 
-LOCAL_REPO=$ROOT_DIR/$SITE/$GIT_USER/$REPO
+LOCAL_REPO="$ROOT_DIR/$SITE/$GIT_USER/$REPO"
 
-# Bail out if directory already has been cloned
+# Do not clone if directory already has been cloned
 if [ -d $LOCAL_REPO ]; then
-  echo "Repo "
-  echo "$REPO_URL"
-  echo  "already exists locally, at"
-  echo "$LOCAL_REPO"
-  exit 1
+  logerr "Repo "
+  logerr "$REPO_URL"
+  logerr  "already exists locally, at"
+  logerr $LOCAL_REPO
+else
+  # All good, start cloning!
+  git clone $1 $LOCAL_REPO
 fi
 
-# All good, start cloning!
-git clone $1 $LOCAL_REPO
+echo $LOCAL_REPO
+
