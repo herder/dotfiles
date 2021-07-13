@@ -4,3 +4,6 @@ python-language-server
 greenlet
 yq
 tomlq
+cookiecutter
+tugboat-cli
+
