@@ -1,5 +1,12 @@
 #zmodload zsh/zprof
 
+autoload -U edit-command-line
+zle -N edit-command-line 
+bindkey -M vicmd v edit-command-line
+
+setopt inc_append_history
+setopt share_history
+
 #Ensure zgen is present
 #
 [ -d $HOME/.zgen ] || git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
@@ -7,9 +14,6 @@
 #Load zgen (https://github.com/tarjoilija/zgen )
 source "${HOME}/.zgen/zgen.zsh"
 
-autoload -U edit-command-line
-zle -N edit-command-line 
-bindkey -M vicmd v edit-command-line
 # Create init script if it doesn't exist
 
 if ! zgen saved; then
@@ -52,7 +56,7 @@ if ! zgen saved; then
   zgen prezto terminal
   zgen prezto tmux
 
-  # zgen load willghatch/zsh-hooks
+  zgen load willghatch/zsh-hooks
   
   zgen load junegunn/fzf shell
   zgen load Aloxaf/fzf-tab plugin
@@ -91,7 +95,8 @@ fi
 eval "$(starship init zsh)"
 #zprof
 
+compinit -i
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-
