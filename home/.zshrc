@@ -1,9 +1,5 @@
 #zmodload zsh/zprof
 
-autoload -U edit-command-line
-zle -N edit-command-line 
-bindkey -M vicmd v edit-command-line
-
 setopt inc_append_history
 setopt share_history
 
@@ -96,6 +92,11 @@ eval "$(starship init zsh)"
 #zprof
 
 compinit -i
+
+autoload -U edit-command-line
+zle -N edit-command-line 
+bindkey -M vicmd v edit-command-line
+
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"

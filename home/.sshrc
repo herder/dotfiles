@@ -74,3 +74,4 @@ source ~/.fzf.bash
 
 #Enable tab completion for the 'con' alias
 complete -f con ssh
+alias install_sdkman='curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config'
