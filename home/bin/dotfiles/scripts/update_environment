@@ -35,23 +35,24 @@ echo "Upgrading pip packages..."
 pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 
 echo "Ensuring latest npm version..."
-source $HOME/.zsh.after/nvm.zsh && nvm install-latest-npm
+n latest
 
-echo "Adding any new JVMs on the system to jenv..."
-for i in /Library/Java/JavaVirtualMachines/* ; do echo 'n' | jenv add $i/Contents/Home > /dev/null; done
+echo "Upgrading SDKMAN packages"
+sdk upgrade
 
+echo "Updating vim plugins..."
+vim -c 'set nomore' -c 'PlugUpdate' -c 'qa!'
 
 echo "Upgrading docker-machine..."
 docker-machine upgrade
 
-echo "Updating yadr..."
-cd $HOME/.yadr
-git checkout -f
-git pull --rebase --recurse-submodules=true
-gem install bundle
-rake update
+echo "Updating zgen plugins..."
+zgen update
+zgen reset
 
-bundle install --gemfile $DOTFILES_PATH/gem/Gemfile
+
+echo "Refreshing starship prompt..."
+BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)"
 
 echo "Pulling secrets"
 homesick pull secrets
