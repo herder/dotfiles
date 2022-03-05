@@ -1,1 +1,8 @@
+#!/usr/bin/env bash
+
+OS=$(uname -s)
+if [[ ${OS} == "Darwin" ]]; then
 scutil --dns | grep 'search domain' | tail -n1 | awk '{print $(NF)}'
+elif [[ ${OS} == "Linux" ]]; then
+  cat /etc/resolv.conf | grep 'search' | tail -n1 | cut -d ' ' -f 2-
+fi

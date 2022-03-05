@@ -1,1 +1,8 @@
-/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | egrep '^\s*SSID' | awk -F ': ' '{print $(NF)}'
+#!/usr/bin/env bash
+
+OS=$(uname -s)
+if [[ ${OS} == "Darwin" ]]; then
+  /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | egrep '^\s*SSID' | awk -F ': ' '{print $(NF)}'
+elif [[ ${OS} == "Linux" ]]; then
+  iwgetid -r
+fi
