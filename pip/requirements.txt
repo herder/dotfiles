@@ -1,7 +1,12 @@
+pip
 cookiecutter
 greenlet
+isort
 msgpack
+nose
+pipenv
 pynvim
+science-box
 python-language-server
 tomlq
 tugboat-cli
