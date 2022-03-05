@@ -43,8 +43,21 @@ sdk upgrade
 echo "Updating vim plugins..."
 vim -c 'set nomore' -c 'PlugUpdate' -c 'qa!'
 
+echo "Updating rust toolchain"
+rustup update
+
+echo "Updating go packages"
+xargs go install $DOTFILES_PATH/go/packages
+
+echo "Updating cargo packages"
+xargs cargo install < $DOTFILES_PATH/cargo/packages
+
+if [[ ${OS} == "Darwin" ]]; then
+  if type docker-machine >/dev/null ; then 
 echo "Upgrading docker-machine..."
 docker-machine upgrade
+  fi
+fi
 
 echo "Updating zgen plugins..."
 zgen update
