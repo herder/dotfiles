@@ -38,6 +38,7 @@ echo "Ensuring latest npm version..."
 n latest
 
 echo "Upgrading SDKMAN packages"
+source $SDKMAN_DIR/bin/sdkman-init.sh
 sdk upgrade
 
 echo "Updating vim plugins..."
@@ -60,8 +61,7 @@ docker-machine upgrade
 fi
 
 echo "Updating zgen plugins..."
-zgen update
-zgen reset
+zsh -c "source ${HOME}/.zgen/zgen.zsh && zgen update && zgen reset"
 
 
 echo "Refreshing starship prompt..."
@@ -70,7 +70,7 @@ BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)
 echo "Pulling secrets"
 homesick pull secrets
 echo "Pulling dotfiles"
-homesick pull dotfiles
+git pull --recurse-submodules $DOTFILES_PATH
 homesick link secrets
 homesick link dotfiles
 
@@ -92,7 +92,7 @@ done
 
 #Install apps for specific domains
 for i in $(getdomain) ; do 
-  local BREWFILE="$DOTFILES_PATH/brewfiles/domain/$i"
+  BREWFILE="$DOTFILES_PATH/brewfiles/domain/$i"
   if [[ -f $BREWFILE ]]; then
     echo "Installing from $i";
     cat "$DOTFILES_PATH/brewfiles/domain/$i" >> $TEMP_BREWFILE
@@ -112,11 +112,10 @@ if [[ ${OS} == "Darwin" ]]; then
 brew bundle --file=$TEMP_BREWFILE
 echo "Upgrading casks..."
 brew cu -a -y
-]]
-
+fi
 
 echo "Cleaning up..."
 brew cleanup
 echo "Removing dangling symlinks..."
-find $HOME -type l -exec test ! -e {} \; -print | xargs rm
+find $HOME -type l -exec test ! -e "{}" \; -print | xargs rm
 echo "All done!"
