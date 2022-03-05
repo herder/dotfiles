@@ -117,5 +117,5 @@ fi
 echo "Cleaning up..."
 brew cleanup
 echo "Removing dangling symlinks..."
-find $HOME -type l -exec test ! -e "{}" \; -print | xargs rm
+find $HOME/.config -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
 echo "All done!"
