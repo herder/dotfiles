@@ -1,54 +1,22 @@
 #!/usr/bin/env bash
 #set -e
 sudo true
+OS=$(uname -s)
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-if [[ $OSTYPE == "darwin"* ]] ; then
+if [[ ${OS} == "Darwin" ]] ; then
   echo "Running softwareupdate..."
   softwareupdate -i -a
 
   echo "Upgrading System apps..."
   mas upgrade
   xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
+elif [[ ${OS} == "Linux" ]]; then 
+  sudo apt update && sudo apt full-upgrade
+  sudo snap refresh
+  sudo flatpak update
+  sudo apt autoremove
 fi
-
-echo "Updating Homebrew packages..."
-brew update
-
-TEMP_BREWFILE=$(mktemp)
-
-echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
-cat $DOTFILES_PATH/Brewfile > $TEMP_BREWFILE
-
-
-#Install OS-specific apps
-for i in $DOTFILES_PATH/brewfiles/os/* ; do
-  if [[ $OSTYPE == "`basename $i`"* ]] ; then 
-    echo "Installing from $i";
-    cat "$i" >> $TEMP_BREWFILE
-  fi ; 
-done
-
-#Install apps for specific domains
-for i in $DOTFILES_PATH/brewfiles/domain/* ; do
-  if [[ $(getdomain) == "`basename $i`"* ]] ; then 
-    echo "Installing from $i";
-    cat "$i" >> $TEMP_BREWFILE
-  fi ; 
-done
-
-#Install apps for specific ssid:s
-for i in $DOTFILES_PATH/brewfiles/ssid/* ; do
-  if [[ $(getssid) == "`basename $i`"* ]] ; then 
-    echo "Installing from $i";
-    cat "$i" >> $TEMP_BREWFILE
-  fi;
-done
-
-brew bundle --file=$TEMP_BREWFILE
-
-echo "Upgrading casks..."
-brew cu -a -y
 
 
 echo "Ensuring latest Ruby version..."
@@ -91,6 +59,47 @@ echo "Pulling dotfiles"
 homesick pull dotfiles
 homesick link secrets
 homesick link dotfiles
+
+echo "Updating Homebrew packages..."
+brew update
+
+TEMP_BREWFILE=$(mktemp)
+
+echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
+cat $DOTFILES_PATH/Brewfile > $TEMP_BREWFILE
+
+#Install OS-specific apps
+for i in $DOTFILES_PATH/brewfiles/os/* ; do
+  if [[ $OSTYPE == "`basename $i`"* ]] ; then 
+    echo "Installing from $i";
+    cat "$i" >> $TEMP_BREWFILE
+  fi ; 
+done
+
+#Install apps for specific domains
+for i in $(getdomain) ; do 
+  local BREWFILE="$DOTFILES_PATH/brewfiles/domain/$i"
+  if [[ -f $BREWFILE ]]; then
+    echo "Installing from $i";
+    cat "$DOTFILES_PATH/brewfiles/domain/$i" >> $TEMP_BREWFILE
+  fi
+done
+
+#Install apps for specific ssid:s
+for i in $DOTFILES_PATH/brewfiles/ssid/* ; do
+  if [[ $(getssid) == "`basename $i`"* ]] ; then 
+    echo "Installing from $i";
+    cat "$i" >> $TEMP_BREWFILE
+  fi;
+done
+
+
+if [[ ${OS} == "Darwin" ]]; then
+brew bundle --file=$TEMP_BREWFILE
+echo "Upgrading casks..."
+brew cu -a -y
+]]
+
 
 echo "Cleaning up..."
 brew cleanup
