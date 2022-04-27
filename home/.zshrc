@@ -56,6 +56,7 @@ if ! zgen saved; then
   
   zgen load junegunn/fzf shell
   zgen load Aloxaf/fzf-tab plugin
+  zgen load johanhaleby/kubetail
   zgen load matthieusb/zsh-sdkman
   zgen load zsh-users/zsh-completions
   zgen load zpm-zsh/clipboard
