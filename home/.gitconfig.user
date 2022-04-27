@@ -2,7 +2,7 @@
 	name = Niklas Herder
   email = niklas.herder@gmail.com
   useConfigOnly = true
-  signingkey = 58005EEFAA62E835
+  signingkey = 02C82B159B690AA9 
 [commit]
   gpgsign = true
 [fetch]
