@@ -25,3 +25,4 @@ Plug 'vim-scripts/zenburn'
 Plug 'kaicataldo/material.vim', { 'branch': 'main' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'nanotee/zoxide.vim'
