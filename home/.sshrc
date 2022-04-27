@@ -63,7 +63,7 @@ fi
 if which starship >/dev/null 2>&1 ; then
   eval "$(starship init bash)"
 elif type curl >/dev/null 2>&1 ; then 
-  export BIN_DIR=~/.local/bin; curl -fsSL https://starship.rs/install.sh | FORCE=1 bash 
+  export BIN_DIR=~/.local/bin; curl -fsSL https://starship.rs/install.sh | FORCE=1 sh 
   eval "$(starship init bash)"
 fi
 
