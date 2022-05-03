@@ -1,0 +1,1 @@
+/home/niklash/.homesick/repos/secrets/home/.vim/settings/vimify.vim

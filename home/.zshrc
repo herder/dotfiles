@@ -51,11 +51,11 @@ if ! zgen saved; then
   zgen prezto syntax-highlighting
   zgen prezto terminal
   zgen prezto tmux
+  zgen prezto Aloxaf/fzf-tab plugin
 
   zgen load willghatch/zsh-hooks
   
   zgen load junegunn/fzf shell
-  zgen load Aloxaf/fzf-tab plugin
   zgen load johanhaleby/kubetail
   zgen load matthieusb/zsh-sdkman
   zgen load zsh-users/zsh-completions

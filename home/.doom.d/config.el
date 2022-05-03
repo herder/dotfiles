@@ -31,7 +31,7 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq
-  doom-theme 'doom-xcode
+  doom-theme 'doom-ephemeral
   doom-font "Jetbrains Mono"
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
@@ -68,54 +68,6 @@
   )
 (global-auto-revert-mode 1)
 (auto-save-visited-mode +1)
-(use-package! org-super-agenda
-  :after org-agenda
-  :init
-  (setq org-agenda-skip-scheduled-if-done t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-block-separator nil
-      org-agenda-compact-blocks t
-      org-agenda-start-day nil ;; i.e. today
-      org-agenda-span 1
-      org-agenda-start-on-weekday nil)
-  (setq org-agenda-custom-commands
-        '(("c" "Super view"
-           ((agenda "" ((org-agenda-overriding-header "")
-                        (org-super-agenda-groups
-                         '((:name "Today"
-                                  :time-grid t
-                                  :date today
-                                  :order 1)))))
-            (alltodo "" ((org-agenda-overriding-header "")
-                         (org-super-agenda-groups
-                          '((:log t)
-                            (:name "To refile"
-                                   :file-path "inbox\\.org")
-                            (:name "Next to do"
-                                   :todo "NEXT"
-                                   :order 1)
-                            (:name "Important"
-                                   :priority "A"
-                                   :order 6)
-                            (:name "Today's tasks"
-                                   :file-path "journal/")
-                            (:name "Due Today"
-                                   :deadline today
-                                   :order 2)
-                            (:name "Scheduled Soon"
-                                   :scheduled future
-                                   :order 8)
-                            (:name "Overdue"
-                                   :deadline past
-                                   :order 7)
-                            (:name "Meetings"
-                                   :and (:todo "MEET" :scheduled future)
-                                   :order 10)
-                            (:discard (:not (:todo "TODO")))))))))))
-  :config
-  (org-super-agenda-mode))
-
 (add-hook! 'focus-out-hook (lambda() (org-save-all-org-buffers)))
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
