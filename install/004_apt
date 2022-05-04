@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+xargs -l sudo add-apt-repository -y < $(homesick show_path dotfiles)/deb/ppas
