@@ -12,32 +12,79 @@ if [[ ${OS} == "Darwin" ]] ; then
   mas upgrade
   xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
 elif [[ ${OS} == "Linux" ]]; then 
+  type zsh >/dev/null 2>&1 || sudo apt install zsh
   sudo apt update && sudo apt -y full-upgrade
+  type snapd > /dev/null 2>&1 || sudo apt install -y snapd
   sudo snap refresh
   sudo flatpak update
   sudo apt autoremove
 fi
 
+if ! type gcloud >/dev/null 2>&1; then
+  sudo apt-get install -y apt-transport-https ca-certificates gnupg
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+  sudo apt-get update && sudo apt-get install -y google-cloud-cli
+fi
+
+if [ ! -d $HOME/.emacs.d ]; then
+  git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
+  ~/.emacs.d/bin/doom install
+fi
+
+if dpkg -l | grep wavebox; then 
+  echo "Found wavebox"
+else
+  echo "Installing Wavebox..."
+  curl -L https://download.wavebox.app/latest/stable/linux/deb --output /tmp/wavebox.deb
+  sudo dpkg -i /tmp/wavebox.deb
+fi
+
+if dpkg -l dropbox | grep dropbox; then
+  echo "Found dropbox"
+else
+  echo "Installing dropbox..."
+    curl -L https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb --output /tmp/dropbox.deb
+    sudo apt install -y /tmp/dropbox.deb
+fi
+
+if ! type fzf >/dev/null 2>&1 ; then 
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+  ~/.fzf/install --all
+fi
 
 echo "Ensuring latest Ruby version..."
-rbenv install -l | grep -v - | tail -1 | xargs rbenv install
-rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
+type rbenv > /dev/null 2>&1 || sudo apt install rbenv
+# rbenv install -l | grep -v - | tail -1 | xargs rbenv install
+# rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
 
 echo "Updating Ruby Gems..."
 # sudo gem update --system
 gem update
 
 echo "Ensuring latest Python version..."
+if ! type pyenv > /dev/null 2>&1; then 
+  git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+  eval $(pyenv init --)
+fi
+
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 
 echo "Upgrading pip packages..."
+if ! pip config get global.index-url; then
+  pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
+fi
 pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 
 echo "Ensuring latest npm version..."
+if ! type n >/dev/null 2>&1; then
+  curl -L https://bit.ly/n-install | bash
+fi
 n latest
 
 echo "Upgrading SDKMAN packages"
+sdk || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
 source $SDKMAN_DIR/bin/sdkman-init.sh
 sdk upgrade
 
@@ -45,6 +92,8 @@ echo "Updating vim plugins..."
 vim -c 'set nomore' -c 'PlugUpdate' -c 'qa!'
 
 echo "Updating rust toolchain"
+type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
 rustup update
 
 echo "Updating go packages"
