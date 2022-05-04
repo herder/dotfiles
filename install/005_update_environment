@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+$(homesick show_path dotfiles)/home/bin/dotfiles/scripts/update_environment
