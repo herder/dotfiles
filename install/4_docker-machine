@@ -1,6 +1,8 @@
 #!/bin/sh
 
+if [ $OSTYPE = "Darwin"]; then
 sudo chown root:wheel /usr/local/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
 sudo chmod u+s /usr/local/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
 
 docker-machine env default >/dev/null || docker-machine create --driver=xhyve default
+fi
