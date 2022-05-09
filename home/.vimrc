@@ -40,6 +40,10 @@ set noswapfile
 set nobackup
 set nowb
 
+" Automatically jump to last position in file
+autocmd BufWinLeave *.* mkview
+autocmd BufWinEnter *.* silent loadview
+
 "
 " ================ Persistent Undo ==================
 " Keep undo history across sessions, by storing in file.
