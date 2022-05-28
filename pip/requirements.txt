@@ -1,6 +1,8 @@
 pip
 cookiecutter
 greenlet
+httpie
+httpie-http2
 isort
 msgpack
 nose
@@ -9,6 +11,7 @@ pynvim
 science-box
 python-language-server
 tomlq
+techdocs-cli
 tugboat-cli
 versionctl
 yq

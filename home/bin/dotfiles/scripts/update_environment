@@ -84,8 +84,9 @@ fi
 n latest
 
 echo "Upgrading SDKMAN packages"
-sdk || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
+type sdk >/dev/null 2>&1 || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
 source $SDKMAN_DIR/bin/sdkman-init.sh
+sdk selfupdate
 sdk upgrade
 
 echo "Updating vim plugins..."

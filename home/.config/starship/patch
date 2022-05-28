@@ -1,0 +1,81 @@
+diff --git c/home/.config/starship/starship.toml w/home/.config/starship/starship.toml
+index df4597d..5f4599f 100644
+--- c/home/.config/starship/starship.toml
++++ w/home/.config/starship/starship.toml
+@@ -1,6 +1,74 @@
+ [aws]
++symbol = "  "
+ disabled = true
+-[kubernetes]
+-disabled = false
++
++[buf]
++symbol = " "
++
++[c]
++symbol = " "
++
++[conda]
++symbol = " "
++
++[dart]
++symbol = " "
++
++[directory]
++read_only = " "
++# truncation_length = 100
++
++[docker_context]
++symbol = " "
++
++[elixir]
++symbol = " "
++
++[elm]
++symbol = " "
++
++[git_branch]
++symbol = " "
++
++[golang]
++symbol = " "
++
++[haskell]
++symbol = " "
++
++[hg_branch]
++symbol = " "
++
+ [java]
++symbol = " "
+ disabled = false
++
++[julia]
++symbol = " "
++
++[kubernetes]
++disabled = false
++
++[memory_usage]
++symbol = " "
++
++[nim]
++symbol = " "
++
++[nix_shell]
++symbol = " "
++
++[nodejs]
++symbol = " "
++
++[package]
++symbol = " "
++
++[python]
++symbol = " "
++
++[spack]
++symbol = "🅢 "
++
++[rust]
++symbol = " "

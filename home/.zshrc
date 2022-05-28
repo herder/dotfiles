@@ -63,6 +63,9 @@ if ! zgen saved; then
 
   zgen oh-my-zsh plugins/node
 
+  # https://github.com/so-fancy/diff-so-fancy/blob/master/pro-tips.md#zsh-plugin-providing-diff-so-fancy
+  zgen load zdharma-continuum/zsh-diff-so-fancy
+
   zgen save
 
 fi
