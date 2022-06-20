@@ -20,12 +20,20 @@ elif [[ ${OS} == "Linux" ]]; then
   sudo apt autoremove
 fi
 
+for i in $(cat $DOTFILES_PATH/deb/packages);
+do sudo apt -y install $i ; 
+done
+
 if ! type gcloud >/dev/null 2>&1; then
   sudo apt-get install -y apt-transport-https ca-certificates gnupg
   echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
   curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
   sudo apt-get update && sudo apt-get install -y google-cloud-cli
 fi
+
+for i in $(cat $DOTFILES_PATH/deb/packages);
+ do sudo apt -y install $i ; 
+done
 
 if [ ! -d $HOME/.emacs.d ]; then
   git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
@@ -97,11 +105,12 @@ type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s
 
 rustup update
 
+echo "Updating cargo packages"
+xargs cargo install < $DOTFILES_PATH/cargo/packages
+
 echo "Updating go packages"
 xargs go install < $DOTFILES_PATH/go/packages
 
-echo "Updating cargo packages"
-xargs cargo install < $DOTFILES_PATH/cargo/packages
 
 if [[ ${OS} == "Darwin" ]]; then
   if type docker-machine >/dev/null ; then 
@@ -120,7 +129,7 @@ BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)
 echo "Pulling secrets"
 homesick pull secrets
 echo "Pulling dotfiles"
-git pull --recurse-submodules $DOTFILES_PATH
+# git pull --recurse-submodules $DOTFILES_PATH
 homesick link secrets
 homesick link dotfiles
 
