@@ -79,11 +79,13 @@ fi
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 
+if grep 'spotify.net' <<< $(getdomain); then
 echo "Upgrading pip packages..."
 if ! pip config get global.index-url; then
   pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
 fi
 pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
+fi
 
 echo "Ensuring latest npm version..."
 if ! type n >/dev/null 2>&1; then
