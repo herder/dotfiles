@@ -32,7 +32,7 @@ if ! type gcloud >/dev/null 2>&1; then
 fi
 
 for i in $(cat $DOTFILES_PATH/deb/packages);
- do sudo apt -y install $i ; 
+ do sudo apt -y --allow-downgrades install $i ; 
 done
 
 if [ ! -d $HOME/.emacs.d ]; then
