@@ -1,28 +1,28 @@
+" Plug 'Valloric/YouCompleteMe'
+"Plug 'chrisbra/csv.vim'
+"Plug 'jby/tmux.vim'
+"Plug 'junegunn/limelight.vim'
+"Plug 'rust-lang/rust.vim', {'for': 'rust'}
+"Plug 'skwp/vim-colors-solarized'
 "Plug 'tpope/vim-sensible'
 "Plug 'tpope/vim-speeddating'
-"Plug 'chrisbra/csv.vim'
-"Plug 'junegunn/limelight.vim'
-"Plug 'skwp/vim-colors-solarized'
-"Plug 'jby/tmux.vim'
-"Plug 'rust-lang/rust.vim', {'for': 'rust'}
-" Plug 'Valloric/YouCompleteMe'
 Plug 'airblade/vim-gitgutter'
 Plug 'christoomey/vim-tmux-navigator'
-Plug 'roxma/vim-tmux-clipboard'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'easymotion/vim-easymotion'
 Plug 'https://github.com/junegunn/fzf.git', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'itchyny/lightline.vim'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 Plug 'junegunn/goyo.vim'
+Plug 'kaicataldo/material.vim', { 'branch': 'main' }
+Plug 'nanotee/zoxide.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'rafi/awesome-vim-colorschemes'
 Plug 'reedes/vim-colors-pencil'
+Plug 'roxma/vim-tmux-clipboard'
 Plug 'sheerun/vim-polyglot'
 Plug 'tomtom/tcomment_vim'
-Plug 'vim-syntastic/syntastic'
 Plug 'vim-scripts/zenburn'
-Plug 'kaicataldo/material.vim', { 'branch': 'main' }
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
-Plug 'nanotee/zoxide.vim'
+Plug 'vim-syntastic/syntastic'
