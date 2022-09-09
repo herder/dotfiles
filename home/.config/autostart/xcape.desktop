@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=XCape
+Exec=/bin/xcape
+Terminal=false
+Type=Application
+StartupNotify=false

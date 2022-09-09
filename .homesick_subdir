@@ -1,4 +1,5 @@
 .config/alacritty
+.config/autostart
 .config/compton
 .config/feh
 .config/hammerspoon
