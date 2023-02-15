@@ -179,6 +179,13 @@ echo "Upgrading casks..."
 brew cu -a -y
 fi
 
+if [[ -v TMUX_PLUGIN_MANAGER_PATH ]]; then
+  $TMUX_PLUGIN_MANAGER_PATH/tpm/bin/update_plugins all
+else
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  $TMUX_PLUGIN_MANAGER_PATH/tpm/bin/install_plugins
+fi
+
 echo "Cleaning up..."
 brew cleanup
 echo "Removing dangling symlinks..."
