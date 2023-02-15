@@ -13,6 +13,7 @@ if [[ ${OS} == "Darwin" ]] ; then
   xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
 elif [[ ${OS} == "Linux" ]]; then 
   type zsh >/dev/null 2>&1 || sudo apt install zsh
+  sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
   sudo apt update && sudo apt -y full-upgrade
   type snapd > /dev/null 2>&1 || sudo apt install -y snapd
   sudo snap refresh
@@ -60,20 +61,22 @@ type rbenv > /dev/null 2>&1 || sudo apt install rbenv
 # rbenv install -l | grep -v - | tail -1 | xargs rbenv install
 # rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
 
-echo "Updating Ruby Gems..."
-# sudo gem update --system
-gem update
+#echo "Updating Ruby Gems..."
+#gem update `gem outdated | cut -d ' ' -f 1`
 
 echo "Ensuring latest Python version..."
 if ! type pyenv > /dev/null 2>&1; then 
+  if ! -d ~/.pyenv ; then
   git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+  fi
   eval $(pyenv init --)
 fi
 
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 
-if grep 'spotify.net' <<< $(getdomain); then
+
+if [ "$(getssid)" = "Spotify" ] ||  route | egrep "(gew|guc|gae)" >/dev/null ; then
 echo "Upgrading pip packages..."
 if ! pip config get global.index-url; then
   pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
