@@ -1,19 +1,5 @@
-[directory]
-read_only = " "
-truncation_length = 3
-truncation_symbol = "…/"
-
-[directory.substitutions]
-"Documents" = " "
-"Downloads" = "  "
-"Music" = "  "
-"Pictures" = "  "
-"~/src/" = "~//"
-"ghe.spotify.net" = "阮"
-
 [aws]
 symbol = "  "
-disabled = true
 
 [buf]
 symbol = " "
@@ -26,6 +12,9 @@ symbol = " "
 
 [dart]
 symbol = " "
+
+[directory]
+read_only = " "
 
 [docker_context]
 symbol = " "
@@ -59,9 +48,6 @@ symbol = " "
 
 [julia]
 symbol = " "
-
-[kubernetes]
-disabled = false
 
 [lua]
 symbol = " "
