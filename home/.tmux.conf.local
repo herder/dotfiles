@@ -62,14 +62,3 @@ set -g history-limit 10000
 
 set -g assume-paste-time 0
 
-# set -g @override_copy_command 'xclip -sel clip -i'
-
-set -g @plugin 'tmux-plugins/tpm'
-set -g @plugin 'tmux-plugins/tmux-battery'
-set -g @plugin 'tmux-plugins/tmux-continuum'
-set -g @plugin 'tmux-plugins/tmux-open'
-set -g @plugin 'tmux-plugins/tmux-resurrect'
-set -g @plugin 'tmux-plugins/tmux-sensible'
-set -g @plugin 'tmux-plugins/tmux-yank'
-
-run '~/.tmux/plugins/tpm/tpm'
