@@ -95,7 +95,8 @@ fi
 eval "$(starship init zsh)"
 #zprof
 
-compinit -i
+autoload bashcompinit && bashcompinit
+compinit -Uz compinit && compinit
 
 autoload -U edit-command-line
 zle -N edit-command-line 
