@@ -1,1 +1,4 @@
 github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+github.com/wercker/stern@latest
+sigs.k8s.io/kind@v0.15.0
+github.com/charmbracelet/vhs@latest
