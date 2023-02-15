@@ -20,9 +20,7 @@ elif [[ ${OS} == "Linux" ]]; then
   sudo apt autoremove
 fi
 
-for i in $(cat $DOTFILES_PATH/deb/packages);
-do sudo apt -y install $i ; 
-done
+xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
 
 if ! type gcloud >/dev/null 2>&1; then
   sudo apt-get install -y apt-transport-https ca-certificates gnupg
@@ -30,10 +28,6 @@ if ! type gcloud >/dev/null 2>&1; then
   curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
   sudo apt-get update && sudo apt-get install -y google-cloud-cli
 fi
-
-for i in $(cat $DOTFILES_PATH/deb/packages);
- do sudo apt -y --allow-downgrades install $i ; 
-done
 
 if [ ! -d $HOME/.emacs.d ]; then
   git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
