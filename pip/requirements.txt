@@ -1,4 +1,4 @@
-pip
+aws-shell
 cookiecutter
 greenlet
 httpie
@@ -6,12 +6,14 @@ httpie-http2
 isort
 msgpack
 nose
+pip
 pipenv
 pynvim
-science-box
 python-language-server
-tomlq
+science-box
 techdocs-cli
+tomlq
+tsunami-cli
 tugboat-cli
 versionctl
 yq
