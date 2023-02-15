@@ -15,3 +15,7 @@ fco() {
 # alias git='noglob hub'
 # compdef hub=git
 # compdef lab=git
+#
+co() {
+  cd $(clone $1)
+}
