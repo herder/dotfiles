@@ -1,4 +1,6 @@
 # # Setup fzf
+[[ -f ~/.fzf.zsh ]] && . ~/.fzf.zsh
+
 if type fzf >/dev/null 2>&1; then
   FZF_HOME="$(dirname $(which fzf))/.."
 # # ---------
