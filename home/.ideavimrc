@@ -6,6 +6,10 @@
 :set ideajoin
 :set ideamarks
 
+
+:set wrap       "Wrap lines
+:set linebreak    "Wrap lines at convenient points
+
 :inoremap jk <esc>
 
 source ~/.intellimacs/spacemacs.vim
@@ -28,3 +32,5 @@ vmap , <leader>m
 " (Optional) Add/edit actions
 nnoremap <leader>gl    :action Vcs.Show.Log<CR>
 vnoremap <leader>gl    :action Vcs.Show.Log<CR>
+
+nnoremap <leader>ph    :action ParameterHints
