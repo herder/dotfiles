@@ -2,6 +2,7 @@
 .config/autostart
 .config/compton
 .config/feh
+.config/fonts
 .config/hammerspoon
 .config/i3blocks
 .config/fish
