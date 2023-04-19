@@ -141,8 +141,6 @@ sdk default java $(sdk list java | grep -e 17 | grep amzn | head -n1 | cut -d\| 
 perl -pi -e 's/sdkman_auto_answer=true/sdkman_auto_answer=false/g' ~/.sdkman/etc/config
 
 
-echo "Refreshing starship prompt..."
-BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)"
 
 echo "Pulling secrets"
 homesick pull secrets
@@ -202,4 +200,8 @@ echo "Cleaning up..."
 brew cleanup
 echo "Removing dangling symlinks..."
 find $HOME/.config -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
+
+echo "Refreshing starship prompt..."
+BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)"
+
 echo "All done!"
