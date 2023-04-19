@@ -132,11 +132,13 @@ zsh -c "source ${HOME}/.zgen/zgen.zsh && zgen update && zgen reset"
 echo "Upgrading SDKMAN packages"
 type sdk >/dev/null 2>&1 || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
 source $SDKMAN_DIR/bin/sdkman-init.sh
+perl -pi -e 's/sdkman_auto_answer=false/sdkman_auto_answer=true/g' ~/.sdkman/etc/config
 sdk update
 sdk selfupdate
 sdk upgrade
 sdk flush
 sdk default java $(sdk list java | grep -e 17 | grep amzn | head -n1 | cut -d\| -f 6)
+perl -pi -e 's/sdkman_auto_answer=true/sdkman_auto_answer=false/g' ~/.sdkman/etc/config
 
 
 echo "Refreshing starship prompt..."
