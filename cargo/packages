@@ -1,6 +1,9 @@
 bat
+cargo-eval
+cargo-watch
 difftastic
 lsd
 nu
 ripgrep
+spotify-tui
 zoxide
