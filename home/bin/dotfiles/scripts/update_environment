@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-#set -e
+# set -e
+
 sudo true
+DOTFILES="${DOTFILES_PATH:-$HOME/.homesick/repos/dotfiles}"
+echo "DOTFILES: $DOTFILES"
 OS=$(uname -s)
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+if ! type keybase >/dev/null 2>&1 ; then
+  curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
+  sudo apt install ./keybase_amd64.deb
+  run_keybase
+fi
 
 if [[ ${OS} == "Darwin" ]] ; then
   echo "Running softwareupdate..."
