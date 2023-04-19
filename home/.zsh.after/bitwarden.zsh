@@ -1,25 +1,21 @@
 if type bw >/dev/null ; then
 
   unlock_bw() {
-    eval $(bw unlock | grep export | cut -d ' ' -f 2-)
+    echo "Unlocking vault"
+    `bw unlock --passwordfile ~/.homesick/repos/secrets/home/.bw | grep 'export BW_SESSION' | cut -d ' ' -f 2,3`
   }
 
 bwcopy() {
-  if hash bw 2>/dev/null; then
-    if ! (( ${+BW_SESSION} )); then 
-      unlock_bw
-    fi
-    bw get item "$(bw list items | jq '.[] | "\(.name) | username: \(.login.username) | id: \(.id)" ' | fzf-tmux | awk '{print $(NF -0)}' | sed 's/\"//g')" | jq '.login.password' | sed 's/\"//g' | xclip -sel clip
-  fi
+  unlock_bw
+  bw get item "$(bw list items | jq '.[] | "\(.name) | username: \(.login.username) | id: \(.id)" ' | fzf-tmux | awk '{print $(NF -0)}' | sed 's/\"//g')" | jq '.login.password' | sed 's/\"//g' | xclip -sel clip
+  echo "Locking vault"
+  unset BW_SESSION;
 }
 
 bwssh() {
-  if hash bw 2>/dev/null; then
-    if ! (( ${+BW_SESSION} )); then 
-      unlock_bw
-    fi
-    bw get item "$(bw list items --folderid 3adf97b7-4f1f-40ad-b025-ac5b009a00df | jq '.[] | "\(.name) | notes: \(.notes) | id: \(.id)" ' | fzf-tmux | awk '{print $(NF -0)}' | sed 's/\"//g')" | jq '.fields[] | select(.name=="Passphrase") | .value' | sed 's/\"//g' | xclip -sel clip
-  fi
+  unlock_bw
+  bw get item "$(bw list items --folderid 3adf97b7-4f1f-40ad-b025-ac5b009a00df | jq '.[] | "\(.name) | notes: \(.notes) | id: \(.id)" ' | fzf-tmux | awk '{print $(NF -0)}' | sed 's/\"//g')" | jq '.fields[] | select(.name=="Passphrase") | .value' | sed 's/\"//g' | xclip -sel clip
+  unset BW_SESSION;
 }
 
 if ! [ -f ~/.zfunc/_bw ] ; then
