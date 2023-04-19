@@ -25,7 +25,9 @@ elif [[ ${OS} == "Linux" ]]; then
   sudo apt update && sudo apt -y full-upgrade
   type snapd > /dev/null 2>&1 || sudo apt install -y snapd
   sudo snap refresh
-  sudo flatpak update
+
+  sudo flatpak -y update
+  flatpak -y update
   sudo apt autoremove
 fi
 
