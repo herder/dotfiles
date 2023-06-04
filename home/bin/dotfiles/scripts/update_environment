@@ -116,7 +116,9 @@ echo "Updating cargo packages"
 xargs cargo install < $DOTFILES_PATH/cargo/packages
 
 echo "Updating go packages"
-xargs go install < $DOTFILES_PATH/go/packages
+for i in `cat $DOTFILES/go/packages`; do
+  go install $i
+done
 
 
 if [[ ${OS} == "Darwin" ]]; then
