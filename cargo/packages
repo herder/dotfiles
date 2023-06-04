@@ -2,6 +2,7 @@ bat
 cargo-eval
 cargo-watch
 difftastic
+just
 lsd
 nu
 ripgrep
