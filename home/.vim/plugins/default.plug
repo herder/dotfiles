@@ -26,3 +26,12 @@ Plug 'sheerun/vim-polyglot'
 Plug 'tomtom/tcomment_vim'
 Plug 'vim-scripts/zenburn'
 Plug 'vim-syntastic/syntastic'
+
+" CoC - autocomplete all the things
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'rust-lang/rust.vim', {'for': 'rust'}
+
+" Dracula theme
+
+Plug 'arcticicestudio/nord-vim'
+Plug 'dracula/vim'
