@@ -122,7 +122,11 @@ set wildignore+=*/.git/*,*/tmp/*,*.swp
 "fix for yankring and neovim
 " see https://github.com/neovim/neovim/issues/2642#issuecomment-218232937
 " let g:yankring_clipboard_monitor=0
-nnoremap Q @@
+" nnoremap Q @@
 
 set timeoutlen=500
 set ttimeoutlen=5
+
+" color dracula
+colorscheme nord
+set termguicolors
