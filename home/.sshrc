@@ -59,6 +59,8 @@ if [[ ! -d ~/.local/bin ]]; then
   mkdir -p ~/.local/bin
 fi
 
+export STARSHIP_CONFIG=$SSHHOME/.sshrc.d/starship/starship.toml
+
 #Try to use starship prompt 
 if which starship >/dev/null 2>&1 ; then
   eval "$(starship init bash)"

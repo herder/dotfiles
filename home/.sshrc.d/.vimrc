@@ -42,6 +42,7 @@ Plug 'sheerun/vim-polyglot'
 Plug 'tomtom/tcomment_vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'kaicataldo/material.vim', { 'branch': 'main' }
+Plug 'arcticicestudio/nord-vim'
 call plug#end()
 
 so $SSHHOME/.sshrc.d/vim/settings.vim
