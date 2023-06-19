@@ -25,7 +25,7 @@ hugo
 hwloc
 ipcalc
 isort
-jfrog-cli-v2-jf
+#jfrog-cli-v2-jf
 jq
 kitty
 kubectl
