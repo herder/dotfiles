@@ -13,7 +13,6 @@ python-language-server
 science-box
 techdocs-cli
 tomlq
-tsunami-cli
-tugboat-cli
 versionctl
+yt-dlp
 yq
