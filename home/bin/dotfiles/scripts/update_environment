@@ -105,7 +105,9 @@ npm update -g
 
 
 echo "Updating vim plugins..."
-vim -c 'set nomore' -c 'CocUpdate' -c 'PlugUpdate' -c 'qa!'
+vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
+
+vim -c 'set nomore' -c 'CocInstall -sync coc-java coc-xml coc-json coc-rust-analyzer coc-yaml coc-tsserver coc-yank coc-pairs' -c 'qa!'
 
 echo "Updating rust toolchain"
 type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
