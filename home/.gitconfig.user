@@ -2,7 +2,9 @@
 	name = Niklas Herder
   email = niklas.herder@gmail.com
   useConfigOnly = true
-  signingkey = 02C82B159B690AA9 
+  signingkey = ~/.ssh/id_ed25519 
+[gpg]
+  format = ssh
 [commit]
   gpgsign = true
 [fetch]
