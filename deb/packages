@@ -1,4 +1,6 @@
+#Needed for Jetbrains toolbox, see https://docs.appimage.org/user-guide/troubleshooting/fuse.html
 #emacs28-nativecomp
+#jfrog-cli-v2-jf
 adb
 adr-tools
 asciinema
@@ -6,11 +8,13 @@ atool
 btop
 cmake
 curl
+diff-so-fancy
 direnv
 docker-compose
 docker.io
 editorconfig
 fd-find
+fprintd
 gh
 gimp
 globalprotect-openconnect
@@ -25,17 +29,17 @@ hugo
 hwloc
 ipcalc
 isort
-#jfrog-cli-v2-jf
 jq
 kitty
 kubectl
-#Needed for Jetbrains toolbox, see https://docs.appimage.org/user-guide/troubleshooting/fuse.html
 libfuse2
+libpam-fprintd
 libpam-u2f
 libpam-yubico
 libqt5webkit5
 libssl-dev
 libxml-xpath-perl
+lutris
 neovim
 nghttp2-client
 pandoc
