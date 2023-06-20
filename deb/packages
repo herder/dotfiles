@@ -36,6 +36,8 @@ libpam-yubico
 libqt5webkit5
 libssl-dev
 libxml-xpath-perl
+luarocks
+makedeb
 neovim
 nghttp2-client
 pandoc
