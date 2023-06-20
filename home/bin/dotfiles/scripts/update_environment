@@ -88,6 +88,7 @@ pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 
 if [ "$(getssid)" = "Spotify" ] ||  route | egrep "(gew|guc|gae)" >/dev/null ; then
 echo "Upgrading pip packages..."
+pip install --upgrade pip
 if ! pip config get global.index-url; then
   pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
 fi
