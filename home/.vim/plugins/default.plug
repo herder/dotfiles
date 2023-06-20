@@ -1,8 +1,7 @@
-" Plug 'Valloric/YouCompleteMe'
+"Plug 'Valloric/YouCompleteMe'
 "Plug 'chrisbra/csv.vim'
 "Plug 'jby/tmux.vim'
 "Plug 'junegunn/limelight.vim'
-"Plug 'rust-lang/rust.vim', {'for': 'rust'}
 "Plug 'skwp/vim-colors-solarized'
 "Plug 'tpope/vim-sensible'
 "Plug 'tpope/vim-speeddating'

@@ -40,6 +40,8 @@ libqt5webkit5
 libssl-dev
 libxml-xpath-perl
 lutris
+luarocks
+makedeb
 neovim
 nghttp2-client
 pandoc

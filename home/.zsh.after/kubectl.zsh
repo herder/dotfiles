@@ -1,3 +1,6 @@
 #Use the most current completion  instead of the
 #one provided by Homebrew
-command -v kubectl >/dev/null 2>&1 && source <(kubectl completion zsh)
+
+if type kubectl >/dev/null; then
+  source <(kubectl completion zsh)
+fi

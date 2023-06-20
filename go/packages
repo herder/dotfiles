@@ -1,5 +1,5 @@
 sigs.k8s.io/kind@v0.19.0
 github.com/derailed/k9s@latest
 github.com/charmbracelet/vhs@latest
-github.com/stern/stern@latest
 github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+github.com/stern/stern@latest
