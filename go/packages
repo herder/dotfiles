@@ -3,3 +3,5 @@ github.com/derailed/k9s@latest
 github.com/charmbracelet/vhs@latest
 github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 github.com/stern/stern@latest
+github.com/google/osv-scanner/cmd/osv-scanner@v1
+          
