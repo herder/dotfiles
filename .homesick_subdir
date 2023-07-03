@@ -14,5 +14,6 @@
 .config/spacemacs
 .config/starship
 .config/tmuxinator
+.config/wezterm
 .sshrc.d/.config
 bin/dotfiles/scripts
