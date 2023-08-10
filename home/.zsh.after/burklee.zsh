@@ -1,1 +1,0 @@
-/home/niklash/.homesick/repos/secrets/home/.zsh.after/burklee.zsh
