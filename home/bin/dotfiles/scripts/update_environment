@@ -95,6 +95,12 @@ fi
 pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 fi
 
+if [ -e ~/.zfunc/_pip ]; then   
+  rm -f ~/.zfunc/_pip 
+fi
+
+pip3 completion --zsh | grep -v completion | sed '/^[[:space:]]*$/d' > ~/.zfunc/_pip
+
 echo "Ensuring latest npm version..."
 if ! type n >/dev/null 2>&1; then
   curl -L https://bit.ly/n-install | bash

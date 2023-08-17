@@ -10,8 +10,17 @@ fi
 
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
+
 if which pyenv > /dev/null; then 
   source <(pyenv init -)
   # export PATH="$HOME/.pyenv/shims/:${PATH}"
 fi
 if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
+
+#Strip comments and empty lines from output - breaks completion otherwise
+if [[ ! -a ~/.zfunc/_pip ]]; then
+pip completion --zsh | grep -v completion | sed '/^[[:space:]]*$/d' > ~/.zfunc/_pip
+fi
+
+compctl -K _pip_completion pip3
+compctl -K _pip_completion pip
