@@ -1,7 +1,9 @@
+age-plugin-yubikey
 bat
 cargo-eval
 cargo-watch
 difftastic
+git-delta
 just
 lsd
 nu
