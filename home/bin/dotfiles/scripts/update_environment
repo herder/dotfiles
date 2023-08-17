@@ -40,6 +40,8 @@ if ! type gcloud >/dev/null 2>&1; then
   sudo apt-get update && sudo apt-get install -y google-cloud-cli
 fi
 
+$DOTFILES_PATH/install/install_aws.sh
+
 if [ ! -d $HOME/.emacs.d ]; then
   git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
   ~/.emacs.d/bin/doom install
