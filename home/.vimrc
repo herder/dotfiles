@@ -126,3 +126,6 @@ set ttimeoutlen=5
 " color dracula
 colorscheme nord
 set termguicolors
+
+" No annoying hard line wraps
+set formatoptions-=t
