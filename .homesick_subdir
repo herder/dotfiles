@@ -9,6 +9,7 @@
 .config/fish
 .config/kitty
 .config/nvim
+.config/pipewire
 .config/regolith
 .config/rofi
 .config/spacemacs
