@@ -1,3 +1,4 @@
+# rbenv
 #Needed for Jetbrains toolbox, see https://docs.appimage.org/user-guide/troubleshooting/fuse.html
 #emacs28-nativecomp
 #jfrog-cli-v2-jf
@@ -5,7 +6,10 @@ adb
 adr-tools
 asciinema
 atool
+autoconf 
 btop
+build-essential 
+clang
 cmake
 curl
 diff-so-fancy
@@ -32,23 +36,32 @@ isort
 jq
 kitty
 kubectl
+libdb-dev 
+libffi-dev 
 libfuse2
+libgdbm-dev 
+libgdbm6 
+libgmp-dev 
+libinput-tools
+libncurses5-dev 
 libpam-fprintd
 libpam-u2f
 libpam-yubico
+libpcsclite-dev 
 libqt5webkit5
-libssl-dev
+libreadline6-dev 
+libssl-dev 
 libxml-xpath-perl
-lutris
+libyaml-dev 
 luarocks
 makedeb
 neovim
 nghttp2-client
 pandoc
 paperkey
+patch 
 pcsc-tools
 protobuf-compiler
-rbenv
 shellcheck
 slack-desktop
 sqlite3
@@ -59,6 +72,7 @@ tmux
 toot
 tootle
 ttyd
+uuid-dev
 vlc
 whois
 wireshark
@@ -69,3 +83,4 @@ youtube-dl
 yubikey-agent
 yubikey-luks
 yubikey-manager
+zlib1g-dev 
