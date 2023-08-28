@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Exec=pause-on-lock
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=pause-on-lock

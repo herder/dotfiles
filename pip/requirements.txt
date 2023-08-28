@@ -6,6 +6,7 @@ httpie-http2
 isort
 msgpack
 nose
+pauseonlock
 pip
 pipenv
 pynvim
