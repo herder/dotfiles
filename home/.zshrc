@@ -66,11 +66,20 @@ if ! zgen saved; then
   # https://github.com/so-fancy/diff-so-fancy/blob/master/pro-tips.md#zsh-plugin-providing-diff-so-fancy
   zgen load zdharma-continuum/zsh-diff-so-fancy
 
+  zgen load jeffreytse/zsh-vi-mode
   zgen save
 
 fi
 
 autoload -Uz add-zsh-hook
+autoload -U edit-command-line
+zle -N edit-command-line 
+
+# ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
+# Append a command directly
+zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+'[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh'
+)
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
 # Customize to your needs...
