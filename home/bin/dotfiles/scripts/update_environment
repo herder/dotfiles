@@ -214,6 +214,12 @@ brew cleanup
 echo "Removing dangling symlinks..."
 find $HOME/.config -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
 
+echo "Configuring udev mappings..."
+sudo cp $DOTFILES_PATH/udev/hwdb.d/* /etc/udev/hwdb.d/
+
+sudo systemd-hwdb update
+sudo udevadm trigger
+
 echo "Refreshing starship prompt..."
 BIN_DIR=~/.local/bin FORCE=1 sh -c "$(curl -fsSL https://starship.rs/install.sh)"
 
