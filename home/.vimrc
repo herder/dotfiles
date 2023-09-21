@@ -123,9 +123,11 @@ set wildignore+=*/.git/*,*/tmp/*,*.swp
 set timeoutlen=500
 set ttimeoutlen=5
 
-" color dracula
-colorscheme nord
+" color spring-night
+colorscheme spring-night
 set termguicolors
 
 " No annoying hard line wraps
 set formatoptions-=t
+
+
