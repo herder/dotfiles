@@ -4,6 +4,8 @@
 #jfrog-cli-v2-jf
 adb
 adr-tools
+age
+amazon-ecr-credential-helper
 asciinema
 atool
 autoconf 
