@@ -21,7 +21,7 @@ if [[ ${OS} == "Darwin" ]] ; then
   xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
 elif [[ ${OS} == "Linux" ]]; then 
   type zsh >/dev/null 2>&1 || sudo apt install zsh
-  sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+  # sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
   sudo apt update && sudo apt -y full-upgrade
   type snapd > /dev/null 2>&1 || sudo apt install -y snapd
   sudo snap refresh
