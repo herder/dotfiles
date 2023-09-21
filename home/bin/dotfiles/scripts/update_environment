@@ -69,9 +69,8 @@ if ! type fzf >/dev/null 2>&1 ; then
 fi
 
 echo "Ensuring latest Ruby version..."
-type rbenv > /dev/null 2>&1 || sudo apt install rbenv
-# rbenv install -l | grep -v - | tail -1 | xargs rbenv install
-# rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
+rbenv install -l | grep -v - | tail -1 | xargs rbenv install
+rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
 
 #echo "Updating Ruby Gems..."
 #gem update `gem outdated | cut -d ' ' -f 1`
@@ -86,8 +85,6 @@ fi
 
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
-
-
 if [ "$(getssid)" = "Spotify" ] ||  route | egrep "(gew|guc|gae)" >/dev/null ; then
 echo "Upgrading pip packages..."
 pip install --upgrade pip
