@@ -28,7 +28,7 @@ elif [[ ${OS} == "Linux" ]]; then
 
   sudo flatpak -y update
   flatpak -y update
-  sudo apt autoremove
+  sudo apt -y autoremove
 fi
 
 xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
