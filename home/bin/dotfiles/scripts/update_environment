@@ -153,7 +153,9 @@ sdk flush
 sdk default java $(sdk list java | grep -e 17 | grep amzn | head -n1 | cut -d\| -f 6)
 perl -pi -e 's/sdkman_auto_answer=true/sdkman_auto_answer=false/g' ~/.sdkman/etc/config
 
-
+if ! type terraform ; then 
+  $DOTFILES_PATH/install/install_terraform.sh
+fi
 
 echo "Pulling secrets"
 homesick pull secrets
