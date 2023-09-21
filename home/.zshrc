@@ -25,53 +25,51 @@ source "${HOME}/.zgen/zgen.zsh"
 if ! zgen saved; then
 
   zgen prezto editor key-bindings 'vi'
-  zgen prezto editor dot-expansion 'yes'
+  # zgen prezto editor dot-expansion 'yes'
   zgen prezto tmux:auto-start local 'yes'
-  zgen prezto '*:*' case-sensitive 'no'
-  zgen prezto '*:*' color 'yes'
+  # zgen prezto '*:*' case-sensitive 'no'
+  # zgen prezto '*:*' color 'yes'
   zgen prezto ssh-agent forwarding 'yes'
 
   zgen prezto
   #Zprezto plugins
   #
 
-  zgen prezto utility
   zgen prezto environment
 
-  zgen prezto archive
+  # zgen prezto utility
+
+  # zgen prezto archive
   zgen prezto command-not-found
-  zgen prezto completion
-  zgen prezto autosuggestions
-  zgen prezto directory
-  zgen prezto docker
+  # zgen prezto docker
 
   zgen prezto editor vi
-  zgen prezto emacs
-  zgen prezto fasd
-  zgen prezto git
-  zgen prezto gnu-utility
-  zgen prezto gpg
-  zgen prezto history
-  zgen prezto history-substring-search
-  zgen prezto homebrew
-  zgen prezto python
-  zgen prezto ruby
-  zgen prezto spectrum
+  # zgen prezto emacs
+  # zgen prezto git
+  # zgen prezto gnu-utility
+  # zgen prezto gpg
+  # zgen prezto history
+  # zgen prezto history-substring-search
+  # zgen prezto homebrew
+  # zgen prezto python
+  # zgen prezto ruby
+  # zgen prezto spectrum
   zgen prezto ssh
-  zgen prezto syntax-highlighting
-  zgen prezto terminal
+  # zgen prezto syntax-highlighting
+  # zgen prezto terminal
   zgen prezto tmux
-  zgen prezto Aloxaf/fzf-tab plugin
+  # zgen prezto Aloxaf/fzf-tab plugin
 
   zgen load willghatch/zsh-hooks
   
   zgen load junegunn/fzf shell
-  zgen load johanhaleby/kubetail
+  # zgen load johanhaleby/kubetail
   zgen load matthieusb/zsh-sdkman
+  zgen load zsh-users/zsh-autosuggestions
   zgen load zsh-users/zsh-completions
   zgen load zpm-zsh/clipboard
 
-  zgen oh-my-zsh plugins/node
+  # zgen oh-my-zsh plugins/node
 
   # https://github.com/so-fancy/diff-so-fancy/blob/master/pro-tips.md#zsh-plugin-providing-diff-so-fancy
   zgen load zdharma-continuum/zsh-diff-so-fancy
