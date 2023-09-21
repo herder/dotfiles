@@ -30,8 +30,8 @@ Plug 'vim-syntastic/syntastic'
 " CoC - autocomplete all the things
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'rust-lang/rust.vim', {'for': 'rust'}
-
+Plug 'rhysd/vim-color-spring-night'
 " Dracula theme
 
-Plug 'arcticicestudio/nord-vim'
-Plug 'dracula/vim'
+" Plug 'arcticicestudio/nord-vim'
+" Plug 'dracula/vim'
