@@ -16,6 +16,7 @@ cmake
 curl
 diff-so-fancy
 direnv
+discord
 docker-compose
 docker.io
 editorconfig
