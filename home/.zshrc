@@ -1,7 +1,17 @@
-#zmodload zsh/zprof
+# zmodload zsh/zprof
+# zprof
 
 setopt inc_append_history
 setopt share_history
+
+# Customize to your needs...
+# Load any user customizations prior to load
+# #
+if [ -d $HOME/.zsh.before/ ]; then
+  if [ "$(/bin/ls -A $HOME/.zsh.before/)" ]; then
+    for config_file ($HOME/.zsh.before/*.zsh) source $config_file
+  fi
+fi
 
 #Ensure zgen is present
 #
@@ -82,36 +92,36 @@ zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
 )
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
-# Customize to your needs...
-# Load any user customizations prior to load
-# #
-if [ -d $HOME/.zsh.before/ ]; then
-  if [ "$(/bin/ls -A $HOME/.zsh.before/)" ]; then
-    for config_file ($HOME/.zsh.before/*.zsh) source $config_file
-  fi
-fi
-
-if [ -d $HOME/.zsh.after/ ]; then
-  if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
-    for config_file ($HOME/.zsh.after/*.zsh) source $config_file
-  fi
-fi
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 [ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh
 
+
+# compinit
+# bashcompinit
+
+
+
+if [ -d $HOME/.zsh.after/ ]; then
+  if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
+    for file in $HOME/.zsh.after/*.zsh; do 
+      source $file; 
+    done
+  fi
+fi
+
+# TODO: this does not work when sourcing from ~/.zsh.after/*.zsh - why is that?
+complete -C $(which aws_completer) aws
+
+complete -o nospace -C $HOME/.tfenv/versions/$(tfenv version-name)/terraform terraform
+compdef tf=terraform
+
+compinit
+autoload -U +X bashcompinit && bashcompinit
+
 eval "$(starship init zsh)"
-#zprof
-
-autoload bashcompinit && bashcompinit
-compinit -Uz compinit && compinit
-
-autoload -U edit-command-line
-zle -N edit-command-line 
-bindkey -M vicmd v edit-command-line
-
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
