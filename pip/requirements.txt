@@ -11,9 +11,6 @@ pip
 pipenv
 pynvim
 python-language-server
-science-box
-techdocs-cli
 tomlq
-versionctl
-yt-dlp
 yq
+yt-dlp
