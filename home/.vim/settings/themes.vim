@@ -9,4 +9,4 @@ endif
 set background=dark
 syntax enable
 " colorscheme tender
-colorscheme material
+colorscheme spring-night
