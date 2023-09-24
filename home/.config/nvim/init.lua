@@ -56,12 +56,15 @@ require("lazy").setup( {
 require("mason").setup()
 require("mason-lspconfig").setup {
 	ensure_installed = {
-
+		"gradle_ls",
+		"bashls",
 		"lua_ls",
 		"jdtls",
 		"kotlin_language_server",
 		"rust_analyzer",
-		"marksman"
+		"marksman",
+		"terraformls",
+		"vimls"
 	},
 	automatic_installation = true,
 }
@@ -176,19 +179,20 @@ lspconfig.lua_ls.setup {
 	end
 }
 
-
+lspconfig.bashls.setup{}
 lspconfig.docker_compose_language_service.setup{}
+lspconfig.gradle_ls.setup{}
 lspconfig.jdtls.setup{}
 lspconfig.kotlin_language_server.setup{}
+lspconfig.lemminx.setup{}
 lspconfig.marksman.setup{}
 lspconfig.pyright.setup{}
 lspconfig.rust_analyzer.setup{}
-lspconfig.lemminx.setup{}
-lspconfig.yamlls.setup{}
 lspconfig.sqlls.setup{}
 lspconfig.terraformls.setup{}
 lspconfig.tsserver.setup{}
-
+lspconfig.vimls.setup{}
+lspconfig.yamlls.setup{}
 
 vim.opt.number = true
 vim.opt.relativenumber = true
