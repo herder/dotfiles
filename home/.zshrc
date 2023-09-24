@@ -13,9 +13,16 @@ if [ -d $HOME/.zsh.before/ ]; then
   fi
 fi
 
+# https://github.com/jeffreytse/zsh-vi-mode#configuration-function 
+
+function zvm_config() {
+	ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+}
+
 #Ensure zgen is present
 #
 [ -d $HOME/.zgen ] || git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
+
 
 #Load zgen (https://github.com/tarjoilija/zgen )
 source "${HOME}/.zgen/zgen.zsh"
@@ -43,7 +50,7 @@ if ! zgen saved; then
   zgen prezto command-not-found
   # zgen prezto docker
 
-  zgen prezto editor vi
+  # zgen prezto editor vi
   # zgen prezto emacs
   # zgen prezto git
   # zgen prezto gnu-utility
@@ -60,7 +67,7 @@ if ! zgen saved; then
   zgen prezto tmux
   # zgen prezto Aloxaf/fzf-tab plugin
 
-  zgen load willghatch/zsh-hooks
+  # zgen load willghatch/zsh-hooks
   
   zgen load junegunn/fzf shell
   # zgen load johanhaleby/kubetail
@@ -79,15 +86,17 @@ if ! zgen saved; then
 
 fi
 
-autoload -Uz add-zsh-hook
+# autoload -Uz add-zsh-hook
 autoload -U edit-command-line
 zle -N edit-command-line 
 
 # ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
+# ZVM_READKEY_ENGINE=$ZVM_READKEY_ENGINE_ZLE
 # Append a command directly
 zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
 '[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh'
 )
+
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -117,6 +126,7 @@ compdef tf=terraform
 compinit
 autoload -U +X bashcompinit && bashcompinit
 
+KEYTIMEOUT=1
 eval "$(starship init zsh)"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
