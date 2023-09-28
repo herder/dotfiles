@@ -19,6 +19,8 @@ require("lazy").setup( {
 
 	"farmergreg/vim-lastplace",
 
+	"roxma/vim-tmux-clipboard",
+
 	"tpope/vim-commentary",
 	"tpope/vim-fugitive",
 	"tpope/vim-obsession",
@@ -207,7 +209,7 @@ vim.cmd [[colorscheme  spring-night]]
 vim.cmd [[nmap ; :Buffers<CR>]]
 vim.cmd [[nmap <Leader>t :Files<CR>]]
 vim.cmd [[nmap <Leader>r :Tags<CR>]]
-vim.cmd [[set clipboard=unnamed]]
+vim.cmd [[set clipboard=unnamedplus]]
 vim.cmd [[silent !mkdir -p ~/.vim_undo > /dev/null 2>&1]]
 vim.cmd [[set undodir=~/.vim_undo]]
 vim.cmd [[set undofile]]
