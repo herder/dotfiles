@@ -109,6 +109,8 @@ n latest
 echo "Updating globally installed npm packages..."
 npm update -g
 
+bob install stable || true
+bob update
 
 echo "Updating vim plugins..."
 vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
