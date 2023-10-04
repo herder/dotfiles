@@ -15,6 +15,9 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup( {
 
+	"savq/melange-nvim",
+
+	"lewis6991/gitsigns.nvim",
 
 	"rhysd/vim-color-spring-night",
 	"farmergreg/vim-lastplace",
@@ -85,6 +88,8 @@ require("mason-lspconfig").setup {
 	automatic_installation = true,
 }
 
+
+require("gitsigns").setup()
 
 -- Set up nvim-cmp.
 local cmp = require'cmp'
@@ -215,10 +220,12 @@ vim.opt.relativenumber = true
 -- vim.opt.cursorline = true
 -- vim.opt.cursorlineopt = "number"
 
+vim.opt.termguicolors = true
+-- vim.cmd.colorscheme = 'melange'
 vim.g.mapleader = ","
 vim.g.maplocalleader = ","
 
-vim.cmd [[colorscheme  spring-night]]
+vim.cmd [[colorscheme  melange]]
 vim.cmd [[nmap ; :Buffers<CR>]]
 vim.cmd [[nmap <Leader>t :Files<CR>]]
 vim.cmd [[nmap <Leader>r :Tags<CR>]]
