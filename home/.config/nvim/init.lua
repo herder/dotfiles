@@ -64,6 +64,33 @@ require("lazy").setup( {
 			-- or leave it empty to use the default settings
 			-- refer to the configuration section below
 		}
+	},
+	{"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
+	{
+		'nvim-orgmode/orgmode',
+		dependencies = {
+			{ 'nvim-treesitter/nvim-treesitter', lazy = true },
+		},
+		event = 'VeryLazy',
+		config = function()
+			-- Setup treesitter
+			require('nvim-treesitter.configs').setup({
+				highlight = {
+					enable = true,
+					additional_vim_regex_highlighting = { 'org' },
+				},
+				ensure_installed = { 'org' },
+			})
+
+			-- Load treesitter grammar for org
+			require('orgmode').setup_ts_grammar()
+
+			-- Setup orgmode
+			require('orgmode').setup({
+				org_agenda_files = '~/Dropbox/org/**/*',
+				org_default_notes_file = '~/Dropbox/org/refile.org',
+			})
+		end,
 	}
 
 }
@@ -118,6 +145,7 @@ cmp.setup({
 	sources = cmp.config.sources({
 		{ name = 'nvim_lsp' },
 		{ name = 'vsnip' }, -- For vsnip users.
+		{ name = 'orgmode' },
 		-- { name = 'luasnip' }, -- For luasnip users.
 		-- { name = 'ultisnips' }, -- For ultisnips users.
 		-- { name = 'snippy' }, -- For snippy users.
@@ -214,6 +242,10 @@ lspconfig.terraformls.setup{}
 lspconfig.tsserver.setup{}
 lspconfig.vimls.setup{}
 lspconfig.yamlls.setup{}
+
+vim.opt.conceallevel = 1
+vim.opt.concealcursor = 'nc'
+vim.cmd('language en_US.utf8')
 
 vim.opt.number = true
 vim.opt.relativenumber = true
