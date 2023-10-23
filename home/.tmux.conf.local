@@ -364,9 +364,10 @@ set -g status-keys vi
 set -g mode-keys vi
 
 # replace C-b by C-a instead of using both prefixes
-# set -gu prefix2
-unbind C-a
+# https://github.com/gpakosz/.tmux/issues/53#issuecomment-276544577
+set -gu prefix2
 unbind C-b
+unbind C-a
 set -g prefix C-'\'
 bind C-'\' send-prefix
 
