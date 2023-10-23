@@ -1,6 +1,8 @@
 # zmodload zsh/zprof
 # zprof
 
+autoload -U compinit && compinit
+
 setopt inc_append_history
 setopt share_history
 
@@ -128,6 +130,7 @@ autoload -U +X bashcompinit && bashcompinit
 
 KEYTIMEOUT=1
 eval "$(starship init zsh)"
+
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
