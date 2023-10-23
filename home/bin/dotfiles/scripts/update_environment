@@ -5,67 +5,72 @@ sudo true
 DOTFILES="${DOTFILES_PATH:-$HOME/.homesick/repos/dotfiles}"
 echo "DOTFILES: $DOTFILES"
 OS=$(uname -s)
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-if ! type keybase >/dev/null 2>&1 ; then
-  curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
-  sudo apt install ./keybase_amd64.deb
-  run_keybase
+while true; do
+	sudo -n true
+	sleep 60
+	kill -0 "$$" || exit
+done 2>/dev/null &
+if ! type keybase >/dev/null 2>&1; then
+	curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
+	sudo apt install ./keybase_amd64.deb
+	run_keybase
 fi
 
-if [[ ${OS} == "Darwin" ]] ; then
-  echo "Running softwareupdate..."
-  softwareupdate -i -a
+if [[ ${OS} == "Darwin" ]]; then
+	echo "Running softwareupdate..."
+	softwareupdate -i -a
 
-  echo "Upgrading System apps..."
-  mas upgrade
-  xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
-elif [[ ${OS} == "Linux" ]]; then 
-  type zsh >/dev/null 2>&1 || sudo apt install zsh
-  # sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
-  sudo apt update && sudo apt -y full-upgrade
-  type snapd > /dev/null 2>&1 || sudo apt install -y snapd
-  sudo snap refresh
+	echo "Upgrading System apps..."
+	mas upgrade
+	xcode-select --install 2>/dev/null || echo "xcode-select already run, skipping"
+elif [[ ${OS} == "Linux" ]]; then
+	type zsh >/dev/null 2>&1 || sudo apt install zsh
+	# sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+	sudo apt update && sudo apt -y full-upgrade
+	type snapd >/dev/null 2>&1 || sudo apt install -y snapd
+	sudo snap refresh
 
-  sudo flatpak -y update
-  flatpak -y update
-  sudo apt -y autoremove
+	sudo flatpak -y update
+	flatpak -y update
+	sudo apt -y autoremove
 fi
 
 xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
 
 if ! type gcloud >/dev/null 2>&1; then
-  sudo apt-get install -y apt-transport-https ca-certificates gnupg
-  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-  sudo apt-get update && sudo apt-get install -y google-cloud-cli
+	sudo apt-get install -y apt-transport-https ca-certificates gnupg
+	echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+	curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+	sudo apt-get update && sudo apt-get install -y google-cloud-cli
 fi
 
 $DOTFILES_PATH/install/install_aws.sh
+$DOTFILES_PATH/install/install_eksctl.sh
 
 if [ ! -d $HOME/.emacs.d ]; then
-  git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
-  ~/.emacs.d/bin/doom install
+	git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
+	~/.emacs.d/bin/doom install
 fi
 
-if dpkg -l | grep wavebox; then 
-  echo "Found wavebox"
+if dpkg -l | grep wavebox; then
+	echo "Found wavebox"
 else
-  echo "Installing Wavebox..."
-  curl -L https://download.wavebox.app/latest/stable/linux/deb --output /tmp/wavebox.deb
-  sudo dpkg -i /tmp/wavebox.deb
+	echo "Installing Wavebox..."
+	curl -L https://download.wavebox.app/latest/stable/linux/deb --output /tmp/wavebox.deb
+	sudo dpkg -i /tmp/wavebox.deb
 fi
 
 if dpkg -l dropbox | grep dropbox; then
-  echo "Found dropbox"
+	echo "Found dropbox"
 else
-  echo "Installing dropbox..."
-    curl -L https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb --output /tmp/dropbox.deb
-    sudo apt install -y /tmp/dropbox.deb
+	echo "Installing dropbox..."
+	curl -L https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2020.03.04_amd64.deb --output /tmp/dropbox.deb
+	sudo apt install -y /tmp/dropbox.deb
 fi
 
-if ! type fzf >/dev/null 2>&1 ; then 
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install --all
+if ! type fzf >/dev/null 2>&1; then
+	git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+	~/.fzf/install --all
 fi
 
 echo "Ensuring latest Ruby version..."
@@ -76,46 +81,46 @@ rbenv versions | tail -n1 | grep -v '*' | xargs rbenv global
 #gem update `gem outdated | cut -d ' ' -f 1`
 
 echo "Ensuring latest Python version..."
-if ! type pyenv > /dev/null 2>&1; then 
-  if ! -d ~/.pyenv ; then
-  git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-  fi
-  eval $(pyenv init --)
+if ! type pyenv >/dev/null 2>&1; then
+	if ! -d ~/.pyenv; then
+		git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+	fi
+	eval $(pyenv init --)
 fi
 
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
-if [ "$(getssid)" = "Spotify" ] ||  route | egrep "(gew|guc|gae)" >/dev/null ; then
-echo "Upgrading pip packages..."
-pip install --upgrade pip
-if ! pip config get global.index-url; then
-  pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
-fi
-pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
-fi
-
-if [ -e ~/.zfunc/_pip ]; then   
-  rm -f ~/.zfunc/_pip 
+if [ "$(getssid)" = "Spotify" ] || route | egrep "(gew|guc|gae)" >/dev/null; then
+	echo "Upgrading pip packages..."
+	pip install --upgrade pip
+	if ! pip config get global.index-url; then
+		pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
+	fi
+	pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 fi
 
-pip3 completion --zsh | grep -v completion | sed '/^[[:space:]]*$/d' > ~/.zfunc/_pip
+if [ -e ~/.zfunc/_pip ]; then
+	rm -f ~/.zfunc/_pip
+fi
+
+pip3 completion --zsh | grep -v completion | sed '/^[[:space:]]*$/d' >~/.zfunc/_pip
 
 echo "Ensuring latest npm version..."
 if ! type n >/dev/null 2>&1; then
-  curl -L https://bit.ly/n-install | bash
+	curl -L https://bit.ly/n-install | bash
 fi
 n latest
 
 echo "Updating globally installed npm packages..."
 npm update -g
 
+echo "Updating nvim versions..."
 bob install stable || true
-bob update
+bob update --all
 
-echo "Updating vim plugins..."
-vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
+# vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
 
-vim -c 'set nomore' -c 'CocInstall -sync coc-java coc-xml coc-json coc-rust-analyzer coc-yaml coc-tsserver coc-yank coc-pairs' -c 'qa!'
+# vim -c 'set nomore' -c 'CocInstall -sync coc-java coc-xml coc-json coc-rust-analyzer coc-yaml coc-tsserver coc-yank coc-pairs' -c 'qa!'
 
 echo "Updating rust toolchain"
 type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -123,19 +128,18 @@ type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s
 rustup update
 
 echo "Updating cargo packages"
-xargs cargo install < $DOTFILES_PATH/cargo/packages
+xargs cargo install <$DOTFILES_PATH/cargo/packages
 
 echo "Updating go packages"
-for i in `cat $DOTFILES/go/packages`; do
-  go install $i
+for i in $(cat $DOTFILES/go/packages); do
+	go install $i
 done
 
-
 if [[ ${OS} == "Darwin" ]]; then
-  if type docker-machine >/dev/null ; then 
-echo "Upgrading docker-machine..."
-docker-machine upgrade
-  fi
+	if type docker-machine >/dev/null; then
+		echo "Upgrading docker-machine..."
+		docker-machine upgrade
+	fi
 fi
 
 echo "Updating zgen plugins..."
@@ -152,8 +156,8 @@ sdk flush
 sdk default java $(sdk list java | grep -e 17 | grep amzn | head -n1 | cut -d\| -f 6)
 perl -pi -e 's/sdkman_auto_answer=true/sdkman_auto_answer=false/g' ~/.sdkman/etc/config
 
-if ! type terraform ; then 
-  $DOTFILES_PATH/install/install_terraform.sh
+if ! type terraform; then
+	$DOTFILES_PATH/install/install_terraform.sh
 fi
 
 echo "Pulling secrets"
@@ -163,54 +167,53 @@ echo "Pulling dotfiles"
 homesick link secrets
 homesick link dotfiles
 
-if type brew >/dev/null 2>&1; then 
-  echo "Updating Homebrew packages..."
-  brew update
+if type brew >/dev/null 2>&1; then
+	echo "Updating Homebrew packages..."
+	brew update
 
-  TEMP_BREWFILE=$(mktemp)
+	TEMP_BREWFILE=$(mktemp)
 
-  echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
-  cat $DOTFILES_PATH/Brewfile > $TEMP_BREWFILE
+	echo "Running brew bundle with file $DOTFILES_PATH/Brewfile"
+	cat $DOTFILES_PATH/Brewfile >$TEMP_BREWFILE
 
-  #Install OS-specific apps
-  for i in $DOTFILES_PATH/brewfiles/os/* ; do
-    if [[ $OSTYPE == "`basename $i`"* ]] ; then 
-      echo "Installing from $i";
-      cat "$i" >> $TEMP_BREWFILE
-      fi ; 
-    done
-  
-  #Install apps for specific domains
-  for i in $(getdomain) ; do 
-    BREWFILE="$DOTFILES_PATH/brewfiles/domain/$i"
-    if [[ -f $BREWFILE ]]; then
-      echo "Installing from $i";
-      cat "$DOTFILES_PATH/brewfiles/domain/$i" >> $TEMP_BREWFILE
-    fi
-  done
-  
-  #Install apps for specific ssid:s
-  for i in $DOTFILES_PATH/brewfiles/ssid/* ; do
-    if [[ $(getssid) == "`basename $i`"* ]] ; then 
-      echo "Installing from $i";
-      cat "$i" >> $TEMP_BREWFILE
-    fi;
-  done
-  
-  
-  if [[ ${OS} == "Darwin" ]]; then
-    brew bundle --file=$TEMP_BREWFILE
-    echo "Upgrading casks..."
-    brew cu -a -y
-  fi
+	#Install OS-specific apps
+	for i in $DOTFILES_PATH/brewfiles/os/*; do
+		if [[ $OSTYPE == "$(basename $i)"* ]]; then
+			echo "Installing from $i"
+			cat "$i" >>$TEMP_BREWFILE
+		fi
+	done
+
+	#Install apps for specific domains
+	for i in $(getdomain); do
+		BREWFILE="$DOTFILES_PATH/brewfiles/domain/$i"
+		if [[ -f $BREWFILE ]]; then
+			echo "Installing from $i"
+			cat "$DOTFILES_PATH/brewfiles/domain/$i" >>$TEMP_BREWFILE
+		fi
+	done
+
+	#Install apps for specific ssid:s
+	for i in $DOTFILES_PATH/brewfiles/ssid/*; do
+		if [[ $(getssid) == "$(basename $i)"* ]]; then
+			echo "Installing from $i"
+			cat "$i" >>$TEMP_BREWFILE
+		fi
+	done
+
+	if [[ ${OS} == "Darwin" ]]; then
+		brew bundle --file=$TEMP_BREWFILE
+		echo "Upgrading casks..."
+		brew cu -a -y
+	fi
 
 fi
 
 if [[ -v TMUX_PLUGIN_MANAGER_PATH ]]; then
-  $TMUX_PLUGIN_MANAGER_PATH/tpm/bin/update_plugins all
+	$TMUX_PLUGIN_MANAGER_PATH/tpm/bin/update_plugins all
 else
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-  $TMUX_PLUGIN_MANAGER_PATH/tpm/bin/install_plugins
+	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+	$TMUX_PLUGIN_MANAGER_PATH/tpm/bin/install_plugins
 fi
 
 echo "Cleaning up..."
