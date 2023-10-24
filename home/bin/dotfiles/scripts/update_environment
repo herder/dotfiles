@@ -113,10 +113,13 @@ n latest
 
 echo "Updating globally installed npm packages..."
 npm update -g
-
 echo "Updating nvim versions..."
+
 bob install stable || true
 bob update --all
+
+echo "Updating nvim plugins..."
+nvim +"lua require('lazy').update({wait=true})" +"qa!"
 
 # vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
 
