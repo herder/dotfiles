@@ -10,6 +10,7 @@ while true; do
 	sleep 60
 	kill -0 "$$" || exit
 done 2>/dev/null &
+
 if ! type keybase >/dev/null 2>&1; then
 	curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
 	sudo apt install ./keybase_amd64.deb
@@ -26,26 +27,32 @@ if [[ ${OS} == "Darwin" ]]; then
 elif [[ ${OS} == "Linux" ]]; then
 	type zsh >/dev/null 2>&1 || sudo apt install zsh
 	# sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+
 	sudo apt update && sudo apt -y full-upgrade
+	sudo apt -y autoremove
+
+	xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
 	type snapd >/dev/null 2>&1 || sudo apt install -y snapd
 	sudo snap refresh
 
 	sudo flatpak -y update
 	flatpak -y update
-	sudo apt -y autoremove
+
+	if ! type gcloud >/dev/null 2>&1; then
+		sudo apt-get install -y apt-transport-https ca-certificates gnupg
+		echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+		curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+		sudo apt-get update && sudo apt-get install -y google-cloud-cli
+	fi
+
+	$DOTFILES_PATH/install/install_aws.sh
+	$DOTFILES_PATH/install/install_eksctl.sh
+
+	if ! type terraform; then
+		$DOTFILES_PATH/install/install_terraform.sh
+	fi
+
 fi
-
-xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
-
-if ! type gcloud >/dev/null 2>&1; then
-	sudo apt-get install -y apt-transport-https ca-certificates gnupg
-	echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-	curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-	sudo apt-get update && sudo apt-get install -y google-cloud-cli
-fi
-
-$DOTFILES_PATH/install/install_aws.sh
-$DOTFILES_PATH/install/install_eksctl.sh
 
 if [ ! -d $HOME/.emacs.d ]; then
 	git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
@@ -113,8 +120,15 @@ n latest
 
 echo "Updating globally installed npm packages..."
 npm update -g
-echo "Updating nvim versions..."
 
+echo "Updating rust toolchain"
+type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+rustup update
+
+echo "Updating cargo packages"
+xargs cargo install <$DOTFILES_PATH/cargo/packages
+
+echo "Updating nvim versions..."
 bob install stable || true
 bob update --all
 
@@ -124,14 +138,6 @@ nvim +"lua require('lazy').update({wait=true})" +"qa!"
 # vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
 
 # vim -c 'set nomore' -c 'CocInstall -sync coc-java coc-xml coc-json coc-rust-analyzer coc-yaml coc-tsserver coc-yank coc-pairs' -c 'qa!'
-
-echo "Updating rust toolchain"
-type rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-rustup update
-
-echo "Updating cargo packages"
-xargs cargo install <$DOTFILES_PATH/cargo/packages
 
 echo "Updating go packages"
 for i in $(cat $DOTFILES/go/packages); do
