@@ -8,7 +8,4 @@ curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo 
 
 ## Add some aliases
   gh alias set --shell co 'gh pr checkout "$(gh pr list | fzf | cut -f 1)"'gh alias set --shell "pr co" 'gh pr checkout "$(gh pr list | fzf | cut -f 1)"'
-
 fi
-source <(gh completion -s zsh)
-compdef _gh gh

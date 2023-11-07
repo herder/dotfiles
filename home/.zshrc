@@ -29,27 +29,90 @@ function zvm_config() {
 #Load zgen (https://github.com/tarjoilija/zgen )
 source "${HOME}/.zgen/zgen.zsh"
 
+# Append a command directly
+zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+'[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh'
+)
+
+# History settings - stolen from Zprezto
+#
+HISTFILE="${HISTFILE:-${ZDOTDIR:-$HOME}/.zsh_history}"
+HISTSIZE=10000
+SAVEHIST=$HISTSIZE
+
+setopt BANG_HIST              # Treat the '!' character specially during expansion.
+setopt EXTENDED_HISTORY       # Write the history file in the ':start:elapsed;command' format.
+setopt SHARE_HISTORY          # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST # Expire a duplicate event first when trimming history.
+setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS   # Delete an old recorded event if a new event is a duplicate.
+setopt HIST_FIND_NO_DUPS      # Do not display a previously found event.
+setopt HIST_IGNORE_SPACE      # Do not record an event starting with a space.
+setopt HIST_SAVE_NO_DUPS      # Do not write a duplicate event to the history file.
+setopt HIST_VERIFY            # Do not execute immediately upon history expansion.
+setopt HIST_BEEP              # Beep when accessing non-existent history.
+
+# oh-my-zsh
+#
+
+if [ ! -d ~/.oh-my-zsh ]; then
+ git clone https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh
+fi
+
+ZSH_TMUX_AUTOSTART=true
+
+plugins=(
+  aws
+  command-not-found
+  gh
+  gradle
+  helm
+  httpie
+  kind
+  docker
+  kubectl
+  kubectx
+  mvn
+  postgres
+  pyenv
+  ripgrep
+  snap
+  spring
+  starship
+  systemd
+  sdk
+  skaffold
+  tig
+  terraform
+  tmux
+  vi-mode
+  zoxide
+)
+
+zstyle ':omz:update' mode auto
+
+source ~/.oh-my-zsh/oh-my-zsh.sh
 # Create init script if it doesn't exist
 
 if ! zgen saved; then
 
-  zgen prezto editor key-bindings 'vi'
+  # zgen prezto editor key-bindings 'vi'
   # zgen prezto editor dot-expansion 'yes'
-  zgen prezto tmux:auto-start local 'yes'
+  # zgen prezto tmux:auto-start local 'yes'
   # zgen prezto '*:*' case-sensitive 'no'
   # zgen prezto '*:*' color 'yes'
-  zgen prezto ssh-agent forwarding 'yes'
+  # zgen prezto ssh-agent forwarding 'yes'
 
-  zgen prezto
+  # zgen prezto
   #Zprezto plugins
   #
 
-  zgen prezto environment
-
+  # zgen prezto environment
   # zgen prezto utility
 
+
   # zgen prezto archive
-  zgen prezto command-not-found
+  # zgen prezto command-not-found
   # zgen prezto docker
 
   # zgen prezto editor vi
@@ -63,53 +126,41 @@ if ! zgen saved; then
   # zgen prezto python
   # zgen prezto ruby
   # zgen prezto spectrum
-  zgen prezto ssh
+  # zgen prezto ssh
   # zgen prezto syntax-highlighting
   # zgen prezto terminal
-  zgen prezto tmux
+  # zgen prezto tmux
   # zgen prezto Aloxaf/fzf-tab plugin
 
   # zgen load willghatch/zsh-hooks
   
+  zgen load jeffreytse/zsh-vi-mode
+
   zgen load junegunn/fzf shell
-  # zgen load johanhaleby/kubetail
-  zgen load matthieusb/zsh-sdkman
   zgen load zsh-users/zsh-autosuggestions
   zgen load zsh-users/zsh-completions
   zgen load zpm-zsh/clipboard
 
   # zgen oh-my-zsh plugins/node
 
-  # https://github.com/so-fancy/diff-so-fancy/blob/master/pro-tips.md#zsh-plugin-providing-diff-so-fancy
-  zgen load zdharma-continuum/zsh-diff-so-fancy
 
-  zgen load jeffreytse/zsh-vi-mode
+  # https://github.com/so-fancy/diff-so-fancy/blob/master/pro-tips.md#zsh-plugin-providing-diff-so-fancy
+  # zgen load zdharma-continuum/zsh-diff-so-fancy
   zgen save
 
 fi
 
+
 # autoload -Uz add-zsh-hook
-autoload -U edit-command-line
-zle -N edit-command-line 
+# autoload -U edit-command-line
+# zle -N edit-command-line 
 
 # ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
-# ZVM_READKEY_ENGINE=$ZVM_READKEY_ENGINE_ZLE
-# Append a command directly
-zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
-'[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh'
-)
+#
+ZVM_READKEY_ENGINE=$ZVM_READKEY_ENGINE_NEX
 
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh
-
-
-# compinit
-# bashcompinit
-
-
 
 if [ -d $HOME/.zsh.after/ ]; then
   if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
