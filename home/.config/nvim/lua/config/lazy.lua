@@ -26,36 +26,21 @@ require("lazy").setup({
     version = false, -- always use the latest git commit
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
-  install = { colorscheme = { "tokyonight", "habamax", "melange" } },
+  install = { colorscheme = { "kanagawa", "habamax" } },
   checker = { enabled = true }, -- automatically check for plugin updates
   performance = {
     rtp = {
       -- disable some rtp plugins
       disabled_plugins = {
+        -- "gzip",
         -- "matchit",
-        "gzip",
         -- "matchparen",
         -- "netrwPlugin",
-        "tarPlugin",
+        -- "tarPlugin",
         "tohtml",
         "tutor",
-        "zipPlugin",
+        -- "zipPlugin",
       },
     },
   },
 })
-require("focus").setup({ split = { tmux = true }, keymap = {
-  {},
-} })
-
-local focusmap = function(direction)
-  vim.keymap.set("n", "<Leader>" .. direction, function()
-    require("focus").split_command(direction)
-  end, { desc = string.format("Create or move to split (%s)", direction) })
-end
-
--- Use `<Leader>h` to split the screen to the left, same as command FocusSplitLeft etc
-focusmap("h")
-focusmap("j")
-focusmap("k")
-focusmap("l")

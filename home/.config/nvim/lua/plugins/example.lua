@@ -16,7 +16,7 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "melange",
+      colorscheme = "gruvbox",
     },
   },
 
@@ -55,8 +55,8 @@ return {
       -- add a keymap to browse plugin files
       -- stylua: ignore
       {
-        function() require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root }) end,
         "<leader>fp",
+        function() require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root }) end,
         desc = "Find Plugin File",
       },
     },
@@ -144,8 +144,6 @@ return {
         "html",
         "javascript",
         "json",
-        "java",
-        "kotlin",
         "lua",
         "markdown",
         "markdown_inline",

@@ -2,15 +2,37 @@
 
 return {
   -- add tmux navigator
-  -- { "christoomey/vim-tmux-navigator" },
-  { "nvim-focus/focus.nvim", version = false,
-
+  { "christoomey/vim-tmux-navigator",
     keys = {
-      {"<leader>wn", "<cmd>FocusSplitNicely<cr>", desc = "Split nicely" },
-      {"<leader>wh", "<cmd>FocusSplitLeft<cr>", desc = "Split left" },
-      {"<leader>wl", "<cmd>FocusSplitRight<cr>", desc = "Split right" },
-      {"<leader>wk", "<cmd>FocusSplitUp<cr>", desc = "Split up" },
-      {"<leader>wj", "<cmd>FocusSplitDown<cr>", desc = "Split down" },
-    }
-}
+      { "<C-\\>", "<cmd>TmuxNavigatePrevious<cr>", desc = "Go to the previous pane" },
+      { "<C-h>", "<cmd>TmuxNavigateLeft<cr>", desc = "Go to the left pane" },
+      { "<C-j>", "<cmd>TmuxNavigateDown<cr>", desc = "Go to the down pane" },
+      { "<C-k>", "<cmd>TmuxNavigateUp<cr>", desc = "Go to the up pane" },
+      { "<C-l>", "<cmd>TmuxNavigateRight<cr>", desc = "Go to the right pane" },
+    },
+    event = "VimEnter",
+  },
+
+  { "nvim-focus/focus.nvim", version = false,
+    init = function()
+      require("focus").setup({ })
+      vim.keymap.set( "n", "<leader>wn", function ()
+        require("focus").split_nicely()
+      end, {desc = "Split Left" })
+      vim.keymap.set( "n", "<leader>wn", function ()
+        require("focus").split_nicely()
+      end, {desc = "Split Nicely" })
+      local focusmap = function(direction)
+        vim.keymap.set('n', '<leader>w'..direction, function()
+          require('focus').split_command(direction)
+        end, { desc = string.format('Create or move to split (%s)', direction) })
+      end
+
+      -- Use `<Leader>wh` to split the screen to the left, same as command FocusSplitLeft etc
+      focusmap('h')
+      focusmap('j')
+      focusmap('k')
+      focusmap('l')
+    end,
+  },
 }
