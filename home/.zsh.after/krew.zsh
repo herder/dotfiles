@@ -1,6 +1,6 @@
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-if ! type kubectl-krew; then 
+if ! type kubectl-krew >/dev/null 2>&1 ; then 
 (
   set -x; cd "$(mktemp -d)" &&
   OS="$(uname | tr '[:upper:]' '[:lower:]')" &&

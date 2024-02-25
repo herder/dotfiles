@@ -7,4 +7,5 @@ if [ ! -d ~/.tfenv ] ; then
  tfenv use
 fi
 
+complete -o nospace -C $HOME/.tfenv/versions/$(tfenv version-name)/terraform terraform
 alias tf=terraform

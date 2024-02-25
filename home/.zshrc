@@ -162,6 +162,12 @@ ZVM_READKEY_ENGINE=$ZVM_READKEY_ENGINE_NEX
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
 
+source ~/.oh-my-zsh/oh-my-zsh.sh
+
+compinit
+autoload -U +X bashcompinit && bashcompinit
+
+compdef tf=terraform
 if [ -d $HOME/.zsh.after/ ]; then
   if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
     for file in $HOME/.zsh.after/*.zsh; do 
@@ -169,15 +175,7 @@ if [ -d $HOME/.zsh.after/ ]; then
     done
   fi
 fi
-# TODO: this does not work when sourcing from ~/.zsh.after/*.zsh - why is that?
 
-# complete -C $(which aws_completer) aws
-
-complete -o nospace -C $HOME/.tfenv/versions/$(tfenv version-name)/terraform terraform
-compdef tf=terraform
-
-# compinit
-# autoload -U +X bashcompinit && bashcompinit
 
 # eval "$(starship init zsh)"
 
