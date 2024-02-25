@@ -83,6 +83,7 @@ plugins=(
   systemd
   sdk
   skaffold
+  # ssh-agent
   tig
   terraform
   tmux
