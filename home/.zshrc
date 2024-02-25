@@ -64,6 +64,7 @@ ZSH_TMUX_AUTOSTART=true
 plugins=(
   aws
   command-not-found
+  fzf
   gh
   gradle
   helm
@@ -91,7 +92,6 @@ plugins=(
 
 zstyle ':omz:update' mode auto
 
-source ~/.oh-my-zsh/oh-my-zsh.sh
 # Create init script if it doesn't exist
 
 if ! zgen saved; then
@@ -136,10 +136,9 @@ if ! zgen saved; then
   
   zgen load jeffreytse/zsh-vi-mode
 
-  zgen load junegunn/fzf shell
+  # zgen load junegunn/fzf shell
   zgen load zsh-users/zsh-autosuggestions
   zgen load zsh-users/zsh-completions
-  zgen load zpm-zsh/clipboard
 
   # zgen oh-my-zsh plugins/node
 
