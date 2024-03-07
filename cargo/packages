@@ -5,6 +5,7 @@ cargo-eval
 cargo-watch
 difftastic
 git-delta
+hyperfine
 just
 lsd
 nu
