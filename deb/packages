@@ -19,6 +19,7 @@ direnv
 discord
 docker-compose
 docker.io
+docker-buildx
 editorconfig
 evtest
 fd-find
