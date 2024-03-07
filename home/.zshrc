@@ -2,6 +2,7 @@
 # zmodload zsh/zprof
 
 autoload -U compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
 
 setopt inc_append_history
 setopt share_history
@@ -162,12 +163,8 @@ ZVM_READKEY_ENGINE=$ZVM_READKEY_ENGINE_NEX
 
 export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
 
-source ~/.oh-my-zsh/oh-my-zsh.sh
 
-compinit
-autoload -U +X bashcompinit && bashcompinit
 
-compdef tf=terraform
 if [ -d $HOME/.zsh.after/ ]; then
   if [ "$(/bin/ls -A  $HOME/.zsh.after/)" ]; then
     for file in $HOME/.zsh.after/*.zsh; do 
@@ -176,6 +173,7 @@ if [ -d $HOME/.zsh.after/ ]; then
   fi
 fi
 
+source ~/.oh-my-zsh/oh-my-zsh.sh
 
 # eval "$(starship init zsh)"
 
@@ -244,6 +242,7 @@ cbread() {
     xclip -selection primary -i -f | xclip -selection secondary -i -f | xclip -selection clipboard -i
   fi
 }
+
 
 cbprint() {
   if [[ $on_mac_os -eq 0 ]]; then
