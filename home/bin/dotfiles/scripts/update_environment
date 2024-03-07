@@ -45,7 +45,10 @@ elif [[ ${OS} == "Linux" ]]; then
 		sudo apt-get update && sudo apt-get install -y google-cloud-cli
 	fi
 
+	echo "Installing AWS ClI"
 	$DOTFILES_PATH/install/install_aws.sh
+
+	echo "Installing eksctl"
 	$DOTFILES_PATH/install/install_eksctl.sh
 
 	if ! type terraform; then
@@ -98,13 +101,14 @@ fi
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global
 if [ "$(getssid)" = "Spotify" ] || route | egrep "(gew|guc|gae)" >/dev/null; then
-	echo "Upgrading pip packages..."
-	pip install --upgrade pip
 	if ! pip config get global.index-url; then
 		pip3 config set global.index-url https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple/
 	fi
-	pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 fi
+
+echo "Upgrading pip packages..."
+pip install --upgrade pip
+pip install --upgrade -r $DOTFILES_PATH/pip/requirements.txt
 
 if [ -e ~/.zfunc/_pip ]; then
 	rm -f ~/.zfunc/_pip
@@ -133,7 +137,7 @@ bob install stable || true
 bob update --all
 
 echo "Updating nvim plugins..."
-nvim +"lua require('lazy').update({wait=true})" +"qa!"
+nvim +"lua require('lazy').update({wait=true})" +"qa"
 
 # vim -c 'set nomore' -c 'PlugInstall' -c 'PlugUpdate' -c 'CocUpdate -sync' -c 'qa!'
 
@@ -153,6 +157,9 @@ fi
 
 echo "Updating zgen plugins..."
 zsh -c "source ${HOME}/.zgen/zgen.zsh && zgen update && zgen reset"
+
+echo "Updating oh-my-zsh..."
+omz update
 
 echo "Upgrading SDKMAN packages"
 type sdk >/dev/null 2>&1 || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
@@ -226,8 +233,11 @@ else
 fi
 
 echo "Cleaning up..."
-brew cleanup
+if type brew >/dev/null 2>&1; then
+	brew cleanup
+fi
 echo "Removing dangling symlinks..."
+
 find $HOME/.config -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
 
 echo "Configuring udev mappings..."
