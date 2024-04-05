@@ -125,7 +125,7 @@
 [rerere]
   # Remember my merges
   # http://gitfu.wordpress.com/2008/04/20/git-rerere-rereremember-what-you-did-last-time/
-  enabled = true
+	enabled = true
 [user]
 	name = Niklas Herder
 [include]
@@ -136,3 +136,7 @@
 	oldHighlight = red bold 52
 	newNormal = green bold
 	newHighlight = green bold 22
+[maintenance]
+	repo = /home/niklas/src/git/github.com/Stravito/platform
+	repo = /home/niklas/src/git/github.com/Stravito/frontend
+	repo = /home/niklas/src/git/github.com/Stravito/integration-service
