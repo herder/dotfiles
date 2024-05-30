@@ -17,7 +17,7 @@ curl
 diff-so-fancy
 direnv
 discord
-docker-compose
+docker-compose-v2
 docker.io
 docker-buildx
 editorconfig
@@ -30,6 +30,7 @@ gimp
 git-lfs
 globalprotect-openconnect
 gnome-clocks
+gnome-shell-pomodoro
 gnome-tweaks
 gnupg
 google-cloud-cli
@@ -98,3 +99,4 @@ yubikey-agent
 yubikey-luks
 yubikey-manager
 zlib1g-dev 
+wezterm
