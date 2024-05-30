@@ -2,6 +2,7 @@
 .config/autostart
 .config/coc
 .config/compton
+.config/evolution
 .config/feh
 .config/fonts
 .config/hammerspoon
