@@ -1,0 +1,1 @@
+/home/niklas/.homesick/repos/secrets/home/.zsh.after/de-tools.zsh

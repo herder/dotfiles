@@ -2,11 +2,12 @@
 .config/autostart
 .config/coc
 .config/compton
+.config/evolution
 .config/feh
+.config/fish
 .config/fonts
 .config/hammerspoon
 .config/i3blocks
-.config/fish
 .config/kitty
 .config/nvim
 .config/pipewire
@@ -16,5 +17,6 @@
 .config/starship
 .config/tmuxinator
 .config/wezterm
+.config/zsh
 .sshrc.d/.config
 bin/dotfiles/scripts

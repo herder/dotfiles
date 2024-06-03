@@ -1,7 +1,11 @@
-sigs.k8s.io/kind@v0.19.0
+github.com/getsops/sops@latest
+github.com/kubernetes/kompose@latest
+sigs.k8s.io/kind@latest
 github.com/derailed/k9s@latest
 github.com/charmbracelet/vhs@latest
 github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 github.com/stern/stern@latest
 github.com/google/osv-scanner/cmd/osv-scanner@v1
-          
+github.com/tilt-dev/ctlptl/cmd/ctlptl@latest
+github.com/jesseduffield/lazygit@latest
+github.com/google/osv-scanner/cmd/osv-scanner@v1
