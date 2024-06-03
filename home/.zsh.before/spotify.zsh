@@ -1,1 +1,1 @@
-/home/niklash/.homesick/repos/secrets/home/.zsh.before/spotify.zsh
+/home/niklas/.homesick/repos/secrets/home/.zsh.before/spotify.zsh

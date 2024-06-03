@@ -33,8 +33,6 @@ elif [[ ${OS} == "Linux" ]]; then
 	sudo apt -y autoremove
 
 	xargs -a <(awk '! /^ *(#|$)/' $DOTFILES/deb/packages) -r -- sudo apt-get -y install --allow-downgrades
-	type snapd >/dev/null 2>&1 || sudo apt install -y snapd
-	sudo snap refresh
 
 	sudo flatpak -y update
 	flatpak -y update
@@ -156,11 +154,9 @@ if [[ ${OS} == "Darwin" ]]; then
 	fi
 fi
 
-echo "Updating zgen plugins..."
-zsh -c "source ${HOME}/.zgen/zgen.zsh && zgen update && zgen reset"
+echo "Updating zsh plugins..."
 
-echo "Updating oh-my-zsh..."
-omz update
+zsh -c "source ${ZDOTDIR:-~}/.antidote/antidote.zsh && antidote update"
 
 echo "Upgrading SDKMAN packages"
 type sdk >/dev/null 2>&1 || curl -s "https://get.sdkman.io" | bash && source ~/.sdkman/bin/sdkman-init.sh && sed -i 's/sdkman_auto_env=false/sdkman_auto_env=true/' $SDKMAN_DIR/etc/config
