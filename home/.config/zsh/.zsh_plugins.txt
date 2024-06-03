@@ -255,6 +255,6 @@ zdharma-continuum/fast-syntax-highlighting kind:defer
 
 # These popular core plugins should be loaded at the end
 
-load jeffreytse/zsh-vi-mode
+jeffreytse/zsh-vi-mode
 zsh-users/zsh-autosuggestions
 zsh-users/zsh-history-substring-search
