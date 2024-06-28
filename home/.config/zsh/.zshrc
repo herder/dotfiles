@@ -32,12 +32,18 @@ fi
 source ${ZDOTDIR:-~}/.antidote/antidote.zsh
 antidote load
 
+
 # Append a command directly
 zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
 '[ -f ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh ] && source ~/.zgen/Aloxaf/fzf-tab/fzf-tab.zsh'
 )
 
-# If autin is installed, enable it.
+# https://unix.stackexchange.com/a/438315
+# Want to start in insert mode
+zle-line-init() { zle -K viins; }
+zle -N zle-line-init
+
+# If atuin is installed, enable it.
 if command -v atuin &> /dev/null; then
     # Note: Since zsh-vi-mode lazy-loads keybinds, it will overwrite
     # Some of the keybinds set by atuin. The following creates a 'callback'
@@ -65,8 +71,8 @@ if [ -d $HOME/.zsh.after/ ]; then
     done
   fi
 fi
-
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
 
