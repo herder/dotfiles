@@ -92,6 +92,9 @@
   svnr = svn rebase
   svnd = svn dcommit
   svnl = svn log --oneline --show-commit
+
+  #sync and prune branches
+	sync = !git switch main && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D
 [format]
   pretty = format:%C(blue)%ad%Creset %C(yellow)%h%C(green)%d%Creset %C(blue)%s %C(magenta) [%an]%Creset
 [mergetool]
@@ -140,3 +143,4 @@
 	repo = /home/niklas/src/git/github.com/Stravito/platform
 	repo = /home/niklas/src/git/github.com/Stravito/frontend
 	repo = /home/niklas/src/git/github.com/Stravito/integration-service
+	repo = /home/niklas/src/git/github.com/zed-industries/zed

@@ -1,16 +1,20 @@
 [user]
-	name = Niklas Herder
+  name = Niklas Herder
   email = niklas.herder@gmail.com
   useConfigOnly = true
-  signingkey = ~/.ssh/id_ed25519 
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIRUUpxp1M505CG94ymUUms0R9880p7J6695ig0gz6nH
 [gpg]
   format = ssh
+[gpg "ssh"]
+  program = "/opt/1Password/op-ssh-sign"
 [commit]
   gpgsign = true
 [fetch]
   prune = true
+[init]
+  defaultBranch = main
 [pull]
-	rebase = true
+  rebase = true
 [rebase]
   autoStash = true
 [core]
@@ -21,5 +25,3 @@
 
 [url "ssh://git@github.com/"]
   insteadOf = "https://github.com/"
-
-
