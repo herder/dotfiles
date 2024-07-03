@@ -3,3 +3,4 @@ if [ ! -d $HOME/.zfunc ]; then
 fi
 
 [ -d $HOME/.local/bin ] || mkdir -p $HOME/.local/bin
+
