@@ -9,3 +9,4 @@ github.com/google/osv-scanner/cmd/osv-scanner@v1
 github.com/tilt-dev/ctlptl/cmd/ctlptl@latest
 github.com/jesseduffield/lazygit@latest
 github.com/google/osv-scanner/cmd/osv-scanner@v1
+github.com/nektos/act@latest
