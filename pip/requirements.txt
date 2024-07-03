@@ -3,13 +3,14 @@ greenlet
 httpie
 httpie-http2
 isort
-msgpack
+meson
 mkdocs
+msgpack
 nose
 pauseonlock
 pip
 pipenv
 tomlq
-yuml
 yq
 yt-dlp
+yuml

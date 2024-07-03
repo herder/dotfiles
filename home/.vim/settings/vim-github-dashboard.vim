@@ -1,1 +1,1 @@
-/home/niklash/.homesick/repos/secrets/home/.vim/settings/vim-github-dashboard.vim
+/home/niklas/.homesick/repos/secrets/home/.vim/settings/vim-github-dashboard.vim

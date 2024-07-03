@@ -9,6 +9,7 @@ amazon-ecr-credential-helper
 asciinema
 atool
 autoconf 
+bind9-dnsutils
 btop
 build-essential 
 clang
@@ -17,14 +18,15 @@ curl
 diff-so-fancy
 direnv
 discord
+docker-buildx
 docker-compose-v2
 docker.io
-docker-buildx
 editorconfig
 evtest
 fd-find
 fprintd
 freerdp2-x11
+gettext
 gh
 gimp
 git-lfs
@@ -44,10 +46,12 @@ hwloc
 iotop
 ipcalc
 isort
+itstool
 jfrog-cli-v2-jf
 jq
 kitty
 kubectl
+ladspa-sdk 
 libdb-dev 
 libffi-dev 
 libfuse2
@@ -65,6 +69,7 @@ libreadline6-dev
 libssl-dev 
 libxml-xpath-perl
 libyaml-dev 
+libzita-convolver-dev
 luarocks
 lutris
 neofetch
@@ -91,6 +96,8 @@ tootle
 ttyd
 uuid-dev
 vlc
+wah-plugins
+wezterm
 whois
 wireshark
 wrk
@@ -99,4 +106,3 @@ yubikey-agent
 yubikey-luks
 yubikey-manager
 zlib1g-dev 
-wezterm

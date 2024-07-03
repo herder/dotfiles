@@ -235,6 +235,7 @@ if type brew >/dev/null 2>&1; then
 fi
 echo "Removing dangling symlinks..."
 
+find $DOTFILES_PATH/ -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
 find $HOME/.config -type l -exec test \! -e "{}" \; -print | xargs -I {} rm "{}"
 
 echo "Refreshing starship prompt..."
