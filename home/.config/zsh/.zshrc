@@ -5,12 +5,15 @@ setopt inc_append_history
 setopt share_history
 setopt extended_glob
 
+export ZSH_CACHE_DIR=~/.cache/zsh
+
+[ -d $ZSH_CACHE_DIR/completions ] || mkdir -p $ZSH_CACHE_DIR/completions
 #
 # Load any user customizations prior to load
 if [ -d $HOME/.zsh.before/ ]; then
   if [ "$(/bin/ls -A $HOME/.zsh.before/)" ]; then
-    for config_file ($HOME/.zsh.before/*.zsh) source $config_file
   fi
+  for config_file ($HOME/.zsh.before/*.zsh) source $config_file
 fi
 
 
@@ -21,6 +24,7 @@ fi
 #   autoload -Uz $fpath[1]/*(.:t)
 # fi
 
+export ZSH_CACHE_DIR=~/.cache/zsh/
 # Source zstyles you might use with antidote.
 [[ -e ${ZDOTDIR:-~}/.zstyles ]] && source ${ZDOTDIR:-~}/.zstyles
 

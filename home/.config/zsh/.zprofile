@@ -45,11 +45,13 @@ typeset -gU cdpath fpath mailpath path
 path=(
   /usr/local/{bin,sbin}
   ~/.local/bin
+  ~/.cargo/bin
   $path
 )
 
 fpath=(
   ~/.zfunc
+  ~/.cache/zsh/completions/
   $fpath
 )
 #
