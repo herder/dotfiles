@@ -1,5 +1,5 @@
-age-plugin-yubikey
 atuin
+age-plugin-yubikey
 bat
 bob-nvim
 bottom
@@ -11,6 +11,7 @@ hyperfine
 just
 lsd
 nu
+oha
 ripgrep
 spotify-tui
 zoxide
