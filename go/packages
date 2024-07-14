@@ -1,5 +1,5 @@
-github.com/getsops/sops@latest
 github.com/kubernetes/kompose@latest
+github.com/getsops/sops@latest
 sigs.k8s.io/kind@latest
 github.com/derailed/k9s@latest
 github.com/charmbracelet/vhs@latest
