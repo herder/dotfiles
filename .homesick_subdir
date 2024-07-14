@@ -17,6 +17,7 @@
 .config/starship
 .config/tmuxinator
 .config/wezterm
+.config/zellij
 .config/zsh
 .sshrc.d/.config
 bin/dotfiles/scripts

@@ -167,7 +167,7 @@ ohmyzsh/ohmyzsh path:plugins/starship
 ohmyzsh/ohmyzsh path:plugins/systemd
 ohmyzsh/ohmyzsh path:plugins/terraform
 ohmyzsh/ohmyzsh path:plugins/tig
-ohmyzsh/ohmyzsh path:plugins/tmux
+# ohmyzsh/ohmyzsh path:plugins/tmux
 ohmyzsh/ohmyzsh path:plugins/zoxide
 
 # ohmyzsh/ohmyzsh path:plugins/copybuffer
