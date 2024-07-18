@@ -7,9 +7,10 @@ if [[ ! -a ~/.pyenv/plugins/pyenv-virtualenv ]]; then
   git clone git@github.com:pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
 fi
 
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
 
-# export PYENV_ROOT="$HOME/.pyenv"
-# export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 #
 # if which pyenv > /dev/null; then 
 #   source <(pyenv init -)
