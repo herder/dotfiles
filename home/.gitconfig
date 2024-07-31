@@ -48,11 +48,11 @@
   last = diff HEAD^                 # diff last committed change
 
   # log
-  l = log --graph --date=short
-  changes = log --pretty=format:\"%h %cr %cn %Cgreen%s%Creset\" --name-status
-  short = log --pretty=format:\"%h %cr %cn %Cgreen%s%Creset\"
-  simple = log --pretty=format:\" * %s\"
-  shortnocolor = log --pretty=format:\"%h %cr %cn %s\"
+  l = "log --graph --date=short"
+  changes = "log --pretty=format:\"%h %cr %cn %Cgreen%s%Creset\" --name-status"
+  short = "log --pretty=format:\"%h %cr %cn %Cgreen%s%Creset\""
+  simple = "log --pretty=format:\" * %s\""
+  shortnocolor = "log --pretty=format:\"%h %cr %cn %s\""
 
   # pull
   pl = pull                         # pull
@@ -94,7 +94,7 @@
   svnl = svn log --oneline --show-commit
 
   #sync and prune branches
-	sync = !git switch main && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D
+	sync = "!git switch main && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"
 [format]
   pretty = format:%C(blue)%ad%Creset %C(yellow)%h%C(green)%d%Creset %C(blue)%s %C(magenta) [%an]%Creset
 [mergetool]
@@ -117,7 +117,6 @@
 [core]
   autocrlf = input
   editor = nvim
-  excludesfile = ~/.yadr/git/gitignore
 [advice]
   statusHints = false
 [diff]
@@ -139,8 +138,4 @@
 	oldHighlight = red bold 52
 	newNormal = green bold
 	newHighlight = green bold 22
-[maintenance]
-	repo = /home/niklas/src/git/github.com/Stravito/platform
-	repo = /home/niklas/src/git/github.com/Stravito/frontend
-	repo = /home/niklas/src/git/github.com/Stravito/integration-service
 	repo = /home/niklas/src/git/github.com/zed-industries/zed
