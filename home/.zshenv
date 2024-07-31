@@ -6,14 +6,17 @@
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
+if test -z $SSH_CONNECTION; then
 export ZSH_TMUX_AUTOSTART=true
+fi
 
 export ZSH_CACHE_DIR=~/.cache/zsh
-ZVM_CURSOR_STYLE_ENABLED=true
-KEYTIMEOUT=1
+export ZVM_CURSOR_STYLE_ENABLED=true
+export KEYTIMEOUT=1
 
 fpath+=(
   ~/.zfunc
+  ${ZSH_CACHE_DIR}completions
 )
 
 # Set ZDOTDIR if you want to re-home Zsh.
