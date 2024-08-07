@@ -17,6 +17,7 @@
 .config/starship
 .config/tmuxinator
 .config/wezterm
+.config/wireplumber
 .config/zellij
 .config/zsh
 .sshrc.d/.config
