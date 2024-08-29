@@ -105,6 +105,8 @@ if ! type pyenv >/dev/null 2>&1; then
 	eval $(pyenv init --)
 fi
 
+git -C $HOME/.pyenv/plugins/python-build pull
+
 pyenv install -l | grep -v - | grep -v 'b' | tail -1 | xargs pyenv install || true
 pyenv versions | egrep '\d+.\d+.\d+$' | tail -n1 | xargs pyenv global || true
 
