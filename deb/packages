@@ -15,7 +15,6 @@ build-essential
 clang
 cmake
 curl
-diff-so-fancy
 direnv
 discord
 docker-buildx
@@ -30,14 +29,14 @@ gettext
 gh
 gimp
 git-lfs
-globalprotect-openconnect
+# globalprotect-openconnect
 gnome-clocks
 gnome-shell-pomodoro
 gnome-tweaks
 gnupg
 google-cloud-cli
 google-cloud-cli-minikube
-gpaste
+gpaste-2
 graphviz
 homesick
 httpie
@@ -93,7 +92,6 @@ tig
 tldr
 tmux
 toot
-tootle
 ttyd
 uuid-dev
 vlc
@@ -102,7 +100,7 @@ wezterm
 whois
 wireshark
 wrk
-youtube-dl
+# youtube-dl
 yubikey-agent
 yubikey-luks
 yubikey-manager
