@@ -21,4 +21,5 @@
 .config/zellij
 .config/zsh
 .sshrc.d/.config
+.local/share/pop-launcher/
 bin/dotfiles/scripts
