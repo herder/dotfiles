@@ -1,5 +1,6 @@
 export GOENV_ROOT="$HOME/.goenv"
 export PATH="$GOENV_ROOT/bin:$PATH"
+export PATH="$$GOENV_ROOT/shims:${PATH}"
 
 if [[ ! -a ~/.goenv ]]; then
   echo "Did not find goenv installation, cloning..."
@@ -8,7 +9,6 @@ fi
 
 if which goenv > /dev/null; then 
   source <(goenv init -)
-  # export PATH="$HOME/.goenv/shims/:${PATH}"
   export PATH="$GOROOT/bin:$PATH"
   export PATH="$PATH:$GOPATH/bin"
 fi
