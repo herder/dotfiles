@@ -98,4 +98,7 @@ compdef _op op
 
 # Set SSH_AUTH_SOCK and let `IdentityAgent` override in case of remote host:
 #  https://developer.1password.com/docs/ssh/agent/forwarding/#modify-the-identityagent-configuration-on-the-remote-workstation
+if [ -z "$SSH_CONNECTION" ]; then
 export SSH_AUTH_SOCK=~/.1password/agent.sock
+fi
+
