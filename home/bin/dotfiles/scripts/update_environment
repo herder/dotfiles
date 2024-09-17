@@ -151,7 +151,7 @@ echo "Updating go packages"
 git -C $HOME/.goenv pull
 
 yes | goenv install latest
-goenv versions | xargs goenv global
+goenv versions | tail -n1 | xargs goenv global
 
 for i in $(cat $DOTFILES/go/packages); do
 	go install $i
