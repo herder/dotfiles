@@ -1,0 +1,11 @@
+
+{{- $osid := .chezmoi.os -}}
+{{- if hasKey .chezmoi.osRelease "id" -}}
+{{-   $osid = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
+{{- end -}}
+
+[data]
+    osid = {{ $osid | quote }}
+
+[hooks.read-source-state.pre]
+  command = ".local/share/chezmoi/.install-password-manager.sh"

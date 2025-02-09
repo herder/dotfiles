@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+{{ if eq .osid "linux-arch" }}
+echo "Installing required arch packages"
+yes | sudo pacman -S {{ .packages.linux.pacman | quoteList | join " " }}
+yes | yay -S {{ .packages.linux.yay | quoteList | join " " }}
+echo "Pop os detected, do something"
+{{ else if eq .osid "linux-popos" }}
+{{ end }}
+
+cargo install {{ .packages.cargo | quoteList | join " " }}

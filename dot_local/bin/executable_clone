@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+ROOT_DIR=${VCS_BASEDIR:-$HOME/src/git/}
+# Remove trailing slash
+ROOT_DIR="${ROOT_DIR%/}"
+REPO_URL=$1
+
+f=${REPO_URL}
+## Remove protocol part of url  ##
+f="${f#http://}"
+f="${f#https://}"
+f="${f#ftp://}"
+f="${f#scp://}"
+f="${f#scp://}"
+f="${f#sftp://}"
+
+## Remove username and/or username:password part of URL  ##
+f="${f#*:*@}"
+f="${f#*@}"
+## Remove rest of urls ##
+#f=${f%%/*}
+
+logerr() {
+	>&2 echo $@
+}
+
+## Check that cleaned url has parseable format
+if [[ ! ($f =~ .*[:/].*/.*$) ]]; then
+	logerr "Could not parse uri: $REPO_URL"
+	logerr "Make sure it's a valid git url"
+	exit 1
+fi
+
+## Resolve site and user
+SITE_AND_USER="${f%/*}"
+if grep ':' <<<"$SITE_AND_USER" >/dev/null; then
+	GIT_USER="${SITE_AND_USER#*:}"
+	SITE="${SITE_AND_USER%:*}"
+else
+	GIT_USER="${SITE_AND_USER##*/}"
+	SITE="${SITE_AND_USER%/*}"
+fi
+
+REPO="${f##*/}"
+## Remove any traliing '.git' in the repo name
+REPO="${REPO%.git}"
+
+# echo "SITE: $SITE"
+# echo "USER: $GIT_USER"
+# echo "REPO: $REPO"
+
+LOCAL_REPO="$ROOT_DIR/$SITE/$GIT_USER/$REPO"
+
+# Do not clone if directory already has been cloned
+if [ -d $LOCAL_REPO ]; then
+	logerr "Repo "
+	logerr "$REPO_URL"
+	logerr "already exists locally, at"
+	logerr $LOCAL_REPO
+else
+	# All good, start cloning!
+	git clone $1 $LOCAL_REPO
+fi
+
+echo $LOCAL_REPO
