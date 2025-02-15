@@ -46,6 +46,7 @@ path=(
   /usr/local/{bin,sbin}
   ~/.local/bin
   ~/.cargo/bin
+  ~/bin
   $path
 )
 

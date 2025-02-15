@@ -4,7 +4,11 @@ echo "Installing required arch packages"
 yes | sudo pacman -S {{ .packages.linux.pacman | quoteList | join " " }}
 yes | yay -S {{ .packages.linux.yay | quoteList | join " " }}
 echo "Pop os detected, do something"
-{{ else if eq .osid "linux-popos" }}
+{{ else if eq .osid "linux-pop" }}
+sudo apt install {{ .packages.linux.apt | quoteList | join " " }}
 {{ end }}
 
+{{ range .packages.cargolocked -}}
+cargo install --locked {{ . | quote }}
+{{ end -}}
 cargo install {{ .packages.cargo | quoteList | join " " }}

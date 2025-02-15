@@ -9,7 +9,6 @@ packages:
     - 'docker'
     - 'docker-compose'
     - 'firefox'
-    - 'fzf'
     - 'git'
     - 'github-cli'
     - 'harfbuzz'

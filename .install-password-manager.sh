@@ -16,11 +16,26 @@ if [[ ! -d ~/.pyenv ]]; then
   eval "$(pyenv init --)"
 fi
 
+if [[ ! -d ~/.fzf ]]; then
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+  ~/.fzf/install
+fi
+
 if ! type n >/dev/null 2>&1; then
   curl -L https://bit.ly/n-install | bash
   n latest
 fi
 
+if ! type rustup >/dev/null 2>&1; then
+  curl https://sh.rustup.rs -sSf | sh
+  . "$HOME/.cargo/env"
+fi
+
+if ! type tailscale >/dev/null 2>&1; then
+  curl -fsSL https://tailscale.com/install.sh | sh
+fi
+
+[ -d $HOME/.config/nvim ] || git clone https://github.com/LazyVim/starter ~/.config/nvim
 case "$(uname -s)" in
 Darwin)
   # Install for macos - not supported
