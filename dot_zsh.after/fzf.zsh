@@ -1,8 +1,8 @@
 # # Setup fzf
 [[ -f ~/.fzf.zsh ]] && . ~/.fzf.zsh
 
+FZF_HOME="$HOME/.fzf/shell"
 if type fzf >/dev/null 2>&1; then
-  FZF_HOME="/usr/share/fzf"
 # # ---------
 # BREW_HOME=$(brew --prefix)
 # if [[ ! "$PATH" == */usr/local/opt/fzf/bin* ]]; then
