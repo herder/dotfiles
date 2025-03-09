@@ -8,6 +8,8 @@ echo "Pop os detected, do something"
 sudo apt install {{ .packages.linux.apt | quoteList | join " " }}
 {{ end }}
 
+ln -sf ~/.tmux_runtime/.tmux.conf ~/.tmux.conf
+
 {{ range .packages.cargolocked -}}
 cargo install --locked {{ . | quote }}
 {{ end -}}
