@@ -30,12 +30,9 @@ export ZSH_CACHE_DIR=~/.cache/zsh/
 # Source zstyles you might use with antidote.
 [[ -e ${ZDOTDIR:-~}/.zstyles ]] && source ${ZDOTDIR:-~}/.zstyles
 
-# Clone antidote if necessary.
-[[ -d ${ZDOTDIR:-~}/.antidote ]] ||
-  git clone https://github.com/mattmc3/antidote ${ZDOTDIR:-~}/.antidote
-
 # Create an amazing Zsh config using antidote plugins.
-source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+# (Loaded via .cheezmoiexternal.toml)
+[[ -d ${ZDOTDIR:-~}/.antidote ]] && source ${ZDOTDIR:-~}/.antidote/antidote.zsh
 antidote load
 
 
