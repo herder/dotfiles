@@ -1,0 +1,38 @@
+:set number relativenumber
+:set surround
+:set easymotion
+:set multiplecursors
+:set commentary
+:set ideajoin
+:set ideamarks
+
+
+
+
+:set wrap       "Wrap lines
+:set linebreak    "Wrap lines at convenient points
+
+source ~/.intellimacs/spacemacs.vim
+
+" (Optional) Enable other Intellimacs modules
+source ~/.intellimacs/extra.vim
+source ~/.intellimacs/major.vim
+source ~/.intellimacs/hybrid.vim
+
+" (Optional) Enable which-key plugin
+source ~/.intellimacs/which-key.vim
+
+" (Optional) My own vim commands
+nnoremap Y y$
+
+" (Optional) Comma for major mode
+nmap , <leader>m
+vmap , <leader>m
+
+" (Optional) Add/edit actions
+nnoremap <leader>gl    :action Vcs.Show.Log<CR>
+vnoremap <leader>gl    :action Vcs.Show.Log<CR>
+
+nnoremap <leader>ph    :action ParameterHints
+
+set clipboard^=unnamedplus
