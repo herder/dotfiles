@@ -1,0 +1,26 @@
+Host *
+  ForwardAgent yes
+
+Match host * exec "test -z $SSH_CONNECTION"
+  IdentityAgent ~/.1password/agent.sock
+
+host pillsupply-root
+    User root
+    HostName adm.segfault.net
+    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" }}
+    LocalForward 5900 0:5900
+
+host pillsupply
+    User user
+    HostName adm.segfault.net
+    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" }}
+    LocalForward 5900 0:5900
+
+Host unifi
+	User pi
+
+Host usg
+  Hostname 192.168.0.1
+  User admin
+
+
