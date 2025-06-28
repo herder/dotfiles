@@ -446,10 +446,13 @@ tmux_conf_uninstall_plugins_on_reload=true
 set -g @plugin 'tmux-plugins/tmux-copycat'
 set -g @plugin 'tmux-plugins/tmux-cpu'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin '27medkamal/tmux-session-wizard'
 set -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @plugin 'catppuccin/tmux#v2.1.2'
 set -g @continuum-restore 'on'
+
+set -g @session-wizard 'a'
 
 # Smart pane switching with awareness of Vim splits.
 # See: https://github.com/christoomey/vim-tmux-navigator
