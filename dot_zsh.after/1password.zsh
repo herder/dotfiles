@@ -92,7 +92,7 @@ setup_op_shell_plugins_using_functions() {
 
 # Setup 1Password CLI shell plugin integration with custom function that makes
 # it play nicer with shell completion.
-setup_op_shell_plugins_using_functions
+# setup_op_shell_plugins_using_functions
 
 compdef _op op
 
