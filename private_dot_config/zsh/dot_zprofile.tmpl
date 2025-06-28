@@ -80,3 +80,7 @@ if [[ ! -d "$TMPDIR" ]]; then
 fi
 
 TMPPREFIX="${TMPDIR%/}/zsh"
+
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
+
+export GH_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" }}

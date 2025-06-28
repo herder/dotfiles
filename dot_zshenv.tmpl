@@ -4,7 +4,6 @@
 
 # NOTE: .zshenv needs to live at ~/.zshenv, not in $ZDOTDIR!
 
-export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
 if test -z $SSH_CONNECTION; then
 export ZSH_TMUX_AUTOSTART=true
@@ -27,3 +26,4 @@ export ZDOTDIR=${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}
 if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprofile"
 fi
+
