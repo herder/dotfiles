@@ -12,3 +12,8 @@
   type = "git-repo"
   url = "https://github.com/marcoieni/intellimacs"
   refreshPeriod = "168h"
+[".local/bin/wtf"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "wtfutil/wtf" (printf "wtf_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+  executable = true
+  path = "wtf_{{ (gitHubLatestRelease "wtfutil/wtf").TagName | replaceAllRegex "^v" "" }}_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/wtfutil"
