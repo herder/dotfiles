@@ -17,3 +17,24 @@
   url = {{ gitHubLatestReleaseAssetURL "wtfutil/wtf" (printf "wtf_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
   executable = true
   path = "wtf_{{ (gitHubLatestRelease "wtfutil/wtf").TagName | replaceAllRegex "^v" "" }}_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/wtfutil"
+[".local/bin/starship"]
+  type = "archive-file"
+  {{- if eq .chezmoi.os "linux"}}
+  url = {{ gitHubLatestReleaseAssetURL "starship/starship" (printf "starship-x86_64-unknown-linux-gnu.tar.gz") | quote }}
+  {{- end }}
+  executable = true
+  path = "starship"
+[".local/bin/atuin"]
+  type = "archive-file"
+  {{- if eq .chezmoi.os "linux"}}
+  url = {{ gitHubLatestReleaseAssetURL "atuinsh/atuin" (printf "atuin-x86_64-unknown-linux-gnu.tar.gz") | quote }}
+  {{- end }}
+  executable = true
+  path = "atuin-x86_64-unknown-linux-gnu/atuin"
+[".local/bin/bob"]
+  type = "archive-file"
+  {{- if eq .chezmoi.os "linux"}}
+  url = {{ gitHubLatestReleaseAssetURL "MordechaiHadad/bob" (printf "bob-%s-x86_64.zip" .chezmoi.os ) | quote }}
+  {{- end }}
+  executable = true
+  path = "bob-linux-x86_64/bob"
