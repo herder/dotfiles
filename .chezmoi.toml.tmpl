@@ -4,8 +4,12 @@
 {{-   $osid = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
 {{- end -}}
 
+{{- $hostname := .chezmoi.hostname -}}
+
 [data]
     osid = {{ $osid | quote }}
+    email = "niklas.herder@gmail.com"
+    hostname = {{ $hostname | quote }}
 
 [hooks.read-source-state.pre]
   command = ".local/share/chezmoi/.install-password-manager.sh"

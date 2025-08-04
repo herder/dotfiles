@@ -88,11 +88,6 @@
   # tag
   t = tag -n                        # show tags with <n> lines of each tag message
 
-  # svn helpers
-  svnr = svn rebase
-  svnd = svn dcommit
-  svnl = svn log --oneline --show-commit
-
   #sync and prune branches
 	sync = "!git switch main && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"
 [format]
@@ -131,11 +126,4 @@
 [user]
 	name = Niklas Herder
 [include]
-  path = ~/.gitconfig.user
-
-[color "diff-highlight"]
-	oldNormal = red bold
-	oldHighlight = red bold 52
-	newNormal = green bold
-	newHighlight = green bold 22
-	repo = /home/niklas/src/git/github.com/zed-industries/zed
+  path = gitconfig.user

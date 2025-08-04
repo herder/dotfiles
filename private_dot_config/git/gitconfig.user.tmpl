@@ -1,8 +1,8 @@
 [user]
   name = Niklas Herder
-  email = niklas.herder@gmail.com
+  email = {{ .email }}
   useConfigOnly = true
-  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIRUUpxp1M505CG94ymUUms0R9880p7J6695ig0gz6nH
+  signingkey = {{ onepasswordRead "op://Private/Privat SSH/public key" }}
 [gpg]
   format = ssh
 [gpg "ssh"]
@@ -23,5 +23,5 @@
   path = ~/.gitconfig.work 
   path = ~/.gitconfig.diff
 
-# [url "ssh://git@github.com/"]
-#  insteadOf = "https://github.com/"
+[url "ssh://git@github.com/"]
+ insteadOf = "https://github.com/"
