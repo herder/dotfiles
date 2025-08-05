@@ -39,9 +39,8 @@ fi
 
 if ! type rustup >/dev/null 2>&1; then
   curl https://sh.rustup.rs -sSf | sh
-  . "$HOME/.cargo/env"
 fi
-
+. "$HOME/.cargo/env"
 if ! type tailscale >/dev/null 2>&1; then
   curl -fsSL https://tailscale.com/install.sh | sh
 fi
