@@ -1,0 +1,26 @@
+{{ if and (eq .osid "linux-pop") .personal -}}
+#!/usr/bin/env bash
+
+dir=$(mktemp -d)
+echo "install keyd"
+git clone https://github.com/rvaiya/keyd $dir
+cd $dir
+mkdir -p /etc/keyd
+cat <<EOF | sudo tee /etc/keyd/default.conf
+[ids]
+
+*
+
+[main]
+
+# Maps capslock to escape when pressed and control when held.
+capslock = overload(control, esc)
+
+# Remaps the escape key to capslock
+esc = capslock
+
+EOF
+
+make && sudo make install
+sudo systemctl enable --now keyd
+{{ end -}}

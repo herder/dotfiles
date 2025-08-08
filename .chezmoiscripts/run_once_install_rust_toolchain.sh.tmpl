@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+if ! type rustup >/dev/null 2>&1; then
+  curl https://sh.rustup.rs -sSf | sh
+  cargo install cargo-binstall
+fi
+. "$HOME/.cargo/env"
+
+# vim ft=bash
+

@@ -16,7 +16,8 @@
   type = "archive-file"
   url = {{ gitHubLatestReleaseAssetURL "wtfutil/wtf" (printf "wtf_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
   executable = true
-  path = "wtf_{{ (gitHubLatestRelease "wtfutil/wtf").TagName | replaceAllRegex "^v" "" }}_{{ .chezmoi.os }}_{{ .chezmoi.arch }}/wtfutil"
+  stripComponents = 1
+  path = "wtfutil"
 [".local/bin/starship"]
   type = "archive-file"
   {{- if eq .chezmoi.os "linux"}}
@@ -30,11 +31,54 @@
   url = {{ gitHubLatestReleaseAssetURL "atuinsh/atuin" (printf "atuin-x86_64-unknown-linux-gnu.tar.gz") | quote }}
   {{- end }}
   executable = true
-  path = "atuin-x86_64-unknown-linux-gnu/atuin"
+  stripComponents = 1
+  path = "atuin"
 [".local/bin/bob"]
   type = "archive-file"
   {{- if eq .chezmoi.os "linux"}}
   url = {{ gitHubLatestReleaseAssetURL "MordechaiHadad/bob" (printf "bob-%s-x86_64.zip" .chezmoi.os ) | quote }}
   {{- end }}
   executable = true
-  path = "bob-linux-x86_64/bob"
+  stripComponents = 1
+  path = "bob"
+
+[".tfenv"]
+  type = "git-repo"
+  url = "https://github.com/tfutils/tfenv.git"
+
+
+[".local/bin/uv"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "astral-sh/uv" "uv-x86_64-unknown-linux-gnu.tar.gz" | quote }}
+    refreshPeriod = "72h"
+    executable = true
+    stripComponents = 1
+    path = "uv"
+
+[".local/bin/uvx"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "astral-sh/uv" "uv-x86_64-unknown-linux-gnu.tar.gz" | quote }}
+    refreshPeriod = "72h"
+    executable = true
+    stripComponents = 1
+    path = "uvx"
+
+{{- if and (not .ephemeral) (not .headless) }}
+{{-   $fontDir := "" }}
+{{-   if eq .chezmoi.os "darwin" }}
+{{-     $fontDir = "Library/Fonts" }}
+{{-   else if eq .chezmoi.os "linux" }}
+{{-     $fontDir = ".local/share/fonts" }}
+{{-   end }}
+{{-   range (list
+        "IosevkaTerm"
+        "JetBrainsMono"
+        "CascadiaCode") }}
+["{{ $fontDir }}/{{ . }}"]
+    url = {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" (printf "%s.zip" .) | quote }}
+    type = "archive"
+    include = ["*.ttf"]
+    refreshPeriod = "168h"
+{{-   end }}
+{{- end }}
+

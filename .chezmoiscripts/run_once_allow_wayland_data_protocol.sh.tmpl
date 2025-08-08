@@ -1,0 +1,4 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+echo 'export COSMIC_DATA_CONTROL_ENABLED=1' | sudo tee /etc/profile.d/data_control_cosmic.sh > /dev/null
+{{- end -}}

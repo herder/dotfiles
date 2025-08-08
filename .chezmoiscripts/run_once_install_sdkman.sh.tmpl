@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+if [[ ! -d ~/.sdkman ]]; then
+  echo "Installing sdkman!"
+  curl -s "https://get.sdkman.io" | bash
+  export SDKMAN_DIR="$HOME/.sdkman"
+  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+  for i in java kotlin springboot gradle maven; do
+    echo "Installing $i"
+    yes | sdk install $i
+  done
+fi
+
+# vim: ft=bash

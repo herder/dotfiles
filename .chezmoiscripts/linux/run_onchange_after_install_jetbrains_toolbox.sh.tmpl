@@ -1,0 +1,12 @@
+{{- if .personal -}}
+#!/usr/bin/env bash  
+
+dir=$(mktemp -d)
+app_home=$HOME/Jetbrains/Toolbox
+mkdir -p $app_home
+echo "temp dir: $dir"
+  curl -o "$dir"/toolbox.tar.gz -L https://download-cdn.jetbrains.com/toolbox/jetbrains-toolbox-2.8.0.51430.tar.gz
+  
+  tar xvzf $dir/toolbox.tar.gz --strip-components 1 -C $app_home
+  exec "$app_home/bin/jetbrains-toolbox"
+{{- end -}} 

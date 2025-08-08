@@ -1,0 +1,7 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+
+  curl -o ~/.local/bin/kubectl -LO "https://dl.k8s.io/release/{{ .kubectlVersion }}/bin/linux/amd64/kubectl"
+  chmod +x ~/.local/bin/kubectl
+
+{{- end -}}

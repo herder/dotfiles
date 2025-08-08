@@ -1,0 +1,5 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+flatpak install -y flathub com.spotify.Client
+flatpak install -y md.obsidian.Obsidian
+{{- end -}}

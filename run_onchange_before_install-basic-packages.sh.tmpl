@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# packages.yaml hash: {{ include ".chezmoidata/packages.yaml" | sha256sum }}
 {{ if eq .osid "linux-arch" }}
 echo "Installing required arch packages"
 yes | sudo pacman -S {{ .packages.linux.pacman | quoteList | join " " }}
 yes | yay -S {{ .packages.linux.yay | quoteList | join " " }}
-echo "Pop os detected, do something"
 {{ else if eq .osid "linux-pop" }}
-sudo apt install {{ .packages.linux.apt | quoteList | join " " }}
+echo "Pop os detected, do something"
+sudo apt install -y {{ .packages.linux.apt | quoteList | join " " }}
 {{ end }}
 
 ln -sf ~/.tmux_runtime/.tmux.conf ~/.tmux.conf
@@ -13,6 +14,6 @@ if ! type cargo >/dev/null 2>&1; then
   source $HOME/.cargo/env
 fi
 {{ range .packages.cargolocked -}}
-cargo install --locked {{ . | quote }}
+yes | cargo binstall --locked {{ . | quote }}
 {{ end -}}
-cargo install {{ .packages.cargo | quoteList | join " " }}
+yes | cargo binstall {{ .packages.cargo | quoteList | join " " }}
