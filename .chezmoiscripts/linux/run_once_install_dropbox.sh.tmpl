@@ -1,0 +1,11 @@
+{{- if .personal -}}
+#!/usr/bin/env bash
+
+curl -L -o dropbox.deb "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2025.05.20_amd64.deb" 
+sudo dpkg -i dropbox.deb
+rm -f dropbox.deb
+
+dropbox start
+
+# vim: ft=bash
+{{- end -}}
