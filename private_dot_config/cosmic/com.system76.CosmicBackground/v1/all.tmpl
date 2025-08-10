@@ -1,0 +1,11 @@
+{{- if .personal -}}
+(
+    output: "all",
+    source: Path("/home/niklas/Dropbox/Wallpapers"),
+    filter_by_theme: true,
+    rotation_frequency: 300,
+    filter_method: Lanczos,
+    scaling_mode: Zoom,
+    sampling_method: Alphanumeric,
+)
+{{- end -}}
