@@ -4,7 +4,7 @@ if [[ ! -d ~/.sdkman ]]; then
   curl -s "https://get.sdkman.io" | bash
   export SDKMAN_DIR="$HOME/.sdkman"
   [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-  for i in java kotlin springboot gradle maven; do
+  for i in java kotlin springboot gradle maven mvnd; do
     echo "Installing $i"
     yes | sdk install $i
   done
