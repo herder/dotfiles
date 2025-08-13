@@ -63,6 +63,24 @@
     stripComponents = 1
     path = "uvx"
 
+[".local/bin/pack"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "buildpacks/pack" (printf "pack-*-linux.tgz") | quote }}
+  executable = true
+  path = "pack"
+
+[".local/bin/k9s"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "derailed/k9s" (printf "k9s_Linux_amd64.tar.gz") | quote }}
+  executable = true
+  path = "k9s"
+
+[".local/bin/just"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "casey/just" (printf "just-*-x86_64-unknown-linux-musl.tar.gz") | quote }}
+  executable = true
+  path = "just"
+
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
