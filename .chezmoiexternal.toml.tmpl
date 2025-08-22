@@ -80,7 +80,11 @@
   url = {{ gitHubLatestReleaseAssetURL "casey/just" (printf "just-*-x86_64-unknown-linux-musl.tar.gz") | quote }}
   executable = true
   path = "just"
-
+[".local/bin/dive"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "wagoodman/dive" (printf "dive_*_linux_amd64.tar.gz") | quote }}
+  executable = true
+  path = "dive"
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
