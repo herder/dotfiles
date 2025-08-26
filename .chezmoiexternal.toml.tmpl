@@ -85,6 +85,11 @@
   url = {{ gitHubLatestReleaseAssetURL "wagoodman/dive" (printf "dive_*_linux_amd64.tar.gz") | quote }}
   executable = true
   path = "dive"
+[".local/bin/act"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "nektos/act" (printf "act_Linux_x86_64.tar.gz") | quote }}
+  executable = true
+  path = "act"
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
