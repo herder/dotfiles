@@ -1,0 +1,7 @@
+{
+  "chezmoi": {
+    "merge": {
+      "tool": "nvimdiff"
+    }
+  }
+}
