@@ -85,11 +85,28 @@
   url = {{ gitHubLatestReleaseAssetURL "wagoodman/dive" (printf "dive_*_linux_amd64.tar.gz") | quote }}
   executable = true
   path = "dive"
-[".local/bin/act"]
+[".local/bin/tilt"]
   type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "nektos/act" (printf "act_Linux_x86_64.tar.gz") | quote }}
+  url = {{ gitHubLatestReleaseAssetURL "tilt-dev/tilt" (printf "tilt.*.%s.x86_64.tar.gz" .chezmoi.os) | quote }}
   executable = true
-  path = "act"
+  path = "tilt"
+[".local/bin/chezmoi"]
+  type = "file"
+  url = {{ gitHubLatestReleaseAssetURL "twpayne/chezmoi" (printf "chezmoi-%s-%s" .chezmoi.os .chezmoi.arch) | quote }}
+  executable = true
+  path = "chezmoi"
+[".local/bin/helm"]
+  type = "archive-file"
+  url = {{ (printf "https://get.helm.sh/helm-%s-%s-%s.tar.gz" ((gitHubLatestRelease "helm/helm").TagName | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
+  executable = true
+  stripComponents = 1
+  path = "helm"
+[".docker/cli-plugins/docker-mcp"]
+  type = "archive-file"
+  url = {{ (printf "https://github.com/docker/mcp-gateway/releases/download/%s/docker-mcp-%s-%s.tar.gz" ((gitHubLatestTag "docker/mcp-gateway").Name | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
+  executable = true
+  path = "docker-mcp"
+
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
