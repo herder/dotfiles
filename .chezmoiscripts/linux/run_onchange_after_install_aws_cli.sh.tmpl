@@ -20,17 +20,17 @@ if [ -f /usr/local/bin/aws ]; then
     sudo ./aws/install --update
 else
     echo "* Installing..."
-    sudo ./aws/install
+    ./aws/install --install-dir ~/.local/bin/aws-cli --bin-dir ~/.local/bin
 fi
 echo
 echo "* Install and activate bash autocompletion..."
 if ! grep -q aws_completer ~/.bashrc; then
     echo "complete -C '/usr/local/bin/aws_completer' aws" | tee -a ~/.bashrc
 fi
-complete -C '/usr/local/bin/aws_completer' aws
+complete -C '~/.local/bin/aws_completer' aws
 cd -
 echo
 echo "* Installed version:"
-/usr/local/bin/aws --version
+~/.local/bin/aws --version
 echo
 {{- end -}}
