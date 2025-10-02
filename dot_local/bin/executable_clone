@@ -21,24 +21,24 @@ f="${f#*@}"
 #f=${f%%/*}
 
 logerr() {
-	>&2 echo $@
+  >&2 echo $@
 }
 
 ## Check that cleaned url has parseable format
 if [[ ! ($f =~ .*[:/].*/.*$) ]]; then
-	logerr "Could not parse uri: $REPO_URL"
-	logerr "Make sure it's a valid git url"
-	exit 1
+  logerr "Could not parse uri: $REPO_URL"
+  logerr "Make sure it's a valid git url"
+  exit 1
 fi
 
 ## Resolve site and user
 SITE_AND_USER="${f%/*}"
 if grep ':' <<<"$SITE_AND_USER" >/dev/null; then
-	GIT_USER="${SITE_AND_USER#*:}"
-	SITE="${SITE_AND_USER%:*}"
+  GIT_USER="${SITE_AND_USER#*:}"
+  SITE="${SITE_AND_USER%:*}"
 else
-	GIT_USER="${SITE_AND_USER##*/}"
-	SITE="${SITE_AND_USER%/*}"
+  GIT_USER="${SITE_AND_USER##*/}"
+  SITE="${SITE_AND_USER%/*}"
 fi
 
 REPO="${f##*/}"
@@ -53,13 +53,13 @@ LOCAL_REPO="$ROOT_DIR/$SITE/$GIT_USER/$REPO"
 
 # Do not clone if directory already has been cloned
 if [ -d $LOCAL_REPO ]; then
-	logerr "Repo "
-	logerr "$REPO_URL"
-	logerr "already exists locally, at"
-	logerr $LOCAL_REPO
+  logerr "Repo "
+  logerr "$REPO_URL"
+  logerr "already exists locally, at"
+  logerr $LOCAL_REPO
 else
-	# All good, start cloning!
-	git clone $1 $LOCAL_REPO
+  # All good, start cloning!
+  git clone $1 $LOCAL_REPO
 fi
 
 echo $LOCAL_REPO
