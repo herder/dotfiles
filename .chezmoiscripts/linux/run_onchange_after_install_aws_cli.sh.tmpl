@@ -20,7 +20,7 @@ if [ -f /usr/local/bin/aws ]; then
     sudo ./aws/install --update
 else
     echo "* Installing..."
-    ./aws/install --install-dir ~/.local/bin/aws-cli --bin-dir ~/.local/bin
+    ./aws/install --update --install-dir ~/.local/bin/aws-cli --bin-dir ~/.local/bin
 fi
 echo
 echo "* Install and activate bash autocompletion..."
