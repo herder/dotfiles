@@ -16,7 +16,6 @@
   type = "archive-file"
   url = {{ gitHubLatestReleaseAssetURL "wtfutil/wtf" (printf "wtf_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
   executable = true
-  stripComponents = 1
   path = "wtfutil"
 [".local/bin/starship"]
   type = "archive-file"
