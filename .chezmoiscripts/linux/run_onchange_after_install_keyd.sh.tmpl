@@ -19,6 +19,19 @@ capslock = overload(control, esc)
 # Remaps the escape key to capslock
 esc = capslock
 
+[alt]
+
+j = down
+k = up
+h = left
+l = right
+
+[alt+shift]
+
+l = C-right
+h = C-left
+j = C-down
+k = C-up
 EOF
 
 make && sudo make install
