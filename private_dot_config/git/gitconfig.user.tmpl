@@ -20,7 +20,9 @@
 [core]
   filemode = true
 [include]
+{{- if .work }}
   path = ~/.config/git/gitconfig.work 
+{{- end }}
   path = ~/.config/git/gitconfig.diff
 
 #[url "ssh://git@github.com/"]
