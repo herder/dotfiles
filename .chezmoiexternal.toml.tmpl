@@ -111,6 +111,11 @@
   url = {{ (printf "https://github.com/docker/mcp-gateway/releases/download/%s/docker-mcp-%s-%s.tar.gz" ((gitHubLatestTag "docker/mcp-gateway").Name | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
   executable = true
   path = "docker-mcp"
+[".local/bin/cloudlens"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "one2nc/cloudlens" (printf "cloudlens_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+  executable = true
+  path = "cloudlens"
 
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
