@@ -1,6 +1,7 @@
 {{/* boolean feature tags */}}
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
 {{- $work := false -}}{{/* true if this machine is a work machine */}}
+{{- $laptop := false -}}{{/* true if this machine is a laptop*/}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
 {{- "" -}}
@@ -32,6 +33,7 @@
 {{-   else if eq $hostname "lebowski" -}}
 {{-     $personal = true -}}
 {{-     $work = true -}}
+{{-     $laptop = true -}}
 {{-   else if eq $hostname "ubuntu" -}}
 {{-     $headless = true -}}
 {{-     $personal = true -}}
@@ -52,6 +54,7 @@
     work = {{ $work }}
     headless = {{ $headless }}
     hostname = {{ $hostname | quote }}
+    laptop = {{ $laptop }}
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
     kubectlVersion = "v1.33.3"
