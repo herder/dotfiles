@@ -61,8 +61,17 @@
 
 [github]
     refreshPeriod = "12h"
+[merge]
+    command = "nvim"
+    args = [
+        "-d",
+        {{ printf "%q" "{{ .Destination }}" }},
+        {{ printf "%q" "{{ .Source }}" }},
+        {{ printf "%q" "{{ .Target }}" }},
+    ]
 
 #[hooks.read-source-state.pre]
+
 #  command = ".local/share/chezmoi/.install-password-manager.sh"
 #
 # vim: ft=toml
