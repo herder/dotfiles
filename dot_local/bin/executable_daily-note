@@ -1,0 +1,112 @@
+#!/bin/bash
+# Daily note helper for Obsidian
+# Usage: daily-note [today|tomorrow|YYYY-MM-DD] [edit|show|create]
+
+set -euo pipefail
+
+# Configuration
+VAULT_PATH="$HOME/Documents/Private Sync"
+DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
+TEMPLATE_FILE="$VAULT_PATH/Templates/Daily Note.md"
+
+# Parse arguments - check if first arg is an action
+FIRST_ARG="${1:-today}"
+ACTION="edit"
+DATE_ARG="today"
+
+# Check if first arg is an action
+case $FIRST_ARG in
+    edit|e|show|s|create|c|path|p)
+        ACTION="$FIRST_ARG"
+        DATE_ARG="${2:-today}"
+        ;;
+    *)
+        # First arg is a date
+        DATE_ARG="$FIRST_ARG"
+        ACTION="${2:-edit}"
+        ;;
+esac
+
+# Calculate date
+case $DATE_ARG in
+    today|t)
+        TARGET_DATE=$(date +%Y-%m-%d)
+        ;;
+    tomorrow|tm)
+        TARGET_DATE=$(date -d tomorrow +%Y-%m-%d)
+        ;;
+    yesterday|y)
+        TARGET_DATE=$(date -d yesterday +%Y-%m-%d)
+        ;;
+    *)
+        # Assume it's a date in YYYY-MM-DD format
+        TARGET_DATE="$DATE_ARG"
+        ;;
+esac
+
+# Extract year and build path
+YEAR=$(echo "$TARGET_DATE" | cut -d- -f1)
+MONTH=$(echo "$TARGET_DATE" | cut -d- -f2)
+DAY_NAME=$(date -d "$TARGET_DATE" +%A 2>/dev/null || echo "Unknown")
+
+DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$MONTH/$TARGET_DATE.md"
+
+# Create directory if needed
+mkdir -p "$DAILY_NOTE_DIR/$YEAR/$MONTH"
+
+# Function to create note from template
+create_note() {
+    if [ -f "$DAILY_NOTE" ]; then
+        echo "⚠ Note already exists: $DAILY_NOTE"
+        return 1
+    fi
+
+    # Process template
+    sed "s/{{date:YYYY-MM-DD}}/$TARGET_DATE/g; s/{{date:YYYY}}/$YEAR/g; s/{{date:dddd}}/$DAY_NAME/g" \
+        "$TEMPLATE_FILE" > "$DAILY_NOTE"
+
+    echo "✓ Created daily note: $TARGET_DATE"
+}
+
+# Execute action
+case $ACTION in
+    edit|e)
+        # Create if doesn't exist
+        if [ ! -f "$DAILY_NOTE" ]; then
+            create_note || exit 1
+        fi
+
+        # Open in vim
+        ${EDITOR:-vim} "$DAILY_NOTE"
+        ;;
+    show|s)
+        if [ -f "$DAILY_NOTE" ]; then
+            cat "$DAILY_NOTE"
+        else
+            echo "⚠ Daily note doesn't exist: $TARGET_DATE"
+            exit 1
+        fi
+        ;;
+    create|c)
+        create_note
+        ;;
+    path|p)
+        echo "$DAILY_NOTE"
+        ;;
+    *)
+        echo "Usage: daily-note [today|tomorrow|YYYY-MM-DD] [edit|show|create|path]"
+        echo ""
+        echo "Date options:"
+        echo "  today, t         Today's note (default)"
+        echo "  tomorrow, tm     Tomorrow's note"
+        echo "  yesterday, y     Yesterday's note"
+        echo "  YYYY-MM-DD       Specific date"
+        echo ""
+        echo "Actions:"
+        echo "  edit, e          Edit in \$EDITOR (default)"
+        echo "  show, s          Show contents"
+        echo "  create, c        Create from template"
+        echo "  path, p          Show file path"
+        exit 1
+        ;;
+esac

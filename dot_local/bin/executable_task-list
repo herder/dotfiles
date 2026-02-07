@@ -1,0 +1,77 @@
+#!/bin/bash
+# List today's tasks from Obsidian
+# Usage: task-list [today|all|work|personal]
+
+set -euo pipefail
+
+# Configuration
+VAULT_PATH="$HOME/Documents/Private Sync"
+DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
+
+# Get today's daily note
+TODAY=$(date +%Y-%m-%d)
+YEAR=$(date +%Y)
+DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$TODAY.md"
+
+MODE="${1:-today}"
+
+show_tasks() {
+    local file="$1"
+    local label="$2"
+
+    if [ ! -f "$file" ]; then
+        echo "📭 No $label found"
+        return
+    fi
+
+    echo "📋 $label:"
+    echo ""
+
+    # Show incomplete tasks
+    grep "^- \[ \]" "$file" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+    echo ""
+}
+
+case $MODE in
+    today|t)
+        if [ -f "$DAILY_NOTE" ]; then
+            echo "📅 Today ($TODAY)"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+
+            # Extract work tasks
+            echo "💼 Work:"
+            grep "^- \[ \].*#context/work" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+            echo ""
+
+            # Extract high priority tasks
+            echo "🔺 High Priority:"
+            grep "^- \[ \].*🔺" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+            echo ""
+        else
+            echo "⚠ No daily note for today yet"
+        fi
+        ;;
+    all|a)
+        show_tasks "$DAILY_NOTE" "Today's tasks"
+        show_tasks "$VAULT_PATH/Inbox.md" "Inbox"
+        ;;
+    work|w)
+        if [ -f "$DAILY_NOTE" ]; then
+            echo "💼 Work tasks:"
+            echo ""
+            grep "^- \[ \].*#context/work" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+        fi
+        ;;
+    personal|p)
+        if [ -f "$DAILY_NOTE" ]; then
+            echo "🏠 Personal tasks:"
+            echo ""
+            grep "^- \[ \]" "$DAILY_NOTE" | grep -v "#context/work" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+        fi
+        ;;
+    *)
+        echo "Usage: task-list [today|all|work|personal]"
+        exit 1
+        ;;
+esac

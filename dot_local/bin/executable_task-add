@@ -1,0 +1,119 @@
+#!/bin/bash
+# Quick task capture for Obsidian
+# Usage: task-add "Task description" [--priority high|medium|low] [--tag work|personal] [--due DATE]
+
+set -euo pipefail
+
+# Configuration
+VAULT_PATH="$HOME/Documents/Private Sync"
+INBOX_FILE="$VAULT_PATH/Inbox.md"
+DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
+
+# Get today's date and daily note path
+TODAY=$(date +%Y-%m-%d)
+YEAR=$(date +%Y)
+DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$TODAY.md"
+
+# Default values
+DESCRIPTION=""
+PRIORITY=""
+TAG="work"
+DUE_DATE=""
+TARGET="inbox"  # or "daily"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --priority|-p)
+            case $2 in
+                high|urgent|1) PRIORITY="🔺" ;;
+                medium|2) PRIORITY="⏫" ;;
+                low|3) PRIORITY="🔽" ;;
+                *) PRIORITY="" ;;
+            esac
+            shift 2
+            ;;
+        --tag|-t)
+            TAG="$2"
+            shift 2
+            ;;
+        --due|-d)
+            DUE_DATE="$2"
+            shift 2
+            ;;
+        --daily)
+            TARGET="daily"
+            shift
+            ;;
+        --inbox)
+            TARGET="inbox"
+            shift
+            ;;
+        *)
+            DESCRIPTION="$1"
+            shift
+            ;;
+    esac
+done
+
+# Validate description
+if [ -z "$DESCRIPTION" ]; then
+    echo "Error: Task description required"
+    echo "Usage: task-add \"description\" [--priority high|medium|low] [--tag TAG] [--due DATE]"
+    exit 1
+fi
+
+# Build task line
+TASK="- [ ] $DESCRIPTION"
+
+# Add priority if specified
+if [ -n "$PRIORITY" ]; then
+    TASK="$TASK $PRIORITY"
+fi
+
+# Add due date if specified
+if [ -n "$DUE_DATE" ]; then
+    # Parse natural language dates if possible
+    TASK="$TASK 📅 $DUE_DATE"
+fi
+
+# Add tags
+case $TAG in
+    work|stravito)
+        TASK="$TASK #context/work"
+        if [ "$TAG" = "stravito" ]; then
+            TASK="$TASK #stravito"
+        fi
+        ;;
+    personal)
+        # No tag needed for personal
+        ;;
+    *)
+        TASK="$TASK #$TAG"
+        ;;
+esac
+
+# Append to target file
+if [ "$TARGET" = "daily" ] && [ -f "$DAILY_NOTE" ]; then
+    # Append to daily note (after "## Work" section if it exists)
+    if grep -q "^## Work" "$DAILY_NOTE"; then
+        # Insert after ## Work heading
+        sed -i "/^## Work/a\\
+$TASK" "$DAILY_NOTE"
+        echo "✓ Added to today's daily note"
+    else
+        # Append to end
+        echo "$TASK" >> "$DAILY_NOTE"
+        echo "✓ Added to today's daily note (end of file)"
+    fi
+elif [ "$TARGET" = "daily" ]; then
+    echo "⚠ Daily note doesn't exist yet, adding to inbox instead"
+    echo "$TASK" >> "$INBOX_FILE"
+    echo "✓ Added to inbox"
+else
+    # Append to inbox
+    echo "$TASK" >> "$INBOX_FILE"
+    echo "✓ Added to inbox"
+fi
+
+echo "$TASK"
