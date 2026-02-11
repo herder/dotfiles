@@ -20,14 +20,14 @@
 [".local/bin/starship"]
   type = "archive-file"
   {{- if eq .chezmoi.os "linux"}}
-  url = {{ gitHubLatestReleaseAssetURL "starship/starship" (printf "starship-x86_64-unknown-linux-gnu.tar.gz") | quote }}
+  url = "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz"
   {{- end }}
   executable = true
   path = "starship"
 [".local/bin/atuin"]
   type = "archive-file"
   {{- if eq .chezmoi.os "linux"}}
-  url = {{ gitHubLatestReleaseAssetURL "atuinsh/atuin" (printf "atuin-x86_64-unknown-linux-gnu.tar.gz") | quote }}
+  url = "https://github.com/atuinsh/atuin/releases/latest/download/atuin-x86_64-unknown-linux-gnu.tar.gz"
   {{- end }}
   executable = true
   stripComponents = 1
@@ -35,7 +35,7 @@
 [".local/bin/bob"]
   type = "archive-file"
   {{- if eq .chezmoi.os "linux"}}
-  url = {{ gitHubLatestReleaseAssetURL "MordechaiHadad/bob" (printf "bob-%s-x86_64.zip" .chezmoi.os ) | quote }}
+  url = {{ printf "https://github.com/MordechaiHadad/bob/releases/latest/download/bob-%s-x86_64.zip" .chezmoi.os | quote }}
   {{- end }}
   executable = true
   stripComponents = 1
@@ -48,7 +48,7 @@
 
 [".local/bin/uv"]
     type = "archive-file"
-    url = {{ gitHubLatestReleaseAssetURL "astral-sh/uv" "uv-x86_64-unknown-linux-gnu.tar.gz" | quote }}
+    url = "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz"
     refreshPeriod = "72h"
     executable = true
     stripComponents = 1
@@ -56,7 +56,7 @@
 
 [".local/bin/uvx"]
     type = "archive-file"
-    url = {{ gitHubLatestReleaseAssetURL "astral-sh/uv" "uv-x86_64-unknown-linux-gnu.tar.gz" | quote }}
+    url = "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz"
     refreshPeriod = "72h"
     executable = true
     stripComponents = 1
@@ -70,7 +70,7 @@
 
 [".local/bin/k9s"]
   type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "derailed/k9s" (printf "k9s_Linux_amd64.tar.gz") | quote }}
+  url = "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz"
   executable = true
   path = "k9s"
 
@@ -91,7 +91,7 @@
   path = "tilt"
 [".local/bin/chezmoi"]
   type = "file"
-  url = {{ gitHubLatestReleaseAssetURL "twpayne/chezmoi" (printf "chezmoi-%s-%s" .chezmoi.os .chezmoi.arch) | quote }}
+  url = {{ printf "https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-%s-%s" .chezmoi.os .chezmoi.arch | quote }}
   executable = true
   path = "chezmoi"
 [".local/bin/auth0"]
@@ -129,7 +129,7 @@
         "JetBrainsMono"
         "CascadiaCode") }}
 ["{{ $fontDir }}/{{ . }}"]
-    url = {{ gitHubLatestReleaseAssetURL "ryanoasis/nerd-fonts" (printf "%s.zip" .) | quote }}
+    url = {{ printf "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/%s.zip" . | quote }}
     type = "archive"
     include = ["*.ttf"]
     refreshPeriod = "168h"
