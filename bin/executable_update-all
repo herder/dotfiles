@@ -68,6 +68,14 @@ if has uv; then
     run uv self update
 fi
 
+# ── Dotfiles ─────────────────────────────────────────────────────────
+section "Dotfiles"
+
+if has chezmoi; then
+    printf '   chezmoi\n'
+    run chezmoi update --apply
+fi
+
 # ── Plugin managers & tools ──────────────────────────────────────────
 section "Plugins & tools"
 
