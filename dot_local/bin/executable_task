@@ -1,0 +1,43 @@
+#!/bin/bash
+# Unified task management wrapper
+# Usage: task <command> [args...]
+
+set -euo pipefail
+
+CMD="${1:-help}"
+shift 2>/dev/null || true
+
+case "$CMD" in
+    add|a)
+        exec task-add "$@"
+        ;;
+    list|ls|l)
+        exec task-list "$@"
+        ;;
+    done|d)
+        exec task-done "$@"
+        ;;
+    edit|e)
+        exec task-edit "$@"
+        ;;
+    note|n)
+        exec daily-note "$@"
+        ;;
+    help|--help|-h)
+        echo "Usage: task <command> [args...]"
+        echo ""
+        echo "Commands:"
+        echo "  add,  a    Add a new task          (task-add)"
+        echo "  list, ls   List tasks               (task-list)"
+        echo "  done, d    Mark a task completed     (task-done)"
+        echo "  edit, e    Edit a task in \$EDITOR    (task-edit)"
+        echo "  note, n    Open/create daily note    (daily-note)"
+        echo ""
+        echo "Run 'task <command> --help' for command-specific help."
+        ;;
+    *)
+        echo "Unknown command: $CMD"
+        echo "Run 'task help' for usage."
+        exit 1
+        ;;
+esac

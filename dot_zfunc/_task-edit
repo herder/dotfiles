@@ -1,0 +1,18 @@
+#compdef task-edit
+
+# Zsh completion for task-edit
+
+_task-edit() {
+  local -a filters
+  filters=(
+    'work:Show only work tasks'
+    'w:Show only work tasks (short)'
+    'personal:Show only personal tasks'
+    'p:Show only personal tasks (short)'
+    'all:Show all tasks (default)'
+  )
+
+  _describe 'filter' filters
+}
+
+_task-edit "$@"

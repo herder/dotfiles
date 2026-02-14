@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick task capture for Obsidian
-# Usage: task-add "Task description" [--priority high|medium|low] [--tag work|personal] [--due DATE]
+# Usage: task-add "Task description" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE]
 
 set -euo pipefail
 
@@ -12,12 +12,14 @@ DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
 # Get today's date and daily note path
 TODAY=$(date +%Y-%m-%d)
 YEAR=$(date +%Y)
-DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$TODAY.md"
+MONTH=$(date +%m)
+DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$MONTH/$TODAY.md"
 
 # Default values
 DESCRIPTION=""
 PRIORITY=""
-TAG="work"
+CONTEXT=""
+CONTEXT_SET=false
 DUE_DATE=""
 TARGET="inbox"  # or "daily"
 
@@ -33,8 +35,9 @@ while [[ $# -gt 0 ]]; do
             esac
             shift 2
             ;;
-        --tag|-t)
-            TAG="$2"
+        --context|-c|-t)
+            CONTEXT="$2"
+            CONTEXT_SET=true
             shift 2
             ;;
         --due|-d)
@@ -59,8 +62,23 @@ done
 # Validate description
 if [ -z "$DESCRIPTION" ]; then
     echo "Error: Task description required"
-    echo "Usage: task-add \"description\" [--priority high|medium|low] [--tag TAG] [--due DATE]"
+    echo "Usage: task-add \"description\" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE]"
     exit 1
+fi
+
+# Interactive context selector if not explicitly set
+if [ "$CONTEXT_SET" = false ]; then
+    if [ -t 0 ]; then
+        printf "Context: 1) work  2) private  3) other: "
+        read -r choice
+        case $choice in
+            1|"") CONTEXT="work" ;;
+            2) CONTEXT="private" ;;
+            *) CONTEXT="$choice" ;;
+        esac
+    else
+        CONTEXT="work"
+    fi
 fi
 
 # Build task line
@@ -73,25 +91,11 @@ fi
 
 # Add due date if specified
 if [ -n "$DUE_DATE" ]; then
-    # Parse natural language dates if possible
     TASK="$TASK 📅 $DUE_DATE"
 fi
 
-# Add tags
-case $TAG in
-    work|stravito)
-        TASK="$TASK #context/work"
-        if [ "$TAG" = "stravito" ]; then
-            TASK="$TASK #stravito"
-        fi
-        ;;
-    personal)
-        # No tag needed for personal
-        ;;
-    *)
-        TASK="$TASK #$TAG"
-        ;;
-esac
+# Add context tag
+TASK="$TASK #context/$CONTEXT"
 
 # Append to target file
 if [ "$TARGET" = "daily" ] && [ -f "$DAILY_NOTE" ]; then

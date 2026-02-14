@@ -1,0 +1,63 @@
+#!/bin/bash
+# Open a task in $EDITOR at the exact line
+# Usage: task-edit [work|personal|all]
+
+set -euo pipefail
+
+VAULT_PATH="$HOME/Documents/Private Sync"
+FILTER="${1:-}"
+
+find_tasks() {
+    grep -rn "^- \[[ /]\] " "$VAULT_PATH" \
+        --include="*.md" \
+        --exclude-dir=".trash" \
+        --exclude-dir=".obsidian" \
+        --exclude-dir="Templates" \
+        --exclude-dir="Task Workflow Integration" \
+        2>/dev/null || true
+}
+
+filter_tasks() {
+    local tasks="$1"
+    case "$FILTER" in
+        work|w)
+            echo "$tasks" | grep "#context/work" || true
+            ;;
+        personal|private|p)
+            echo "$tasks" | grep -E "#context/(personal|private)" || true
+            ;;
+        *)
+            echo "$tasks"
+            ;;
+    esac
+}
+
+format_for_fzf() {
+    sed "s|^$VAULT_PATH/||"
+}
+
+ALL_TASKS=$(find_tasks)
+
+if [ -z "$ALL_TASKS" ]; then
+    echo "📭 No open tasks found"
+    exit 0
+fi
+
+FILTERED=$(filter_tasks "$ALL_TASKS")
+
+if [ -z "$FILTERED" ]; then
+    echo "📭 No matching tasks found"
+    exit 0
+fi
+
+SELECTED=$(echo "$FILTERED" | format_for_fzf | fzf \
+    --prompt="Edit task > " \
+    --header="Select task to edit" \
+    --preview-window=hidden \
+    --no-multi \
+    --height=40%) || exit 0
+
+FILE="$VAULT_PATH/$(echo "$SELECTED" | cut -d: -f1)"
+LINE_NUM=$(echo "$SELECTED" | cut -d: -f2)
+
+${EDITOR:-vim} "+$LINE_NUM" "$FILE"

@@ -1,77 +1,268 @@
 #!/bin/bash
-# List today's tasks from Obsidian
-# Usage: task-list [today|all|work|personal]
+# List tasks from Obsidian vault
+# Usage: task-list [today|all|work|personal|context <name>]
+#
+# Searches the entire vault for task lines, filtering by status, context,
+# due dates, and priority. This mirrors what the Obsidian Tasks plugin
+# does with ```tasks queries, but in the terminal.
 
 set -euo pipefail
 
 # Configuration
 VAULT_PATH="$HOME/Documents/Private Sync"
-DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
-
-# Get today's daily note
 TODAY=$(date +%Y-%m-%d)
-YEAR=$(date +%Y)
-DAILY_NOTE="$DAILY_NOTE_DIR/$YEAR/$TODAY.md"
 
 MODE="${1:-today}"
 
-show_tasks() {
-    local file="$1"
-    local label="$2"
+# Colors
+BOLD='\033[1m'
+DIM='\033[2m'
+RED='\033[31m'
+YELLOW='\033[33m'
+GREEN='\033[32m'
+CYAN='\033[36m'
+RESET='\033[0m'
 
-    if [ ! -f "$file" ]; then
-        echo "📭 No $label found"
+# Find all incomplete tasks across the vault (excluding templates and .trash)
+find_tasks() {
+    grep -rn "^- \[[ /]\] " "$VAULT_PATH" \
+        --include="*.md" \
+        --exclude-dir=".trash" \
+        --exclude-dir=".obsidian" \
+        --exclude-dir="Templates" \
+        --exclude-dir="Task Workflow Integration" \
+        2>/dev/null || true
+}
+
+# Extract just the task text from a grep result line
+task_text() {
+    echo "$1" | sed 's/^[^:]*:[0-9]*://'
+}
+
+# Get the source file (shortened) from a grep result line
+task_source() {
+    local file
+    file=$(echo "$1" | sed "s|^$VAULT_PATH/||" | cut -d: -f1)
+    # Shorten common paths
+    echo "$file"
+}
+
+# Format a task for display
+format_task() {
+    local line="$1"
+    local text
+    text=$(task_text "$line")
+    local source
+    source=$(task_source "$line")
+
+    # Determine status icon
+    local icon="☐"
+    if [[ "$text" == *"- [/]"* ]]; then
+        icon="◐"
+    fi
+
+    # Strip the checkbox prefix
+    text=$(echo "$text" | sed 's/^- \[[ /]\] //')
+
+    # Print with source dimmed
+    printf "  %s %s ${DIM}(%s)${RESET}\n" "$icon" "$text" "$source"
+}
+
+# Check if a task has a due date on or before a given date
+is_due_by() {
+    local text="$1"
+    local target_date="$2"
+    if [[ "$text" =~ 📅\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+        local due="${BASH_REMATCH[1]}"
+        [[ "$due" < "$target_date" || "$due" == "$target_date" ]]
+    else
+        return 1
+    fi
+}
+
+is_due_on() {
+    local text="$1"
+    local target_date="$2"
+    if [[ "$text" =~ 📅\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+        [[ "${BASH_REMATCH[1]}" == "$target_date" ]]
+    else
+        return 1
+    fi
+}
+
+is_overdue() {
+    local text="$1"
+    if [[ "$text" =~ 📅\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+        [[ "${BASH_REMATCH[1]}" < "$TODAY" ]]
+    else
+        return 1
+    fi
+}
+
+has_context() {
+    local text="$1"
+    local context="$2"
+    [[ "$text" == *"#context/$context"* ]]
+}
+
+is_in_progress() {
+    local text="$1"
+    [[ "$text" == *"- [/]"* ]]
+}
+
+is_high_priority() {
+    local text="$1"
+    [[ "$text" == *"🔺"* || "$text" == *"⏫"* ]]
+}
+
+print_section() {
+    local header="$1"
+    shift
+    local tasks=("$@")
+
+    if [ ${#tasks[@]} -eq 0 ]; then
         return
     fi
 
-    echo "📋 $label:"
-    echo ""
-
-    # Show incomplete tasks
-    grep "^- \[ \]" "$file" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+    echo -e "${BOLD}${header}${RESET}"
+    for line in "${tasks[@]}"; do
+        format_task "$line"
+    done
     echo ""
 }
 
+# --- Main ---
+
+ALL_TASKS=$(find_tasks)
+
+if [ -z "$ALL_TASKS" ]; then
+    echo "📭 No open tasks found in vault"
+    exit 0
+fi
+
 case $MODE in
     today|t)
-        if [ -f "$DAILY_NOTE" ]; then
-            echo "📅 Today ($TODAY)"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
+        echo -e "${BOLD}📅 Today ($TODAY)${RESET}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
 
-            # Extract work tasks
-            echo "💼 Work:"
-            grep "^- \[ \].*#context/work" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
-            echo ""
+        overdue=()
+        due_today=()
+        in_progress=()
+        high_priority=()
 
-            # Extract high priority tasks
-            echo "🔺 High Priority:"
-            grep "^- \[ \].*🔺" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
-            echo ""
-        else
-            echo "⚠ No daily note for today yet"
+        while IFS= read -r line; do
+            text=$(task_text "$line")
+            if is_overdue "$text"; then
+                overdue+=("$line")
+            elif is_due_on "$text" "$TODAY"; then
+                due_today+=("$line")
+            elif is_in_progress "$text"; then
+                in_progress+=("$line")
+            elif is_high_priority "$text" && ! [[ "$text" =~ 📅 ]]; then
+                high_priority+=("$line")
+            fi
+        done <<< "$ALL_TASKS"
+
+        print_section "⚠️  Overdue" "${overdue[@]+"${overdue[@]}"}"
+        print_section "🔥 Due Today" "${due_today[@]+"${due_today[@]}"}"
+        print_section "🏗  In Progress" "${in_progress[@]+"${in_progress[@]}"}"
+        print_section "🎯 High Priority (no due date)" "${high_priority[@]+"${high_priority[@]}"}"
+
+        if [ ${#overdue[@]} -eq 0 ] && [ ${#due_today[@]} -eq 0 ] && \
+           [ ${#in_progress[@]} -eq 0 ] && [ ${#high_priority[@]} -eq 0 ]; then
+            echo "  (nothing urgent today)"
         fi
         ;;
+
     all|a)
-        show_tasks "$DAILY_NOTE" "Today's tasks"
-        show_tasks "$VAULT_PATH/Inbox.md" "Inbox"
+        echo -e "${BOLD}📋 All Open Tasks${RESET}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+        count=0
+        while IFS= read -r line; do
+            format_task "$line"
+            count=$((count + 1))
+        done <<< "$ALL_TASKS"
+        echo ""
+        echo -e "${DIM}$count tasks total${RESET}"
         ;;
+
     work|w)
-        if [ -f "$DAILY_NOTE" ]; then
-            echo "💼 Work tasks:"
-            echo ""
-            grep "^- \[ \].*#context/work" "$DAILY_NOTE" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+        echo -e "${BOLD}💼 Work Tasks${RESET}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+        count=0
+        while IFS= read -r line; do
+            text=$(task_text "$line")
+            if has_context "$text" "work"; then
+                format_task "$line"
+                count=$((count + 1))
+            fi
+        done <<< "$ALL_TASKS"
+
+        if [ $count -eq 0 ]; then
+            echo "  (no work tasks)"
         fi
+        echo ""
         ;;
-    personal|p)
-        if [ -f "$DAILY_NOTE" ]; then
-            echo "🏠 Personal tasks:"
-            echo ""
-            grep "^- \[ \]" "$DAILY_NOTE" | grep -v "#context/work" | sed 's/^- \[ \] /  ☐ /' || echo "  (no tasks)"
+
+    personal|private|p)
+        echo -e "${BOLD}🏠 Personal Tasks${RESET}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+        count=0
+        while IFS= read -r line; do
+            text=$(task_text "$line")
+            if has_context "$text" "personal" || has_context "$text" "private"; then
+                format_task "$line"
+                count=$((count + 1))
+            fi
+        done <<< "$ALL_TASKS"
+
+        if [ $count -eq 0 ]; then
+            echo "  (no personal tasks)"
         fi
+        echo ""
         ;;
+
+    context|c)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: task-list context <name>"
+            exit 1
+        fi
+        CONTEXT="$2"
+        echo -e "${BOLD}📋 #context/$CONTEXT Tasks${RESET}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+        count=0
+        while IFS= read -r line; do
+            text=$(task_text "$line")
+            if has_context "$text" "$CONTEXT"; then
+                format_task "$line"
+                count=$((count + 1))
+            fi
+        done <<< "$ALL_TASKS"
+
+        if [ $count -eq 0 ]; then
+            echo "  (no tasks with #context/$CONTEXT)"
+        fi
+        echo ""
+        ;;
+
     *)
-        echo "Usage: task-list [today|all|work|personal]"
+        echo "Usage: task-list [today|all|work|personal|context <name>]"
+        echo ""
+        echo "Modes:"
+        echo "  today, t           Overdue + due today + in progress + high priority"
+        echo "  all, a             All open tasks across vault"
+        echo "  work, w            Tasks tagged #context/work"
+        echo "  personal, p        Tasks tagged #context/personal"
+        echo "  context, c <name>  Tasks tagged #context/<name>"
         exit 1
         ;;
 esac

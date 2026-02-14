@@ -1,0 +1,9 @@
+#compdef daily-note
+
+_daily-note() {
+  _arguments \
+    '1:action or date:((edit\:"Edit note" show\:"Show note" create\:"Create note" path\:"Show path" today\:"Today" tomorrow\:"Tomorrow" yesterday\:"Yesterday"))' \
+    '2:date or action:((edit\:"Edit note" show\:"Show note" today\:"Today" tomorrow\:"Tomorrow"))'
+}
+
+_daily-note "$@"

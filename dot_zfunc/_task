@@ -1,0 +1,79 @@
+#compdef task
+
+# Zsh completion for task wrapper - delegates to subcommand completions
+
+_task() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '1:command:->command' \
+    '*::args:->args'
+
+  case $state in
+    command)
+      local -a commands
+      commands=(
+        'add:Add a new task'
+        'a:Add a new task (short)'
+        'list:List tasks'
+        'ls:List tasks (short)'
+        'l:List tasks (short)'
+        'done:Mark a task completed'
+        'd:Mark a task completed (short)'
+        'edit:Edit a task in $EDITOR'
+        'e:Edit a task (short)'
+        'note:Open/create daily note'
+        'n:Open/create daily note (short)'
+        'help:Show help'
+      )
+      _describe 'command' commands
+      ;;
+    args)
+      case $line[1] in
+        add|a)
+          _arguments -C \
+            '1:task description:' \
+            '(-p --priority)'{-p,--priority}'[Task priority]:priority:(high urgent medium low)' \
+            '(-t --tag)'{-t,--tag}'[Task tag]:tag:(work stravito personal)' \
+            '(-d --due)'{-d,--due}'[Due date]:date:' \
+            '--daily[Add to daily note instead of inbox]' \
+            '--inbox[Add to inbox (default)]'
+          ;;
+        list|ls|l)
+          local -a modes
+          modes=(
+            'today:Overdue + due today + in progress + high priority'
+            't:Today (short)'
+            'all:All open tasks across vault'
+            'a:All tasks (short)'
+            'work:Tasks tagged #context/work'
+            'w:Work tasks (short)'
+            'personal:Tasks tagged #context/personal'
+            'p:Personal tasks (short)'
+            'context:Tasks by context tag'
+            'c:Context (short)'
+          )
+          _describe 'mode' modes
+          ;;
+        done|d|edit|e)
+          local -a filters
+          filters=(
+            'work:Show only work tasks'
+            'w:Work tasks (short)'
+            'personal:Show only personal tasks'
+            'p:Personal tasks (short)'
+          )
+          _describe 'filter' filters
+          ;;
+        note|n)
+          _arguments \
+            '1:action or date:((edit\:"Edit note" show\:"Show note" create\:"Create note" path\:"Show path" today\:"Today" tomorrow\:"Tomorrow" yesterday\:"Yesterday"))' \
+            '2:date or action:((edit\:"Edit note" show\:"Show note" today\:"Today" tomorrow\:"Tomorrow"))'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_task "$@"

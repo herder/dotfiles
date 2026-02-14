@@ -1,0 +1,18 @@
+#compdef task-add
+
+# Zsh completion for task-add
+
+_task-add() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '1:task description:' \
+    '(-p --priority)'{-p,--priority}'[Task priority]:priority:(high urgent medium low)' \
+    '(-t --tag)'{-t,--tag}'[Task tag]:tag:(work stravito personal)' \
+    '(-d --due)'{-d,--due}'[Due date]:date:' \
+    '--daily[Add to daily note instead of inbox]' \
+    '--inbox[Add to inbox (default)]'
+}
+
+_task-add "$@"

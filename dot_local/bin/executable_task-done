@@ -1,0 +1,96 @@
+#!/bin/bash
+# Mark an Obsidian task as completed
+# Usage: task-done [--filter work|personal|all]
+#
+# Opens fzf with open tasks from the vault. Select one to mark it [x]
+# with a ✅ completion date, matching Obsidian Tasks plugin behavior.
+
+set -euo pipefail
+
+VAULT_PATH="$HOME/Documents/Private Sync"
+TODAY=$(date +%Y-%m-%d)
+
+FILTER="${1:-}"
+
+# Find all incomplete tasks across the vault
+find_tasks() {
+    grep -rn "^- \[[ /]\] " "$VAULT_PATH" \
+        --include="*.md" \
+        --exclude-dir=".trash" \
+        --exclude-dir=".obsidian" \
+        --exclude-dir="Templates" \
+        --exclude-dir="Task Workflow Integration" \
+        2>/dev/null || true
+}
+
+# Apply optional filter
+filter_tasks() {
+    local tasks="$1"
+    case "$FILTER" in
+        work|w)
+            echo "$tasks" | grep "#context/work" || true
+            ;;
+        personal|private|p)
+            echo "$tasks" | grep -E "#context/(personal|private)" || true
+            ;;
+        *)
+            echo "$tasks"
+            ;;
+    esac
+}
+
+# Format grep lines for fzf display: strip vault path, show task text
+format_for_fzf() {
+    sed "s|^$VAULT_PATH/||"
+}
+
+ALL_TASKS=$(find_tasks)
+
+if [ -z "$ALL_TASKS" ]; then
+    echo "📭 No open tasks found"
+    exit 0
+fi
+
+FILTERED=$(filter_tasks "$ALL_TASKS")
+
+if [ -z "$FILTERED" ]; then
+    echo "📭 No matching tasks found"
+    exit 0
+fi
+
+# Let user pick a task with fzf
+SELECTED=$(echo "$FILTERED" | format_for_fzf | fzf \
+    --prompt="Mark done > " \
+    --header="Select task to complete" \
+    --preview-window=hidden \
+    --no-multi \
+    --height=40%) || exit 0
+
+# Parse the selection back into file:line
+FILE="$VAULT_PATH/$(echo "$SELECTED" | cut -d: -f1)"
+LINE_NUM=$(echo "$SELECTED" | cut -d: -f2)
+
+if [ ! -f "$FILE" ]; then
+    echo "Error: file not found: $FILE"
+    exit 1
+fi
+
+# Read the original line
+ORIGINAL=$(sed -n "${LINE_NUM}p" "$FILE")
+
+# Replace checkbox: [ ] or [/] -> [x], and append completion date
+UPDATED=$(echo "$ORIGINAL" | sed 's/- \[[ /]\] /- [x] /')
+
+# Append ✅ date if not already present
+if [[ "$UPDATED" != *"✅"* ]]; then
+    UPDATED="$UPDATED ✅ $TODAY"
+fi
+
+# Apply the change
+sed -i "${LINE_NUM}s|.*|${UPDATED}|" "$FILE"
+
+# Show what we did
+TASK_TEXT=$(echo "$UPDATED" | sed 's/^- \[x\] //')
+SHORT_FILE=$(echo "$FILE" | sed "s|^$VAULT_PATH/||")
+echo "✓ Completed: $TASK_TEXT"
+echo "  in $SHORT_FILE"
