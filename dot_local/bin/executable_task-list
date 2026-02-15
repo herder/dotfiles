@@ -24,6 +24,7 @@ CYAN='\033[36m'
 RESET='\033[0m'
 
 # Find all incomplete tasks across the vault (excluding templates and .trash)
+# Deduplicates by task text, keeping the first occurrence
 find_tasks() {
     grep -rn "^- \[[ /]\] " "$VAULT_PATH" \
         --include="*.md" \
@@ -31,7 +32,9 @@ find_tasks() {
         --exclude-dir=".obsidian" \
         --exclude-dir="Templates" \
         --exclude-dir="Task Workflow Integration" \
-        2>/dev/null || true
+        2>/dev/null \
+    | awk -F: '{ text = ""; for (i=3; i<=NF; i++) text = text (i>3 ? ":" : "") $i; if (!seen[text]++) print }' \
+    || true
 }
 
 # Extract just the task text from a grep result line
