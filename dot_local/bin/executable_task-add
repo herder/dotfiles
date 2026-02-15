@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick task capture for Obsidian
-# Usage: task-add "Task description" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE]
+# Usage: task-add "Task description" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE] [--tickle DATE]
 
 set -euo pipefail
 
@@ -21,6 +21,7 @@ PRIORITY=""
 CONTEXT=""
 CONTEXT_SET=false
 DUE_DATE=""
+TICKLE_DATE=""
 TARGET="inbox"  # or "daily"
 
 # Parse arguments
@@ -42,6 +43,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --due|-d)
             DUE_DATE="$2"
+            shift 2
+            ;;
+        --tickle|--defer)
+            TICKLE_DATE="$2"
             shift 2
             ;;
         --daily)
@@ -92,6 +97,11 @@ fi
 # Add due date if specified
 if [ -n "$DUE_DATE" ]; then
     TASK="$TASK 📅 $DUE_DATE"
+fi
+
+# Add tickle/scheduled date if specified
+if [ -n "$TICKLE_DATE" ]; then
+    TASK="$TASK ⏳ $TICKLE_DATE"
 fi
 
 # Add context tag

@@ -20,6 +20,9 @@ case "$CMD" in
     edit|e)
         exec task-edit "$@"
         ;;
+    tickle|tk)
+        exec task-tickle "$@"
+        ;;
     note|n)
         exec daily-note "$@"
         ;;
@@ -34,6 +37,7 @@ case "$CMD" in
         echo "  list, ls   List tasks               (task-list)"
         echo "  done, d    Mark a task completed     (task-done)"
         echo "  edit, e    Edit a task in \$EDITOR    (task-edit)"
+        echo "  tickle, tk Defer task until a date   (task-tickle)"
         echo "  note, n    Open/create daily note    (daily-note)"
         echo "  sync, s    Sync from external source (task-sync)"
         echo ""
