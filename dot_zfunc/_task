@@ -23,6 +23,11 @@ _task() {
         'd:Mark a task completed (short)'
         'edit:Edit a task in $EDITOR'
         'e:Edit a task (short)'
+        'tickle:Defer task until a date'
+        'tk:Defer task (short)'
+        'priority:Change task priority'
+        'pri:Change priority (short)'
+        'p:Change priority (short)'
         'note:Open/create daily note'
         'n:Open/create daily note (short)'
         'sync:Sync from external source'
@@ -37,8 +42,10 @@ _task() {
           _arguments -C \
             '1:task description:' \
             '(-p --priority)'{-p,--priority}'[Task priority]:priority:(high urgent medium low)' \
-            '(-t --tag)'{-t,--tag}'[Task tag]:tag:(work stravito personal)' \
+            '(-c -t --context)'{-c,-t,--context}'[Task context]:context:(work private personal)' \
             '(-d --due)'{-d,--due}'[Due date]:date:' \
+            '--tickle[Scheduled/tickle date]:date:' \
+            '--every[Recurrence interval]:interval:(day week "2 weeks" month "3 months" "6 months" year)' \
             '--daily[Add to daily note instead of inbox]' \
             '--inbox[Add to inbox (default)]'
           ;;
@@ -53,12 +60,19 @@ _task() {
             'w:Work tasks (short)'
             'personal:Tasks tagged #context/personal'
             'p:Personal tasks (short)'
+            'tickler:Deferred tasks (waiting + surfaced)'
+            'tk:Tickler (short)'
             'context:Tasks by context tag'
             'c:Context (short)'
           )
           _describe 'mode' modes
           ;;
-        done|d|edit|e)
+        priority|pri|p|done|d|edit|e)
+          _arguments -C \
+            '1:filter:((work\:"Show only work tasks" w\:"Work (short)" personal\:"Show only personal tasks" p\:"Personal (short)"))' \
+            '--include-tickler[Include future tickler tasks]'
+          ;;
+        tickle|tk)
           local -a filters
           filters=(
             'work:Show only work tasks'

@@ -146,6 +146,47 @@ sync_github() {
     echo -e "${BOLD}✓ Synced $count tasks to daily note${RESET}"
     echo ""
     echo "$tasks"
+
+    # Fetch PR review requests
+    echo ""
+    echo -e "${BOLD}🔄 Fetching PR review requests...${RESET}"
+
+    local reviews
+    reviews=$(gh search prs --review-requested=@me --state=open --json title,url,repository --jq '
+        .[]
+        | "- [ ] Review: " + .title +
+          " [" + (.repository.nameWithOwner | gsub({{ printf "%s/" .ghProjectOwner | quote }}; "")) + "](" + .url + ")" +
+          " #review #context/work"
+    ')
+
+    if [ -z "$reviews" ]; then
+        echo "  No pending review requests"
+        return 0
+    fi
+
+    local review_count
+    review_count=$(echo "$reviews" | wc -l)
+
+    # Append reviews to the same section in the daily note
+    local review_section
+    review_section=$(printf "\n> Review requests\n\n%s" "$reviews")
+
+    local tmpfile2
+    tmpfile2=$(mktemp)
+    awk -v section="$review_section" '
+        /^## GitHub Project Tasks/ { in_section = 1 }
+        in_section && /^---/ {
+            print section
+            print ""
+            in_section = 0
+        }
+        { print }
+    ' "$daily_note" > "$tmpfile2"
+    mv "$tmpfile2" "$daily_note"
+
+    echo -e "${BOLD}✓ Added $review_count review requests${RESET}"
+    echo ""
+    echo "$reviews"
 }
 
 # --- Main ---

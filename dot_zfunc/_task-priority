@@ -1,11 +1,11 @@
-#compdef task-edit
+#compdef task-priority
 
-# Zsh completion for task-edit
+# Zsh completion for task-priority
 
-_task-edit() {
+_task-priority() {
   _arguments -C \
     '1:filter:((work\:"Show only work tasks" w\:"Work (short)" personal\:"Show only personal tasks" p\:"Personal (short)" all\:"Show all tasks"))' \
     '--include-tickler[Include future tickler tasks]'
 }
 
-_task-edit "$@"
+_task-priority "$@"

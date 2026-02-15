@@ -9,8 +9,10 @@ _task-add() {
   _arguments -C \
     '1:task description:' \
     '(-p --priority)'{-p,--priority}'[Task priority]:priority:(high urgent medium low)' \
-    '(-t --tag)'{-t,--tag}'[Task tag]:tag:(work stravito personal)' \
+    '(-c -t --context)'{-c,-t,--context}'[Task context]:context:(work private personal)' \
     '(-d --due)'{-d,--due}'[Due date]:date:' \
+    '--tickle[Scheduled/tickle date]:date:' \
+    '--every[Recurrence interval]:interval:(day week "2 weeks" month "3 months" "6 months" year)' \
     '--daily[Add to daily note instead of inbox]' \
     '--inbox[Add to inbox (default)]'
 }

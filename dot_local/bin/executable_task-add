@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick task capture for Obsidian
-# Usage: task-add "Task description" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE] [--tickle DATE]
+# Usage: task-add "Task description" [--priority high|medium|low] [--context|-c work|private|<name>] [--due DATE] [--tickle DATE] [--every INTERVAL]
 
 set -euo pipefail
 
@@ -22,6 +22,7 @@ CONTEXT=""
 CONTEXT_SET=false
 DUE_DATE=""
 TICKLE_DATE=""
+RECURRENCE=""
 TARGET="inbox"  # or "daily"
 
 # Parse arguments
@@ -47,6 +48,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --tickle|--defer)
             TICKLE_DATE="$2"
+            shift 2
+            ;;
+        --every)
+            RECURRENCE="$2"
             shift 2
             ;;
         --daily)
@@ -92,6 +97,12 @@ TASK="- [ ] $DESCRIPTION"
 # Add priority if specified
 if [ -n "$PRIORITY" ]; then
     TASK="$TASK $PRIORITY"
+fi
+
+# Obsidian Tasks field order: priority, recurrence, dates, tags
+# Add recurrence if specified (before dates)
+if [ -n "$RECURRENCE" ]; then
+    TASK="$TASK 🔁 every $RECURRENCE"
 fi
 
 # Add due date if specified

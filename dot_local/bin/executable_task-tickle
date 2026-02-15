@@ -110,8 +110,16 @@ fi
 # Read the original line
 ORIGINAL=$(sed -n "${LINE_NUM}p" "$FILE")
 
-# Remove existing ⏳ date if present, then add new one
-UPDATED=$(echo "$ORIGINAL" | sed 's/ *⏳ *[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}//')
+# Prompt for recurrence (optional)
+printf "Recurrence (e.g. 'every week', 'every 3 months', or blank for one-off): "
+read -r RECURRENCE
+
+# Remove existing ⏳ date and 🔁 recurrence if present, then add new ones
+# Obsidian Tasks field order: recurrence before dates
+UPDATED=$(echo "$ORIGINAL" | sed 's/ *🔁 [^⏳📅✅]*//' | sed 's/ *⏳ *[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}//')
+if [ -n "$RECURRENCE" ]; then
+    UPDATED="$UPDATED 🔁 $RECURRENCE"
+fi
 UPDATED="$UPDATED ⏳ $TICKLE_DATE"
 
 # Apply the change

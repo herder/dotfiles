@@ -1,0 +1,17 @@
+#compdef task-tickle
+
+# Zsh completion for task-tickle
+
+_task-tickle() {
+  local -a filters
+  filters=(
+    'work:Show only work tasks'
+    'w:Work tasks (short)'
+    'personal:Show only personal tasks'
+    'p:Personal tasks (short)'
+  )
+
+  _describe 'filter' filters
+}
+
+_task-tickle "$@"
