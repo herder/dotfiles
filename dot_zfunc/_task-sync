@@ -1,0 +1,14 @@
+#compdef task-sync
+
+# Zsh completion for task-sync
+
+_task-sync() {
+  local -a sources
+  sources=(
+    'gh:Sync from GitHub project board'
+    'github:Sync from GitHub project board'
+  )
+  _describe 'source' sources
+}
+
+_task-sync "$@"

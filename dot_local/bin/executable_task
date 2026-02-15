@@ -23,6 +23,9 @@ case "$CMD" in
     note|n)
         exec daily-note "$@"
         ;;
+    sync|s)
+        exec task-sync "$@"
+        ;;
     help|--help|-h)
         echo "Usage: task <command> [args...]"
         echo ""
@@ -32,6 +35,7 @@ case "$CMD" in
         echo "  done, d    Mark a task completed     (task-done)"
         echo "  edit, e    Edit a task in \$EDITOR    (task-edit)"
         echo "  note, n    Open/create daily note    (daily-note)"
+        echo "  sync, s    Sync from external source (task-sync)"
         echo ""
         echo "Run 'task <command> --help' for command-specific help."
         ;;

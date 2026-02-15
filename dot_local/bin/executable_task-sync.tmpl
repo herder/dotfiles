@@ -1,0 +1,171 @@
+#!/bin/bash
+# Sync tasks from external sources into today's daily note
+# Usage: task-sync gh
+
+set -euo pipefail
+
+# Configuration
+VAULT_PATH="$HOME/Documents/Private Sync"
+DAILY_NOTE_DIR="$VAULT_PATH/Notes/Daily"
+TEMPLATE_FILE="$VAULT_PATH/Templates/Daily Note.md"
+
+GH_PROJECT_NUMBER={{ .ghProjectNumber | quote }}
+GH_PROJECT_OWNER={{ .ghProjectOwner | quote }}
+GH_USERNAME={{ .ghUsername | quote }}
+
+# Colors
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Ensure daily note exists, creating from template if needed
+ensure_daily_note() {
+    local target_date="$1"
+    local year month day_name daily_note
+
+    year=$(echo "$target_date" | cut -d- -f1)
+    month=$(echo "$target_date" | cut -d- -f2)
+    daily_note="$DAILY_NOTE_DIR/$year/$month/$target_date.md"
+
+    if [ ! -f "$daily_note" ]; then
+        mkdir -p "$DAILY_NOTE_DIR/$year/$month"
+        day_name=$(date -d "$target_date" +%A 2>/dev/null || echo "Unknown")
+        sed "s/{{ "{{" }}date:YYYY-MM-DD{{ "}}" }}/$target_date/g; s/{{ "{{" }}date:YYYY{{ "}}" }}/$year/g; s/{{ "{{" }}date:dddd{{ "}}" }}/$day_name/g" \
+            "$TEMPLATE_FILE" > "$daily_note"
+        echo "✓ Created daily note: $target_date" >&2
+    fi
+
+    echo "$daily_note"
+}
+
+# --- GitHub sync ---
+
+sync_github() {
+    local today
+    today=$(date +%Y-%m-%d)
+
+    echo -e "${BOLD}🔄 Syncing from GitHub project ($GH_PROJECT_OWNER #$GH_PROJECT_NUMBER)...${RESET}"
+
+    # Fetch project items
+    local json
+    json=$(gh project item-list "$GH_PROJECT_NUMBER" --owner "$GH_PROJECT_OWNER" --format json --limit 200 2>&1) || {
+        echo "Error: Failed to fetch GitHub project items"
+        echo "$json"
+        exit 1
+    }
+
+    # Filter and transform with jq
+    local tasks
+    tasks=$(echo "$json" | jq -r --arg user "$GH_USERNAME" '
+        .items
+        | map(select(
+            (.assignees // [] | index($user)) and
+            (.status != "✅ Done")
+        ))
+        | map(
+            # Checkbox based on status
+            (if .status == "🏗 In progress" or .status == "👀 In review"
+             then "- [/] "
+             else "- [ ] "
+             end) +
+
+            # Title (clean up common prefixes)
+            (.title | gsub("^\\[(chore/fix|feature|TASK)\\]\\s*"; "") | gsub("^(feat|fix|chore):\\s*"; "")) +
+
+            # Issue link
+            (if .content.url then
+                " [" +
+                (.content.repository + "#" + (.content.number | tostring)
+                 | gsub({{ printf "%s/" .ghProjectOwner | quote }}; "")) +
+                "](" + .content.url + ")"
+             else ""
+             end) +
+
+            # Priority
+            (if .priority == "🌋 Urgent" then " 🔺"
+             elif .priority == "🏔 High" then " ⏫"
+             elif .priority == "🏝 Low" then " 🔽"
+             else ""
+             end) +
+
+            # Deadline
+            (if .deadline then " 📅 " + .deadline else "" end) +
+
+            # Sprint info
+            (if .sprint.title then " (" + .sprint.title + ")" else "" end) +
+
+            # Tags
+            " #stravito #context/work"
+        )
+        | .[]
+    ')
+
+    if [ -z "$tasks" ]; then
+        echo "  No active items assigned to $GH_USERNAME"
+        return 0
+    fi
+
+    # Count tasks
+    local count
+    count=$(echo "$tasks" | wc -l)
+
+    # Build the section content
+    local timestamp
+    timestamp=$(date "+%Y-%m-%d %H:%M")
+    local section
+    section=$(printf "> Synced from Pipedream project — last sync %s\n\n%s" "$timestamp" "$tasks")
+
+    # Get/create daily note
+    local daily_note
+    daily_note=$(ensure_daily_note "$today")
+
+    # Replace content between "## GitHub Project Tasks" and the next "---"
+    # Uses awk to preserve the rest of the file
+    local tmpfile
+    tmpfile=$(mktemp)
+    awk -v section="$section" '
+        /^## GitHub Project Tasks/ {
+            print
+            print section
+            print ""
+            # Skip until next ---
+            found = 1
+            next
+        }
+        found && /^---/ {
+            found = 0
+            print
+            next
+        }
+        found { next }
+        { print }
+    ' "$daily_note" > "$tmpfile"
+    mv "$tmpfile" "$daily_note"
+
+    # Print results
+    echo -e "${BOLD}✓ Synced $count tasks to daily note${RESET}"
+    echo ""
+    echo "$tasks"
+}
+
+# --- Main ---
+
+CMD="${1:-help}"
+shift 2>/dev/null || true
+
+case "$CMD" in
+    gh|github)
+        sync_github
+        ;;
+    help|--help|-h)
+        echo "Usage: task-sync <source>"
+        echo ""
+        echo "Sources:"
+        echo "  gh, github    Sync from GitHub project board"
+        ;;
+    *)
+        echo "Unknown sync source: $CMD"
+        echo "Run 'task-sync help' for usage."
+        exit 1
+        ;;
+esac

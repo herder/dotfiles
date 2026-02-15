@@ -25,6 +25,8 @@ _task() {
         'e:Edit a task (short)'
         'note:Open/create daily note'
         'n:Open/create daily note (short)'
+        'sync:Sync from external source'
+        's:Sync (short)'
         'help:Show help'
       )
       _describe 'command' commands
@@ -70,6 +72,14 @@ _task() {
           _arguments \
             '1:action or date:((edit\:"Edit note" show\:"Show note" create\:"Create note" path\:"Show path" today\:"Today" tomorrow\:"Tomorrow" yesterday\:"Yesterday"))' \
             '2:date or action:((edit\:"Edit note" show\:"Show note" today\:"Today" tomorrow\:"Tomorrow"))'
+          ;;
+        sync|s)
+          local -a sources
+          sources=(
+            'gh:Sync from GitHub project board'
+            'github:Sync from GitHub project board'
+          )
+          _describe 'source' sources
           ;;
       esac
       ;;

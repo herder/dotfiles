@@ -27,6 +27,10 @@
 {{-   $ephemeral = true -}}
 {{- end -}}
 
+{{- $ghProjectOwner := "" -}}
+{{- $ghProjectNumber := "" -}}
+{{- $ghUsername := "" -}}
+
 {{- if not $ephemeral -}}
 {{-   if eq $hostname "sobchak" -}}
 {{-     $personal = true -}}
@@ -40,9 +44,18 @@
 {{-   else if stdinIsATTY -}}
 {{-     $headless = promptBoolOnce . "headless" "headless" -}}
 {{-     $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
+{{-     $work = promptBoolOnce . "work" "work machine" -}}
 {{-   else -}}
 {{-     $ephemeral = true -}}
 {{-     $headless = true -}}
+{{-   end -}}
+{{- end -}}
+
+{{- if $work -}}
+{{-   if stdinIsATTY -}}
+{{-     $ghProjectOwner = promptStringOnce . "ghProjectOwner" "GitHub project owner (org)" -}}
+{{-     $ghProjectNumber = promptStringOnce . "ghProjectNumber" "GitHub project number" -}}
+{{-     $ghUsername = promptStringOnce . "ghUsername" "GitHub username" -}}
 {{-   end -}}
 {{- end -}}
 
@@ -58,6 +71,9 @@
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
     kubectlVersion = "v1.33.3"
+    ghProjectOwner = {{ $ghProjectOwner | quote }}
+    ghProjectNumber = {{ $ghProjectNumber | quote }}
+    ghUsername = {{ $ghUsername | quote }}
 
 [github]
     refreshPeriod = "12h"
