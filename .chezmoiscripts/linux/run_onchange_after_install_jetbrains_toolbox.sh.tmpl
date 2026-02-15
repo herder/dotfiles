@@ -1,12 +1,23 @@
 {{- if .personal -}}
-#!/usr/bin/env bash  
+#!/usr/bin/env bash
+# weekly-trigger: {{ div (now | unixEpoch) 604800 }}
+set -euo pipefail
+
+app_home="$HOME/Jetbrains/Toolbox"
+mkdir -p "$app_home"
+
+url=$(curl -s 'https://data.services.jetbrains.com/products/releases?code=TBA&latest=true&type=release' | jq -r '.TBA[0].downloads.linux.link')
+
+if [[ -z "$url" || "$url" == "null" ]]; then
+  echo "Failed to fetch latest Toolbox download URL"
+  exit 1
+fi
 
 dir=$(mktemp -d)
-app_home=$HOME/Jetbrains/Toolbox
-mkdir -p $app_home
-echo "temp dir: $dir"
-  curl -o "$dir"/toolbox.tar.gz -L https://download-cdn.jetbrains.com/toolbox/jetbrains-toolbox-2.8.0.51430.tar.gz
-  
-  tar xvzf $dir/toolbox.tar.gz --strip-components 1 -C $app_home
-  exec "$app_home/bin/jetbrains-toolbox"
-{{- end -}} 
+trap 'rm -rf "$dir"' EXIT
+
+echo "Downloading $url"
+curl -o "$dir/toolbox.tar.gz" -L "$url"
+tar xzf "$dir/toolbox.tar.gz" --strip-components 1 -C "$app_home"
+"$app_home/bin/jetbrains-toolbox" &
+{{- end -}}
