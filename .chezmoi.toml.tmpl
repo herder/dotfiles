@@ -31,24 +31,15 @@
 {{- $ghProjectNumber := "" -}}
 {{- $ghUsername := "" -}}
 
-{{- if not $ephemeral -}}
-{{-   if eq $hostname "sobchak" -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "lebowski" -}}
-{{-     $personal = true -}}
-{{-     $work = true -}}
-{{-     $laptop = true -}}
-{{-   else if eq $hostname "ubuntu" -}}
-{{-     $headless = true -}}
-{{-     $personal = true -}}
-{{-   else if stdinIsATTY -}}
-{{-     $headless = promptBoolOnce . "headless" "headless" -}}
-{{-     $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
-{{-     $work = promptBoolOnce . "work" "work machine" -}}
-{{-   else -}}
-{{-     $ephemeral = true -}}
-{{-     $headless = true -}}
-{{-   end -}}
+{{- if and (not $ephemeral) (stdinIsATTY) -}}
+{{-   $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
+{{-   $headless = promptBoolOnce . "headless" "headless" -}}
+{{-   $personal = promptBoolOnce . "personal" "personal machine" -}}
+{{-   $work = promptBoolOnce . "work" "work machine" -}}
+{{-   $laptop = promptBoolOnce . "laptop" "laptop" -}}
+{{- else if and (not $ephemeral) (not (stdinIsATTY)) -}}
+{{-   $ephemeral = true -}}
+{{-   $headless = true -}}
 {{- end -}}
 
 {{- if $work -}}
