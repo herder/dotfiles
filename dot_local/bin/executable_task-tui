@@ -1,0 +1,285 @@
+#!/bin/bash
+# Interactive work dashboard TUI
+# Usage: task-tui [work|all]
+#
+# Combines review requests and tasks in an interactive fzf interface.
+# Keys:
+#   Enter    Open PR in browser / edit task in $EDITOR
+#   ctrl-d   Mark task done
+#   ctrl-p   Change task priority
+#   ctrl-t   Tickle (defer) task
+#   ctrl-o   Open PR in browser (for review items)
+#   ctrl-r   Refresh list
+#   esc/q    Quit
+
+set -euo pipefail
+
+VAULT_PATH="$HOME/Documents/Private Sync"
+TODAY=$(date +%Y-%m-%d)
+FILTER="${1:-work}"
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+# Separator between metadata and display text
+SEP=$'\t'
+
+# Safe line replacement — avoids sed delimiter issues with URLs etc.
+replace_line() {
+    local file="$1" line_num="$2" new_text="$3"
+    local tmpfile
+    tmpfile=$(mktemp)
+    { head -n "$((line_num - 1))" "$file"
+      printf '%s\n' "$new_text"
+      tail -n "+$((line_num + 1))" "$file"
+    } > "$tmpfile" && mv "$tmpfile" "$file"
+}
+
+fetch_reviews() {
+    gh search prs --review-requested=@me --state=open --limit=20 \
+        --json title,repository,number,url 2>/dev/null \
+    | jq -r '.[] | "review\t" + .url + "\t👀 " + .title + " (" + (.repository.nameWithOwner | split("/")[1]) + "#" + (.number | tostring) + ")"' \
+        2>/dev/null || true
+}
+
+fetch_tasks() {
+    grep -rn "^- \[[ /]\] " "$VAULT_PATH" \
+        --include="*.md" \
+        --exclude-dir=".trash" \
+        --exclude-dir=".obsidian" \
+        --exclude-dir="Templates" \
+        --exclude-dir="Task Workflow Integration" \
+        2>/dev/null \
+    | awk -F: '{ text = ""; for (i=3; i<=NF; i++) text = text (i>3 ? ":" : "") $i; if (!seen[text]++) print }' \
+    | while IFS= read -r line; do
+        # Skip future tickler items
+        if [[ "$line" =~ ⏳\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+            [[ "${BASH_REMATCH[1]}" > "$TODAY" ]] && continue
+        fi
+
+        # Apply filter
+        case "$FILTER" in
+            work|w) [[ "$line" != *"#context/work"* ]] && continue ;;
+            personal|p) [[ "$line" != *"#context/personal"* && "$line" != *"#context/private"* ]] && continue ;;
+        esac
+
+        local file line_num text icon
+        file=$(echo "$line" | cut -d: -f1)
+        line_num=$(echo "$line" | cut -d: -f2)
+        text=$(echo "$line" | sed 's/^[^:]*:[0-9]*://')
+
+        if [[ "$text" == *"- [/]"* ]]; then
+            icon="◐"
+        else
+            icon="☐"
+        fi
+
+        display=$(echo "$text" | sed 's/^- \[[ /]\] //')
+        short_file=$(echo "$file" | sed "s|^$VAULT_PATH/||")
+
+        printf 'task\t%s\t%s\t%s %s  \033[2m(%s)\033[0m\n' "$file" "$line_num" "$icon" "$display" "$short_file"
+    done || true
+}
+
+build_list() {
+    {
+        fetch_reviews
+        local reviews_found=$?
+        # Add separator if we had reviews
+        fetch_tasks
+    } > "$TMPDIR/items"
+}
+
+# Action handlers
+
+open_url() {
+    local url="$1"
+    xdg-open "$url" 2>/dev/null &
+}
+
+mark_done() {
+    local file="$1" line_num="$2"
+    local original updated
+
+    original=$(sed -n "${line_num}p" "$file")
+    updated=$(echo "$original" | sed 's/- \[[ /]\] /- [x] /')
+
+    if [[ "$updated" != *"✅"* ]]; then
+        updated="$updated ✅ $TODAY"
+    fi
+
+    replace_line "$file" "$line_num" "$updated"
+
+    # Handle recurrence
+    if [[ "$original" =~ 🔁\ (.+) ]]; then
+        local recurrence="${BASH_REMATCH[1]}"
+        recurrence=$(echo "$recurrence" | sed 's/ *[⏳📅✅].*//' | sed 's/ *#.*//')
+
+        local when_done=false base_date
+        if [[ "$recurrence" == *"when done"* ]]; then
+            when_done=true
+            recurrence=$(echo "$recurrence" | sed 's/ *when done//')
+        fi
+
+        if [ "$when_done" = true ]; then
+            base_date="$TODAY"
+        elif [[ "$original" =~ 📅\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+            base_date="${BASH_REMATCH[1]}"
+        elif [[ "$original" =~ ⏳\ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+            base_date="${BASH_REMATCH[1]}"
+        else
+            base_date="$TODAY"
+        fi
+
+        # Strip "every "
+        local pattern="${recurrence#every }"
+        local n=1 unit
+        if [[ "$pattern" =~ ^([0-9]+)[[:space:]]+(.+)$ ]]; then
+            n="${BASH_REMATCH[1]}"
+            unit="${BASH_REMATCH[2]}"
+        else
+            unit="$pattern"
+        fi
+
+        case "$unit" in
+            day|days) unit="days" ;; week|weeks) unit="weeks" ;;
+            month|months) unit="months" ;; year|years) unit="years" ;;
+        esac
+
+        local next_date
+        next_date=$(date -d "$base_date + $n $unit" +%Y-%m-%d)
+
+        local next_task
+        next_task=$(echo "$original" | sed 's/- \[[ /]\] /- [ ] /')
+        if [[ "$original" =~ 📅\ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+            next_task=$(echo "$next_task" | sed "s/📅 [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/📅 $next_date/")
+        fi
+        if [[ "$original" =~ ⏳\ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+            next_task=$(echo "$next_task" | sed "s/⏳ [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/⏳ $next_date/")
+        fi
+
+        local tmpfile
+        tmpfile=$(mktemp)
+        { head -n "$line_num" "$file"
+          printf '%s\n' "$next_task"
+          tail -n "+$((line_num + 1))" "$file"
+        } > "$tmpfile" && mv "$tmpfile" "$file"
+    fi
+}
+
+set_priority() {
+    local file="$1" line_num="$2"
+
+    local priority
+    priority=$(printf "🔺 High\n⏫ Medium\n🔽 Low\nNone" | fzf \
+        --prompt="Priority > " \
+        --height=8 \
+        --no-multi) || return 0
+
+    local emoji=""
+    case "$priority" in
+        *High*) emoji="🔺" ;; *Medium*) emoji="⏫" ;; *Low*) emoji="🔽" ;;
+    esac
+
+    local original updated
+    original=$(sed -n "${line_num}p" "$file")
+    updated=$(echo "$original" | sed 's/ *[🔺⏫🔽]//g')
+
+    if [ -n "$emoji" ]; then
+        updated=$(echo "$updated" | sed "s/^\(- \[[ /]\] [^🔁⏳📅✅#]*\)/\1 $emoji/;s/  / /g")
+    fi
+
+    replace_line "$file" "$line_num" "$updated"
+}
+
+tickle_task() {
+    local file="$1" line_num="$2"
+
+    printf "Tickle until (YYYY-MM-DD, +Nd, +Nw, +Nm, +Ny): "
+    read -r date_input </dev/tty
+
+    local tickle_date
+    if [[ "$date_input" =~ ^\+([0-9]+)d$ ]]; then
+        tickle_date=$(date -d "+${BASH_REMATCH[1]} days" +%Y-%m-%d)
+    elif [[ "$date_input" =~ ^\+([0-9]+)w$ ]]; then
+        tickle_date=$(date -d "+${BASH_REMATCH[1]} weeks" +%Y-%m-%d)
+    elif [[ "$date_input" =~ ^\+([0-9]+)m$ ]]; then
+        tickle_date=$(date -d "+${BASH_REMATCH[1]} months" +%Y-%m-%d)
+    elif [[ "$date_input" =~ ^\+([0-9]+)y$ ]]; then
+        tickle_date=$(date -d "+${BASH_REMATCH[1]} years" +%Y-%m-%d)
+    elif [[ "$date_input" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+        tickle_date="$date_input"
+    else
+        echo "Invalid date format" >&2
+        sleep 1
+        return 0
+    fi
+
+    local original updated
+    original=$(sed -n "${line_num}p" "$file")
+    updated=$(echo "$original" | sed 's/ *🔁 [^⏳📅✅]*//' | sed 's/ *⏳ *[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}//')
+    updated="$updated ⏳ $tickle_date"
+
+    replace_line "$file" "$line_num" "$updated"
+}
+
+# Main loop
+
+while true; do
+    build_list
+
+    if [ ! -s "$TMPDIR/items" ]; then
+        echo "📭 No items to show"
+        exit 0
+    fi
+
+    # Use fzf with --expect to detect key presses
+    selection=$(cat "$TMPDIR/items" \
+        | fzf \
+            --ansi \
+            --delimiter="$SEP" \
+            --with-nth=4.. \
+            --expect='ctrl-d,ctrl-p,ctrl-t,ctrl-o,ctrl-r' \
+            --header='enter:open/edit  ^d:done  ^p:priority  ^t:tickle  ^o:open url  ^r:refresh  esc:quit' \
+            --no-multi \
+            --height=100% \
+            --layout=reverse \
+            --prompt="Work > " \
+        2>/dev/tty) || break
+
+    key=$(echo "$selection" | head -1)
+    item=$(echo "$selection" | tail -1)
+
+    [ -z "$item" ] && continue
+
+    type=$(echo "$item" | cut -d"$SEP" -f1)
+
+    if [ "$type" = "review" ]; then
+        url=$(echo "$item" | cut -d"$SEP" -f2)
+
+        case "$key" in
+            ctrl-o|"")
+                open_url "$url"
+                ;;
+            ctrl-r) continue ;;
+        esac
+    elif [ "$type" = "task" ]; then
+        file=$(echo "$item" | cut -d"$SEP" -f2)
+        line_num=$(echo "$item" | cut -d"$SEP" -f3)
+
+        case "$key" in
+            "")
+                ${EDITOR:-vim} "+$line_num" "$file" </dev/tty >/dev/tty
+                ;;
+            ctrl-d)
+                mark_done "$file" "$line_num"
+                ;;
+            ctrl-p)
+                set_priority "$file" "$line_num" </dev/tty >/dev/tty
+                ;;
+            ctrl-t)
+                tickle_task "$file" "$line_num"
+                ;;
+            ctrl-r) continue ;;
+        esac
+    fi
+done

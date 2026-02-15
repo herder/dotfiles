@@ -5,8 +5,9 @@ wtf:
       focused: orange
       normal: gray
   grid:
-    columns: [32, 32, 32, 32, 90]
-    rows: [10, 10, 10, 4, 4, 90]
+    # Designed for half-screen terminal (~120 cols)
+    columns: [50, 50]
+    rows: [7, 13, 13, 13, 10]
   refreshInterval: 1
   mods:
     clocks:
@@ -16,8 +17,8 @@ wtf:
           odd: "white"
       enabled: true
       locations:
-        New York: "America/New York"
         Stockholm: "Europe/Stockholm"
+        New York: "America/New_York"
       position:
         top: 0
         left: 0
@@ -26,66 +27,57 @@ wtf:
       refreshInterval: 15
       sort: "alphabetical"
       title: "Clocks"
-      type: "clocks"
-#    feedreader:
-#      enabled: true
-#      feeds:
-#      - https://feeds.bbci.co.uk/news/rss.xml
-#      feedLimit: 10
-#      position:
-#        top: 1
-#        left: 1
-#        width: 2
-#        height: 1
-#      refreshInterval: 14400
-    ipinfo:
-      colors:
-        name: "lightblue"
-        value: "white"
+      type: clocks
+    prettyweather:
       enabled: true
+      city: "Sundbyberg"
       position:
         top: 0
         left: 1
         height: 1
         width: 1
-      refreshInterval: 150
-    power:
+      refreshInterval: 900
+      unit: "m"
+      view: 0
+      language: "en"
+    work:
+      cmd: "{{ .chezmoi.homeDir }}/.local/bin/task-dashboard"
       enabled: true
-      position:
-        top: 0
-        left: 2
-        height: 1
-        width: 1
-      refreshInterval: 15
-      title: "⚡️"
-    jira:
-      apiKey: "{{ onepasswordRead "op://Private/Jira WTFUtil/password" }}"
-      colors:
-        rows:
-          even: "lightblue"
-          odd: "white"
-      domain: "{{ onepasswordRead "op://Private/Jira WTFUtil/website" }}"
-      email: "{{ onepasswordRead "op://Private/Jira WTFUtil/email" }}"
-      enabled: true
-      jql: |
-        status NOT IN ("Done", "Invalid") order by created DESC
       position:
         top: 1
         left: 0
-        height: 1
-        width: 3
-      project: "{{ onepasswordRead "op://Private/Jira WTFUtil/project" }}"
-      refreshInterval: 15m
-      username: "{{ onepasswordRead "op://Private/Jira WTFUtil/username" }}"
-      verifyServerCertificate: true
-    uptime:
-      args: []
-      cmd: "uptime"
+        height: 2
+        width: 2
+      refreshInterval: 120
+      title: "Work"
+      type: cmdrunner
+      focusable: true
+      focusChar: "w"
+    calendar:
+      args: ["agenda", "--nostarted", "--nodeclined", "--details=length", "--details=location"]
+      cmd: "gcalcli"
       enabled: true
       position:
         top: 3
         left: 0
         height: 1
         width: 2
-      refreshInterval: 30
+      refreshInterval: 300
+      title: "Calendar"
       type: cmdrunner
+      focusable: true
+      focusChar: "c"
+    tasks:
+      args: ["today"]
+      cmd: "{{ .chezmoi.homeDir }}/.local/bin/task-list"
+      enabled: true
+      position:
+        top: 4
+        left: 0
+        height: 1
+        width: 2
+      refreshInterval: 60
+      title: "Today"
+      type: cmdrunner
+      focusable: true
+      focusChar: "t"

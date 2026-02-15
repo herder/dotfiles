@@ -29,6 +29,9 @@ case "$CMD" in
     note|n)
         exec daily-note "$@"
         ;;
+    tui|ui)
+        exec task-tui "$@"
+        ;;
     sync|s)
         exec task-sync "$@"
         ;;
@@ -43,6 +46,7 @@ case "$CMD" in
         echo "  tickle, tk Defer task until a date   (task-tickle)"
         echo "  priority,p Change task priority      (task-priority)"
         echo "  note, n    Open/create daily note    (daily-note)"
+        echo "  tui, ui    Interactive work dashboard  (task-tui)"
         echo "  sync, s    Sync from external source (task-sync)"
         echo ""
         echo "Run 'task <command> --help' for command-specific help."

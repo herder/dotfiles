@@ -1,0 +1,22 @@
+#!/bin/bash
+# Combined work dashboard: review requests + work tasks
+# Used by wtf dashboard widget
+
+set -euo pipefail
+
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Review requests
+reviews=$(gh search prs --review-requested=@me --state=open --limit=10 --json title,repository,number 2>/dev/null \
+    | jq -r '.[] | "  👀 " + .title + " (" + (.repository.nameWithOwner | split("/")[1]) + "#" + (.number | tostring) + ")"' 2>/dev/null || true)
+
+if [ -n "$reviews" ]; then
+    echo -e "${BOLD}Review Requests${RESET}"
+    echo "$reviews"
+    echo ""
+fi
+
+# Work tasks
+exec "$HOME/.local/bin/task-list" work
