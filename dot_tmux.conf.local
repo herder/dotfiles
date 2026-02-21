@@ -407,6 +407,9 @@ bind C-'\' send-prefix
 # move status line to top
 set -g status-position top
 
+# enable focus events so Neovim gets FocusGained/FocusLost
+set -g focus-events on
+
 
 # -- tpm -----------------------------------------------------------------------
 
