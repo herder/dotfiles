@@ -15,7 +15,7 @@ return {
 		},
 		daily_notes = {
 			folder = "Notes/Daily",
-			date_format = "%Y-%m-%d",
+			date_format = "%Y/%m/%Y-%m-%d",
 		},
 		completion = {
 			nvim_cmp = false,
