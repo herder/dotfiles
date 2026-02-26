@@ -117,6 +117,14 @@
   executable = true
   path = "cloudlens"
 
+[".local/bin/circleci"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "CircleCI-Public/circleci-cli" (printf "circleci-cli_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+  refreshPeriod = "168h"
+  executable = true
+  stripComponents = 1
+  path = "circleci"
+
 [".local/bin/opencode"]
     type = "archive-file"
     url = "https://github.com/anomalyco/opencode/releases/latest/download/opencode-linux-x64.tar.gz"
