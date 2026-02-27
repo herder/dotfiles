@@ -38,6 +38,80 @@ ensure_daily_note() {
     echo "$daily_note"
 }
 
+# Safe line replacement — avoids sed delimiter issues with URLs etc.
+replace_line() {
+    local file="$1" line_num="$2" new_text="$3"
+    local tmpfile
+    tmpfile=$(mktemp)
+    { head -n "$((line_num - 1))" "$file"
+      printf '%s\n' "$new_text"
+      tail -n "+$((line_num + 1))" "$file"
+    } > "$tmpfile" && mv "$tmpfile" "$file"
+}
+
+# Close vault tasks whose linked GitHub issue/PR has been closed
+close_resolved_tasks() {
+    local today="$1"
+
+    echo ""
+    echo -e "${BOLD}🔍 Checking for resolved GitHub tasks...${RESET}"
+
+    # Find open tasks with GitHub URLs across the vault
+    local matches
+    matches=$(grep -rn "^- \[[ /]\] .*https://github.com/" "$VAULT_PATH" \
+        --include="*.md" \
+        --exclude-dir=".trash" \
+        --exclude-dir=".obsidian" \
+        --exclude-dir="Templates" \
+        2>/dev/null || true)
+
+    if [ -z "$matches" ]; then
+        echo -e "  ${DIM}No open tasks with GitHub links${RESET}"
+        return 0
+    fi
+
+    local closed_count=0
+
+    while IFS= read -r match; do
+        local file line_num line_text gh_url api_path state
+
+        file=$(echo "$match" | cut -d: -f1)
+        line_num=$(echo "$match" | cut -d: -f2)
+        line_text=$(echo "$match" | cut -d: -f3-)
+
+        # Extract the GitHub URL
+        gh_url=$(echo "$line_text" | grep -oP 'https://github\.com/[^)]+' | head -1)
+        [ -z "$gh_url" ] && continue
+
+        # Convert to API path: /repos/owner/repo/issues/N or /repos/owner/repo/pulls/N
+        api_path=$(echo "$gh_url" | sed -n 's|https://github.com/\(.*\)/\(issues\|pull\)/\([0-9]*\).*|/repos/\1/issues/\3|p')
+        [ -z "$api_path" ] && continue
+
+        # Check state via GitHub API (issues endpoint works for both issues and PRs)
+        state=$(gh api "$api_path" --jq '.state' 2>/dev/null || echo "unknown")
+
+        if [ "$state" = "closed" ]; then
+            local updated
+            updated=$(echo "$line_text" | sed 's/- \[[ /]\] /- [x] /')
+            if [[ "$updated" != *"✅"* ]]; then
+                updated="$updated ✅ $today"
+            fi
+            replace_line "$file" "$line_num" "$updated"
+
+            local task_title
+            task_title=$(echo "$updated" | sed 's/^- \[x\] //' | sed 's/ \[.*//')
+            echo -e "  ✅ Closed: ${DIM}$task_title${RESET}"
+            closed_count=$((closed_count + 1))
+        fi
+    done <<< "$matches"
+
+    if [ "$closed_count" -gt 0 ]; then
+        echo -e "${BOLD}✓ Auto-closed $closed_count resolved tasks${RESET}"
+    else
+        echo -e "  ${DIM}All linked tasks are still open${RESET}"
+    fi
+}
+
 # --- GitHub sync ---
 
 sync_github() {
@@ -187,6 +261,9 @@ sync_github() {
     echo -e "${BOLD}✓ Added $review_count review requests${RESET}"
     echo ""
     echo "$reviews"
+
+    # Auto-close tasks whose GitHub issue/PR has been resolved
+    close_resolved_tasks "$today"
 }
 
 # --- Main ---
