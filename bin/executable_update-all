@@ -84,6 +84,11 @@ if has antidote; then
     run antidote update
 fi
 
+if has uv; then
+    printf '   uv tools\n'
+    run uv tool upgrade --all
+fi
+
 if has bob; then
     printf '   bob (neovim)\n'
     run bob update --all
