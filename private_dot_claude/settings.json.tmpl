@@ -1,0 +1,36 @@
+{
+  "model": "opus",
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
+  "statusLine": {
+    "type": "command",
+    "command": "bash {{ .chezmoi.homeDir }}/.claude/statusline-command.sh"
+  },
+{{- if not .headless }}
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash {{ .chezmoi.homeDir }}/.claude/hal-speak.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash {{ .chezmoi.homeDir }}/.claude/hal-speak.sh"
+          }
+        ]
+      }
+    ]
+  }
+{{- else }}
+  "hooks": {}
+{{- end }}
+}

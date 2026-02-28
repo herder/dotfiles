@@ -1,0 +1,8 @@
+{{- if not .headless -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+uv tool install piper-tts --with pathvalidate
+
+# vim: ft=bash
+{{- end }}

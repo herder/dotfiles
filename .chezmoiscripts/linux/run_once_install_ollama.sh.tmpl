@@ -1,0 +1,14 @@
+{{- if not .headless -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v ollama &>/dev/null; then
+  echo "Installing Ollama..."
+  curl -fsSL https://ollama.com/install.sh | sh
+fi
+
+# Pull a small model for HAL 9000 quips (~1GB)
+ollama pull gemma3:1b
+
+# vim: ft=bash
+{{- end }}

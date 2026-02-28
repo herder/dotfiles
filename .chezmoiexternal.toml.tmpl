@@ -132,6 +132,17 @@
     executable = true
     path = "opencode"
 
+{{- if not .headless }}
+[".claude/sounds/hal/hal.onnx"]
+    type = "file"
+    url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx"
+    refreshPeriod = "8760h"
+[".claude/sounds/hal/hal.onnx.json"]
+    type = "file"
+    url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx.json"
+    refreshPeriod = "8760h"
+{{- end }}
+
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
