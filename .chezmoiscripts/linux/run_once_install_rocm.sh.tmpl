@@ -1,0 +1,49 @@
+{{- if not .headless -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ROCm is needed for Ollama GPU acceleration on AMD GPUs.
+# Only install if an AMD GPU is detected.
+if ! lspci | grep -qi 'VGA.*AMD\|Display.*AMD'; then
+  echo "No AMD GPU detected, skipping ROCm install."
+  exit 0
+fi
+
+if command -v rocminfo &>/dev/null; then
+  echo "ROCm already installed."
+  exit 0
+fi
+
+echo "Installing ROCm for AMD GPU acceleration..."
+
+{{- if eq .osid "linux-pop" "linux-ubuntu" }}
+
+# Add AMD ROCm repository
+# See https://support.system76.com/articles/rocm/
+wget https://repo.radeon.com/rocm/rocm.gpg.key -qO - \
+  | gpg --dearmor \
+  | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
+
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/latest $(lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/rocm.list
+
+echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' \
+  | sudo tee /etc/apt/preferences.d/rocm-pin-600
+
+sudo apt-get update
+sudo apt-get install -y rocm
+
+{{- else if eq .osid "linux-arch" }}
+
+sudo pacman -S --noconfirm --needed rocm-hip-runtime rocm-opencl-runtime
+
+{{- end }}
+
+# Ensure current user can access the GPU
+sudo usermod -a -G render "$USER"
+sudo usermod -a -G video "$USER"
+
+echo "ROCm installed. Reboot required for group membership to take effect."
+
+# vim: ft=bash
+{{- end }}
