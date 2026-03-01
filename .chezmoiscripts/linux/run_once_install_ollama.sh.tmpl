@@ -7,10 +7,15 @@ if ! command -v ollama &>/dev/null; then
   curl -fsSL https://ollama.com/install.sh | sh
 fi
 
-# Pull a small model for HAL 9000 quips (~1GB) — needed immediately.
-# Larger models (qwen2.5-coder:32b etc.) are pulled manually and
-# kept up to date by update-all's weekly Ollama refresh.
+# Pull a small model for HAL 9000 quips (~1GB)
 ollama pull gemma3:1b
+
+# Pull a coding model for OpenCode (~19GB, needs >=20GB VRAM).
+# Once installed, update-all keeps it fresh weekly.
+if lspci | grep -qi 'VGA.*AMD\|Display.*AMD\|VGA.*NVIDIA\|3D.*NVIDIA'; then
+  echo "GPU detected — pulling coding model..."
+  ollama pull qwen2.5-coder:32b
+fi
 
 # vim: ft=bash
 {{- end }}
