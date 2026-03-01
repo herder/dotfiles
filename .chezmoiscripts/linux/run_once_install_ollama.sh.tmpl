@@ -17,6 +17,13 @@ max_vram=$(cat /sys/class/drm/card*/device/mem_info_vram_total 2>/dev/null | sor
 if [ -n "${max_vram:-}" ] && [ "$max_vram" -ge "$min_vram" ]; then
   echo "GPU with >= 16GB VRAM detected — pulling coding model..."
   ollama pull qwen2.5-coder:32b
+  # Create a variant with 16k context for OpenCode's agentic tool use.
+  # Ollama defaults to 4096 tokens which is too small for tool-calling system prompts.
+  ollama create qwen2.5-coder:32b-16k -f <(cat <<'MODELFILE'
+FROM qwen2.5-coder:32b
+PARAMETER num_ctx 16384
+MODELFILE
+)
 fi
 
 # vim: ft=bash
