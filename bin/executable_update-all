@@ -102,5 +102,26 @@ else
     skip "fzf (git install)"
 fi
 
+# ── Ollama models ──────────────────────────────────────────────────
+if has ollama; then
+    stamp="$HOME/.local/state/ollama-model-update"
+    week_ago=$(( $(date +%s) - 604800 ))
+    last_update=$(cat "$stamp" 2>/dev/null || echo 0)
+    if [ "$last_update" -lt "$week_ago" ]; then
+        section "Ollama models"
+        for model in $(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}'); do
+            printf '   %s\n' "$model"
+            run ollama pull "$model"
+        done
+        mkdir -p "$(dirname "$stamp")"
+        date +%s > "$stamp"
+    else
+        section "Ollama models"
+        printf '   updated < 7 days ago, skipping\n'
+    fi
+else
+    skip "ollama"
+fi
+
 # ── Done ─────────────────────────────────────────────────────────────
 printf '\n\033[1;32mDone.\033[0m\n'
