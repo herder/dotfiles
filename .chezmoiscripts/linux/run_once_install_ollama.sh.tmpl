@@ -10,10 +10,12 @@ fi
 # Pull a small model for HAL 9000 quips (~1GB)
 ollama pull gemma3:1b
 
-# Pull a coding model for OpenCode (~19GB, needs >=20GB VRAM).
+# Pull a coding model for OpenCode (~19GB, needs >=16GB VRAM).
 # Once installed, update-all keeps it fresh weekly.
-if lspci | grep -qi 'VGA.*AMD\|Display.*AMD\|VGA.*NVIDIA\|3D.*NVIDIA'; then
-  echo "GPU detected — pulling coding model..."
+min_vram=$((16 * 1024 * 1024 * 1024))
+max_vram=$(cat /sys/class/drm/card*/device/mem_info_vram_total 2>/dev/null | sort -rn | head -1)
+if [ -n "${max_vram:-}" ] && [ "$max_vram" -ge "$min_vram" ]; then
+  echo "GPU with >= 16GB VRAM detected — pulling coding model..."
   ollama pull qwen2.5-coder:32b
 fi
 
