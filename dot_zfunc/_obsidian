@@ -1,0 +1,176 @@
+#compdef obsidian
+
+# Zsh completion for Obsidian CLI
+# Generated from `obsidian __completions zsh`
+
+_obsidian() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '--vault=[Vault name or path]:vault:' \
+    '1:command:->command' \
+    '*::args:->args'
+
+  case $state in
+    command)
+      local -a commands
+      commands=(
+        'open:Open a file'
+        'create:Create a new file'
+        'read:Read file contents'
+        'append:Append content to a file'
+        'prepend:Prepend content to a file'
+        'move:Move or rename a file'
+        'rename:Rename a file'
+        'delete:Delete a file'
+        'diff:List or diff local/sync versions'
+        'search:Search vault for text'
+        'search\:context:Search with matching line context'
+        'search\:open:Open search view'
+        'daily:Open daily note'
+        'daily\:path:Get daily note path'
+        'daily\:read:Read daily note contents'
+        'daily\:append:Append content to daily note'
+        'daily\:prepend:Prepend content to daily note'
+        'links:List outgoing links from a file'
+        'backlinks:List backlinks to a file'
+        'unresolved:List unresolved links in vault'
+        'orphans:List files with no incoming links'
+        'deadends:List files with no outgoing links'
+        'outline:Show headings for the current file'
+        'wordcount:Count words and characters'
+        'tags:List tags in the vault'
+        'tag:Get tag info'
+        'tasks:List tasks in the vault'
+        'task:Show or update a task'
+        'properties:List properties in the vault'
+        'property\:set:Set a property on a file'
+        'property\:remove:Remove a property from a file'
+        'property\:read:Read a property value from a file'
+        'aliases:List aliases in the vault'
+        'bookmarks:List bookmarks'
+        'bookmark:Add a bookmark'
+        'files:List files in the vault'
+        'folders:List folders in the vault'
+        'file:Show file info'
+        'folder:Show folder info'
+        'vault:Show vault info'
+        'vaults:List known vaults'
+        'tabs:List open tabs'
+        'tab\:open:Open a new tab'
+        'recents:List recently opened files'
+        'workspace:Show workspace tree'
+        'workspaces:List saved workspaces'
+        'workspace\:save:Save current layout as workspace'
+        'workspace\:load:Load a saved workspace'
+        'workspace\:delete:Delete a saved workspace'
+        'templates:List templates'
+        'template\:read:Read template content'
+        'template\:insert:Insert template into active file'
+        'unique:Create unique note'
+        'random:Open a random note'
+        'random\:read:Read a random note'
+        'sync:Pause or resume sync'
+        'sync\:status:Show sync status'
+        'sync\:history:List sync version history for a file'
+        'sync\:read:Read a sync version'
+        'sync\:restore:Restore a sync version'
+        'sync\:open:Open sync history'
+        'sync\:deleted:List deleted files in sync'
+        'base\:query:Query a base and return results'
+        'bases:List all base files in vault'
+        'base\:views:List views in the current base file'
+        'base\:create:Create a new item in a base'
+        'plugins:List installed plugins'
+        'plugins\:enabled:List enabled plugins'
+        'plugins\:restrict:Toggle restricted mode'
+        'plugin:Get plugin info'
+        'plugin\:enable:Enable a plugin'
+        'plugin\:disable:Disable a plugin'
+        'plugin\:reload:Reload a plugin'
+        'plugin\:install:Install a community plugin'
+        'plugin\:uninstall:Uninstall a community plugin'
+        'themes:List installed themes'
+        'theme:Show active theme or get info'
+        'theme\:set:Set active theme'
+        'theme\:install:Install a community theme'
+        'theme\:uninstall:Uninstall a theme'
+        'snippets:List installed CSS snippets'
+        'snippets\:enabled:List enabled CSS snippets'
+        'snippet\:enable:Enable a CSS snippet'
+        'snippet\:disable:Disable a CSS snippet'
+        'hotkeys:List hotkeys'
+        'hotkey:Get hotkey for a command'
+        'commands:List available command IDs'
+        'command:Execute an Obsidian command'
+        'eval:Execute JavaScript and return result'
+        'reload:Reload the vault'
+        'restart:Restart the app'
+        'version:Show Obsidian version'
+        'help:Show list of all available commands'
+        'devtools:Toggle Electron dev tools'
+        'dev\:mobile:Toggle mobile emulation'
+        'dev\:debug:Attach/detach Chrome DevTools Protocol debugger'
+        'dev\:errors:Show captured errors'
+        'dev\:screenshot:Take a screenshot'
+        'dev\:cdp:Run a Chrome DevTools Protocol command'
+        'dev\:css:Inspect CSS with source locations'
+        'dev\:dom:Query DOM elements'
+        'dev\:console:Show captured console messages'
+      )
+      _describe 'command' commands
+      ;;
+    args)
+      local -a flags
+      case $line[1] in
+        open|read|file|outline|wordcount|links|history|diff)
+          flags=('file=-:File name:' 'path=-:File path:' 'newtab:Open in new tab')
+          ;;
+        create)
+          flags=('name=-:File name:' 'path=-:File path:' 'content=-:Initial content:' 'template=-:Template name:' 'overwrite:Overwrite if exists' 'open:Open after creating' 'newtab:Open in new tab')
+          ;;
+        append|prepend)
+          flags=('file=-:File name:' 'path=-:File path:' 'content=-:Content:' 'inline:Without newline')
+          ;;
+        search|search:context)
+          flags=('query=-:Search query:' 'path=-:Limit to folder:' 'limit=-:Max files:' 'case:Case sensitive' 'format=-:Output format:(text json)')
+          ;;
+        tasks)
+          flags=('file=-:File name:' 'path=-:File path:' 'total:Return count' 'done:Show completed' 'todo:Show incomplete' 'verbose:Group by file' 'format=-:Output format:(json tsv csv)' 'active:Active file' 'daily:Daily note')
+          ;;
+        task)
+          flags=('ref=-:Task reference (path\:line):' 'file=-:File name:' 'path=-:File path:' 'line=-:Line number:' 'toggle:Toggle status' 'done:Mark done' 'todo:Mark todo' 'daily:Daily note')
+          ;;
+        tags)
+          flags=('file=-:File name:' 'path=-:File path:' 'total:Return count' 'counts:Include counts' 'sort=-:Sort order:(count)' 'format=-:Output format:(json tsv csv)' 'active:Active file')
+          ;;
+        daily)
+          flags=('paneType=-:Pane type:(tab split window)')
+          ;;
+        daily:append|daily:prepend)
+          flags=('content=-:Content:' 'inline:Without newline' 'open:Open after' 'paneType=-:Pane type:(tab split window)')
+          ;;
+        plugins|plugins:enabled)
+          flags=('filter=-:Filter:(core community)' 'versions:Include versions' 'format=-:Output format:(json tsv csv)')
+          ;;
+        plugin|plugin:enable|plugin:disable|plugin:reload|plugin:install|plugin:uninstall)
+          flags=('id=-:Plugin ID:')
+          ;;
+        command)
+          flags=('id=-:Command ID:')
+          ;;
+        eval)
+          flags=('code=-:JavaScript code:')
+          ;;
+        *)
+          _default
+          return
+          ;;
+      esac
+      _values 'flags' $flags
+      ;;
+  esac
+}
+
+_obsidian "$@"
