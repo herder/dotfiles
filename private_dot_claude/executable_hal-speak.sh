@@ -97,14 +97,22 @@ echo "$SPOKEN_LINE" | piper --model "$HAL_MODEL" --output_file /tmp/hal_notifica
 paplay /tmp/hal_notification.wav &
 
 # Also send desktop notification
+TMUX_SESSION=""
+if [ -n "${TMUX:-}" ]; then
+  TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null) || true
+fi
+
 TITLE="Claude Code"
 [ "$EVENT" = "Notification" ] && TITLE="Claude Code — attention needed"
 [ "$EVENT" = "Stop" ] && TITLE="Claude Code — task complete"
+
+NOTIFY_TEXT="$SPOKEN_LINE"
+[ -n "$TMUX_SESSION" ] && NOTIFY_TEXT="[$TMUX_SESSION] $SPOKEN_LINE"
 
 gdbus call --session \
   --dest=org.freedesktop.Notifications \
   --object-path=/org/freedesktop/Notifications \
   --method=org.freedesktop.Notifications.Notify \
-  'Claude Code' 0 '' "$TITLE" "$SPOKEN_LINE" '[]' '{}' 10000 > /dev/null 2>&1 &
+  'Claude Code' 0 '' "$TITLE" "$NOTIFY_TEXT" '[]' '{}' 10000 > /dev/null 2>&1 &
 
 wait
