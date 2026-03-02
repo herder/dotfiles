@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # HAL 9000 / Culture Mind notification voice for Claude Code hooks.
 # Reads hook JSON from stdin, generates a contextual quip via:
-#   1. Ollama (local, preferred)
-#   2. Anthropic API (if ANTHROPIC_API_KEY is set)
+#   1. Anthropic API (if key in ~/.claude/sounds/hal/.api-key or ANTHROPIC_API_KEY)
+#   2. Ollama (local fallback)
 #   3. Static fallback lines
 # Then speaks it via piper with the HAL voice model.
 
@@ -36,17 +36,15 @@ esac
 
 SYSTEM_PROMPT='You are a Culture Mind from Iain M. Banks novels, speaking through a HAL 9000 voice interface. Generate a terse spoken notification (max 8 words). No names. Wry, amused, faintly superior. Dry wit preferred. Occasionally whimsical or deadpan philosophical. Output ONLY the spoken line, no quotes, no stage directions.'
 
-# --- Try Ollama first (local, fast) ---
-SPOKEN_LINE=""
-if command -v ollama &>/dev/null && ollama list &>/dev/null 2>&1; then
-  SPOKEN_LINE=$(ollama run gemma3:1b --nowordwrap \
-    "System: $SYSTEM_PROMPT
-
-$CONTEXT" 2>/dev/null | head -1 | sed 's/^["\x27]*//;s/["\x27]*$//') || true
+# Load API key from file if not in environment
+API_KEY_FILE="$MODEL_DIR/.api-key"
+if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$API_KEY_FILE" ]; then
+  ANTHROPIC_API_KEY=$(cat "$API_KEY_FILE" | tr -d '[:space:]')
 fi
 
-# --- Fall back to Anthropic API ---
-if [ -z "$SPOKEN_LINE" ] && [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+# --- Try Anthropic API first (better quality) ---
+SPOKEN_LINE=""
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
   SPOKEN_LINE=$(curl -s --max-time 4 \
     https://api.anthropic.com/v1/messages \
     -H "x-api-key: ${ANTHROPIC_API_KEY}" \
@@ -62,6 +60,14 @@ if [ -z "$SPOKEN_LINE" ] && [ -n "${ANTHROPIC_API_KEY:-}" ]; then
         messages: [{role: "user", content: $context}]
       }')" \
     2>/dev/null | jq -r '.content[0].text // empty' 2>/dev/null) || true
+fi
+
+# --- Fall back to Ollama (local) ---
+if [ -z "$SPOKEN_LINE" ] && command -v ollama &>/dev/null && ollama list &>/dev/null 2>&1; then
+  SPOKEN_LINE=$(ollama run gemma3:1b --nowordwrap \
+    "System: $SYSTEM_PROMPT
+
+$CONTEXT" 2>/dev/null | head -1 | sed 's/^["\x27]*//;s/["\x27]*$//') || true
 fi
 
 # --- Static fallback lines ---
