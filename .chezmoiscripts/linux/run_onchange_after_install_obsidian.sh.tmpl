@@ -1,0 +1,28 @@
+{{- if and (not .headless) (not .ephemeral) -}}
+#!/usr/bin/env bash
+# weekly-trigger: {{ div (now | unixEpoch) 604800 }}
+set -euo pipefail
+
+latest=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | jq -r '.tag_name' | tr -d 'v')
+
+if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+  echo "Failed to fetch latest Obsidian version"
+  exit 1
+fi
+
+installed=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || echo "")
+
+if [ "$installed" = "$latest" ]; then
+  echo "Obsidian $latest already installed"
+  exit 0
+fi
+
+dir=$(mktemp -d)
+trap 'rm -rf "$dir"' EXIT
+
+echo "Installing Obsidian $latest (was: ${installed:-not installed})..."
+curl -Lo "$dir/obsidian.deb" "https://github.com/obsidianmd/obsidian-releases/releases/download/v${latest}/obsidian_${latest}_amd64.deb"
+sudo dpkg -i "$dir/obsidian.deb" || sudo apt-get install -f -y
+
+# vim: ft=bash
+{{- end }}
