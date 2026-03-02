@@ -141,6 +141,14 @@
     type = "file"
     url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx.json"
     refreshPeriod = "8760h"
+[".claude/sounds/hal/voices/en_GB-vctk-medium.onnx"]
+    type = "file"
+    url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx?download=true"
+    refreshPeriod = "8760h"
+[".claude/sounds/hal/voices/en_GB-vctk-medium.onnx.json"]
+    type = "file"
+    url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx.json?download=true"
+    refreshPeriod = "8760h"
 {{- end }}
 
 {{- if and (not .ephemeral) (not .headless) }}

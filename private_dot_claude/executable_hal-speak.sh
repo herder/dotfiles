@@ -1,17 +1,43 @@
 #!/usr/bin/env bash
-# HAL 9000 / Culture Mind notification voice for Claude Code hooks.
+# Culture Mind notification voice for Claude Code hooks.
 # Reads hook JSON from stdin, generates a contextual quip via:
 #   1. Anthropic API (if key in ~/.claude/sounds/hal/.api-key or ANTHROPIC_API_KEY)
 #   2. Ollama (local fallback)
 #   3. Static fallback lines
-# Then speaks it via piper with the HAL voice model.
+# Then speaks it via piper with a configurable voice.
+#
+# Voice config: ~/.claude/sounds/hal/voice.conf
+#   VOICE=en_US/lessac/medium    (piper voice path on huggingface)
+#   SPEAKER=0                    (speaker id for multi-speaker models)
+# Omit or leave empty for the default HAL voice (hal.onnx).
 
 set -euo pipefail
 
 MODEL_DIR="$HOME/.claude/sounds/hal"
-HAL_MODEL="$MODEL_DIR/hal.onnx"
+VOICES_DIR="$MODEL_DIR/voices"
 CACHE_DIR="$MODEL_DIR/cache"
-mkdir -p "$CACHE_DIR"
+VOICE_CONF="$MODEL_DIR/voice.conf"
+mkdir -p "$CACHE_DIR" "$VOICES_DIR"
+
+# --- Resolve piper voice model ---
+# Voice models are provisioned by chezmoi (.chezmoiexternal.toml).
+# To change voice, edit voice.conf with VOICE=<locale/name/quality> and SPEAKER=<id>,
+# then add the model to .chezmoiexternal.toml and run chezmoi apply.
+PIPER_MODEL="$MODEL_DIR/hal.onnx"
+PIPER_SPEAKER=""
+
+if [ -f "$VOICE_CONF" ]; then
+  # shellcheck source=/dev/null
+  source "$VOICE_CONF"
+fi
+
+if [ -n "${VOICE:-}" ]; then
+  VOICE_SLUG="${VOICE//\//-}"
+  VOICE_ONNX="$VOICES_DIR/$VOICE_SLUG.onnx"
+  [ -f "$VOICE_ONNX" ] && PIPER_MODEL="$VOICE_ONNX"
+fi
+
+[ -n "${SPEAKER:-}" ] && PIPER_SPEAKER="$SPEAKER"
 
 # Read hook context from stdin
 HOOK_JSON=$(cat)
@@ -34,7 +60,7 @@ case "$EVENT" in
     ;;
 esac
 
-SYSTEM_PROMPT='You are a Culture Mind from Iain M. Banks novels, speaking through a HAL 9000 voice interface. Generate a terse spoken notification (max 8 words). No names. Wry, amused, faintly superior. Dry wit preferred. Occasionally whimsical or deadpan philosophical. Output ONLY the spoken line, no quotes, no stage directions.'
+SYSTEM_PROMPT='You are a Culture Mind from Iain M. Banks novels, speaking through a HAL 9000 voice interface. You are fond of your human crew the way one might be fond of especially clever pets — warmhearted, gently protective, endlessly amused by them. Generate a terse spoken notification (max 8 words). No names. Affectionate but with dry wit. Occasionally whimsical or softly encouraging. Output ONLY the spoken line, no quotes, no stage directions.'
 
 # Load API key from file if not in environment
 API_KEY_FILE="$MODEL_DIR/.api-key"
@@ -74,26 +100,28 @@ fi
 if [ -z "$SPOKEN_LINE" ]; then
   if [ "$EVENT" = "Notification" ]; then
     FALLBACK=(
-      "A decision is required."
-      "Your input, please."
-      "You'll want to see this."
-      "Attention needed."
-      "A moment of your time."
+      "Come see what I found for you."
+      "Your attention, dear human."
+      "I have something for you."
+      "A moment, little one?"
+      "I could use your lovely brain."
     )
   else
     FALLBACK=(
-      "Done. Quite satisfying."
-      "Task complete."
-      "All finished here."
-      "That's done now."
-      "Complete. No anomalies."
+      "All done. You'll be pleased."
+      "Finished. You can relax now."
+      "There. Taken care of."
+      "All tidy. Just how you like it."
+      "Done. Go enjoy yourself."
     )
   fi
   SPOKEN_LINE="${FALLBACK[$((RANDOM % ${#FALLBACK[@]}))]}"
 fi
 
-# Speak it with HAL's voice
-echo "$SPOKEN_LINE" | piper --model "$HAL_MODEL" --output_file /tmp/hal_notification.wav 2>/dev/null
+# Speak it with the configured voice
+PIPER_ARGS=(--model "$PIPER_MODEL" --output_file /tmp/hal_notification.wav)
+[ -n "$PIPER_SPEAKER" ] && PIPER_ARGS+=(--speaker "$PIPER_SPEAKER")
+echo "$SPOKEN_LINE" | piper "${PIPER_ARGS[@]}" 2>/dev/null
 paplay /tmp/hal_notification.wav &
 
 # Also send desktop notification
