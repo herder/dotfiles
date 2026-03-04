@@ -62,7 +62,7 @@ create_note() {
     fi
 
     # Process template
-    sed "s/{{date:YYYY-MM-DD}}/$TARGET_DATE/g; s/{{date:YYYY}}/$YEAR/g; s/{{date:dddd}}/$DAY_NAME/g" \
+    sed "s/{{date:YYYY-MM-DD}}/$TARGET_DATE/g; s/{{date:YYYY}}/$YEAR/g; s/{{date:MM}}/$MONTH/g; s/{{date:dddd}}/$DAY_NAME/g" \
         "$TEMPLATE_FILE" > "$DAILY_NOTE"
 
     echo "✓ Created daily note: $TARGET_DATE"

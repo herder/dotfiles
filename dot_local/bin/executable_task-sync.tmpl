@@ -30,7 +30,7 @@ ensure_daily_note() {
     if [ ! -f "$daily_note" ]; then
         mkdir -p "$DAILY_NOTE_DIR/$year/$month"
         day_name=$(date -d "$target_date" +%A 2>/dev/null || echo "Unknown")
-        sed "s/{{ "{{" }}date:YYYY-MM-DD{{ "}}" }}/$target_date/g; s/{{ "{{" }}date:YYYY{{ "}}" }}/$year/g; s/{{ "{{" }}date:dddd{{ "}}" }}/$day_name/g" \
+        sed "s/{{ "{{" }}date:YYYY-MM-DD{{ "}}" }}/$target_date/g; s/{{ "{{" }}date:YYYY{{ "}}" }}/$year/g; s/{{ "{{" }}date:MM{{ "}}" }}/$month/g; s/{{ "{{" }}date:dddd{{ "}}" }}/$day_name/g" \
             "$TEMPLATE_FILE" > "$daily_note"
         echo "✓ Created daily note: $target_date" >&2
     fi
