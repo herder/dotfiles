@@ -38,6 +38,9 @@ ensure_daily_note() {
     echo "$daily_note"
 }
 
+# GitHub sync output directory
+GH_SYNC_DIR="$VAULT_PATH/Work/GitHub"
+
 # Safe line replacement — avoids sed delimiter issues with URLs etc.
 replace_line() {
     local file="$1" line_num="$2" new_text="$3"
@@ -174,55 +177,7 @@ sync_github() {
         | .[]
     ')
 
-    if [ -z "$tasks" ]; then
-        echo "  No active items assigned to $GH_USERNAME"
-        return 0
-    fi
-
-    # Count tasks
-    local count
-    count=$(echo "$tasks" | wc -l)
-
-    # Build the section content
-    local timestamp
-    timestamp=$(date "+%Y-%m-%d %H:%M")
-    local section
-    section=$(printf "> Synced from Pipedream project — last sync %s\n\n%s" "$timestamp" "$tasks")
-
-    # Get/create daily note
-    local daily_note
-    daily_note=$(ensure_daily_note "$today")
-
-    # Replace content between "## GitHub Project Tasks" and the next "---"
-    # Uses awk to preserve the rest of the file
-    local tmpfile
-    tmpfile=$(mktemp)
-    awk -v section="$section" '
-        /^## GitHub Project Tasks/ {
-            print
-            print section
-            print ""
-            # Skip until next ---
-            found = 1
-            next
-        }
-        found && /^---/ {
-            found = 0
-            print
-            next
-        }
-        found { next }
-        { print }
-    ' "$daily_note" > "$tmpfile"
-    mv "$tmpfile" "$daily_note"
-
-    # Print results
-    echo -e "${BOLD}✓ Synced $count tasks to daily note${RESET}"
-    echo ""
-    echo "$tasks"
-
     # Fetch PR review requests
-    echo ""
     echo -e "${BOLD}🔄 Fetching PR review requests...${RESET}"
 
     local reviews
@@ -233,34 +188,40 @@ sync_github() {
           " #review #context/work"
     ')
 
-    if [ -z "$reviews" ]; then
-        echo "  No pending review requests"
-        return 0
-    fi
+    # Build the sync file content
+    local timestamp
+    timestamp=$(date "+%Y-%m-%d %H:%M")
+    local sync_file="$GH_SYNC_DIR/$today.md"
+    mkdir -p "$GH_SYNC_DIR"
 
-    local review_count
-    review_count=$(echo "$reviews" | wc -l)
+    {
+        printf '> Synced from Pipedream project — %s\n\n' "$timestamp"
 
-    # Append reviews to the same section in the daily note
-    local review_section
-    review_section=$(printf "\n> Review requests\n\n%s" "$reviews")
+        if [ -n "$tasks" ]; then
+            printf '## Project Tasks\n\n%s\n\n' "$tasks"
+        else
+            printf '## Project Tasks\n\n*No active items assigned to %s*\n\n' "$GH_USERNAME"
+        fi
 
-    local tmpfile2
-    tmpfile2=$(mktemp)
-    awk -v section="$review_section" '
-        /^## GitHub Project Tasks/ { in_section = 1 }
-        in_section && /^---/ {
-            print section
-            print ""
-            in_section = 0
-        }
-        { print }
-    ' "$daily_note" > "$tmpfile2"
-    mv "$tmpfile2" "$daily_note"
+        if [ -n "$reviews" ]; then
+            printf '## Review Requests\n\n%s\n' "$reviews"
+        else
+            printf '## Review Requests\n\n*No pending review requests*\n'
+        fi
+    } > "$sync_file"
 
-    echo -e "${BOLD}✓ Added $review_count review requests${RESET}"
+    # Print results
+    local task_count=0 review_count=0
+    [ -n "$tasks" ] && task_count=$(echo "$tasks" | wc -l)
+    [ -n "$reviews" ] && review_count=$(echo "$reviews" | wc -l)
+
+    echo -e "${BOLD}✓ Wrote $task_count tasks + $review_count reviews to Work/GitHub/$today.md${RESET}"
     echo ""
-    echo "$reviews"
+    [ -n "$tasks" ] && echo "$tasks"
+    [ -n "$reviews" ] && { echo ""; echo "$reviews"; }
+
+    # Ensure daily note exists (so the transclusion has something to live in)
+    ensure_daily_note "$today" > /dev/null
 
     # Auto-close tasks whose GitHub issue/PR has been resolved
     close_resolved_tasks "$today"
