@@ -130,6 +130,9 @@ if [ -n "${TMUX:-}" ]; then
   TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null) || true
 fi
 
+# Flag this tmux session as having a pending Claude alert
+[ -n "$TMUX_SESSION" ] && tmux set-option -t "$TMUX_SESSION" @claude-alert 1 2>/dev/null || true
+
 TITLE="Claude Code"
 [ "$EVENT" = "Notification" ] && TITLE="Claude Code — attention needed"
 [ "$EVENT" = "Stop" ] && TITLE="Claude Code — task complete"

@@ -480,6 +480,9 @@ bind-key -T copy-mode-vi 'C-\' select-pane -l
 
 set-option -g detach-on-destroy off
 
+# Jump to Claude Code sessions with pending alerts
+bind c run-shell '~/.claude/tmux-claude-alert.sh'
+
 # -- custom variables ----------------------------------------------------------
 
 # to define a custom #{foo} variable, define a POSIX shell function between the
