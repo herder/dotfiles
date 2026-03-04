@@ -52,6 +52,7 @@ packages:
       - "cmake"
       - "direnv"
       - "docker-compose-v2"
+      - "easyeffects"
       - "entr"
       - "ffmpeg"
       - "git-delta"

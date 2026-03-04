@@ -151,6 +151,13 @@
     refreshPeriod = "8760h"
 {{- end }}
 
+{{- if not .headless }}
+[".config/easyeffects/output/Perfect EQ.json"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/JackHack96/EasyEffects-Presets/master/Perfect%20EQ.json"
+    refreshPeriod = "168h"
+{{- end }}
+
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
