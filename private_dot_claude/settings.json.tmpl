@@ -1,11 +1,4 @@
 {
-  "model": "opus",
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
-  "statusLine": {
-    "type": "command",
-    "command": "bash {{ .chezmoi.homeDir }}/.claude/statusline-command.sh"
-  },
 {{- if not .headless }}
   "hooks": {
     "Notification": [
@@ -29,8 +22,14 @@
         ]
       }
     ]
-  }
+  },
 {{- else }}
-  "hooks": {}
+  "hooks": {},
 {{- end }}
+  "statusLine": {
+    "type": "command",
+    "command": "bash {{ .chezmoi.homeDir }}/.claude/statusline-command.sh"
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "medium"
 }
