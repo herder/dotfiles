@@ -133,6 +133,14 @@
     path = "opencode"
 
 {{- if not .headless }}
+[".claude/sounds/hal/chord.wav"]
+    type = "file"
+    url = "https://archive.org/download/Microsoft_Windows-95-System-Sounds/Windows-95-sound-effects/Windows95_%5Bwinsounds.com%5D_1897/CHORD.WAV"
+    refreshPeriod = "8760h"
+[".claude/sounds/hal/tada.wav"]
+    type = "file"
+    url = "https://archive.org/download/Microsoft_Windows-95-System-Sounds/Windows-95-sound-effects/Windows95_%5Bwinsounds.com%5D_1897/TADA.WAV"
+    refreshPeriod = "8760h"
 [".claude/sounds/hal/hal.onnx"]
     type = "file"
     url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx"

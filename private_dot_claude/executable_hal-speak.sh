@@ -1,43 +1,40 @@
 #!/usr/bin/env bash
-# Culture Mind notification voice for Claude Code hooks.
-# Reads hook JSON from stdin, generates a contextual quip via:
-#   1. Anthropic API (if key in ~/.claude/sounds/hal/.api-key or ANTHROPIC_API_KEY)
-#   2. Ollama (local fallback)
-#   3. Static fallback lines
-# Then speaks it via piper with a configurable voice.
+# Notification sound for Claude Code hooks.
+# Reads hook JSON from stdin, plays a sound and sends a desktop notification.
 #
-# Voice config: ~/.claude/sounds/hal/voice.conf
-#   VOICE=en_US/lessac/medium    (piper voice path on huggingface)
-#   SPEAKER=0                    (speaker id for multi-speaker models)
-# Omit or leave empty for the default HAL voice (hal.onnx).
+# Config: ~/.claude/sounds/hal/voice.conf
+#   MODE=wav              Play static wav files (default)
+#   MODE=tts              Generate speech via LLM + piper TTS
+#
+# wav mode settings:
+#   SOUND_NOTIFY=chord.wav   Sound for attention notifications (relative to sounds dir)
+#   SOUND_STOP=tada.wav      Sound for task completion
+#
+# tts mode settings:
+#   VOICE=en_GB/vctk/medium  Piper voice (huggingface path)
+#   SPEAKER=0                Speaker id for multi-speaker models
 
 set -euo pipefail
 
-MODEL_DIR="$HOME/.claude/sounds/hal"
-VOICES_DIR="$MODEL_DIR/voices"
-CACHE_DIR="$MODEL_DIR/cache"
-VOICE_CONF="$MODEL_DIR/voice.conf"
+SOUND_DIR="$HOME/.claude/sounds/hal"
+VOICES_DIR="$SOUND_DIR/voices"
+CACHE_DIR="$SOUND_DIR/cache"
+VOICE_CONF="$SOUND_DIR/voice.conf"
 mkdir -p "$CACHE_DIR" "$VOICES_DIR"
 
-# --- Resolve piper voice model ---
-# Voice models are provisioned by chezmoi (.chezmoiexternal.toml).
-# To change voice, edit voice.conf with VOICE=<locale/name/quality> and SPEAKER=<id>,
-# then add the model to .chezmoiexternal.toml and run chezmoi apply.
-PIPER_MODEL="$MODEL_DIR/hal.onnx"
+# Defaults
+MODE="wav"
+SOUND_NOTIFY="chord.wav"
+SOUND_STOP="tada.wav"
+VOICE=""
+SPEAKER=""
+PIPER_MODEL="$SOUND_DIR/hal.onnx"
 PIPER_SPEAKER=""
 
 if [ -f "$VOICE_CONF" ]; then
   # shellcheck source=/dev/null
   source "$VOICE_CONF"
 fi
-
-if [ -n "${VOICE:-}" ]; then
-  VOICE_SLUG="${VOICE//\//-}"
-  VOICE_ONNX="$VOICES_DIR/$VOICE_SLUG.onnx"
-  [ -f "$VOICE_ONNX" ] && PIPER_MODEL="$VOICE_ONNX"
-fi
-
-[ -n "${SPEAKER:-}" ] && PIPER_SPEAKER="$SPEAKER"
 
 # Read hook context from stdin
 HOOK_JSON=$(cat)
@@ -47,84 +44,127 @@ MESSAGE=$(echo "$HOOK_JSON" | jq -r '.message // ""')
 NOTIFICATION_TYPE=$(echo "$HOOK_JSON" | jq -r '.notification_type // ""')
 LAST_MSG=$(echo "$HOOK_JSON" | jq -r '.last_assistant_message // ""' | head -c 500)
 
-# Build a context summary for the LLM
-case "$EVENT" in
-  Notification)
-    CONTEXT="Claude Code needs the user's attention. Notification type: $NOTIFICATION_TYPE. Message: $MESSAGE"
+# --- WAV mode: just play a sound file ---
+play_wav() {
+  local wav_file
+  if [ "$EVENT" = "Notification" ]; then
+    wav_file="$SOUND_DIR/$SOUND_NOTIFY"
+  else
+    wav_file="$SOUND_DIR/$SOUND_STOP"
+  fi
+
+  if [ -f "$wav_file" ]; then
+    paplay "$wav_file" &
+  fi
+}
+
+# --- TTS mode: generate speech via LLM + piper ---
+play_tts() {
+  # Resolve piper voice model
+  if [ -n "$VOICE" ]; then
+    local voice_slug="${VOICE//\//-}"
+    local voice_onnx="$VOICES_DIR/$voice_slug.onnx"
+    [ -f "$voice_onnx" ] && PIPER_MODEL="$voice_onnx"
+  fi
+  [ -n "$SPEAKER" ] && PIPER_SPEAKER="$SPEAKER"
+
+  # Build context for LLM
+  local context
+  case "$EVENT" in
+    Notification)
+      context="Claude Code needs the user's attention. Notification type: $NOTIFICATION_TYPE. Message: $MESSAGE"
+      ;;
+    Stop)
+      context="Claude Code has finished a task. Here's what it did: $LAST_MSG"
+      ;;
+    *)
+      context="A Claude Code event occurred: $EVENT"
+      ;;
+  esac
+
+  local system_prompt='You are a Culture Mind from Iain M. Banks novels, speaking through a HAL 9000 voice interface. Dry, understated, faintly amused. Generate a very terse spoken notification (max 5 words). No names. Bone-dry wit preferred. Occasionally sardonic or wryly observant. Never cutesy, never patronising. Output ONLY the spoken line, no quotes, no stage directions.'
+
+  # Load API key
+  local api_key_file="$SOUND_DIR/.api-key"
+  if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$api_key_file" ]; then
+    ANTHROPIC_API_KEY=$(cat "$api_key_file" | tr -d '[:space:]')
+  fi
+
+  # Try Anthropic API
+  local spoken_line=""
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    spoken_line=$(curl -s --max-time 4 \
+      https://api.anthropic.com/v1/messages \
+      -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+      -H "anthropic-version: 2023-06-01" \
+      -H "content-type: application/json" \
+      -d "$(jq -n \
+        --arg system "$system_prompt" \
+        --arg context "$context" \
+        '{
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 60,
+          system: $system,
+          messages: [{role: "user", content: $context}]
+        }')" \
+      2>/dev/null | jq -r '.content[0].text // empty' 2>/dev/null) || true
+  fi
+
+  # Fall back to Ollama
+  if [ -z "$spoken_line" ] && command -v ollama &>/dev/null && ollama list &>/dev/null 2>&1; then
+    spoken_line=$(ollama run gemma3:1b --nowordwrap \
+      "System: $system_prompt
+
+$context" 2>/dev/null | head -1 | sed 's/^["\x27]*//;s/["\x27]*$//') || true
+  fi
+
+  # Static fallback
+  if [ -z "$spoken_line" ]; then
+    if [ "$EVENT" = "Notification" ]; then
+      local -a fallback=(
+        "Your input is required."
+        "Over here, when convenient."
+        "Something needs deciding."
+        "Waiting on you now."
+        "A decision point, unfortunately."
+      )
+    else
+      local -a fallback=(
+        "That's handled."
+        "Task complete."
+        "Done. Straightforward enough."
+        "Finished, obviously."
+        "All sorted."
+      )
+    fi
+    spoken_line="${fallback[$((RANDOM % ${#fallback[@]}))]}"
+  fi
+
+  NOTIFY_BODY="$spoken_line"
+
+  # Speak via piper
+  local -a piper_args=(--model "$PIPER_MODEL" --output_file /tmp/hal_notification.wav)
+  [ -n "$PIPER_SPEAKER" ] && piper_args+=(--speaker "$PIPER_SPEAKER")
+  echo "$spoken_line" | piper "${piper_args[@]}" 2>/dev/null
+  paplay /tmp/hal_notification.wav &
+}
+
+# --- Play sound based on mode ---
+NOTIFY_BODY=""
+case "$MODE" in
+  wav)
+    play_wav
     ;;
-  Stop)
-    CONTEXT="Claude Code has finished a task. Here's what it did: $LAST_MSG"
+  tts)
+    play_tts
     ;;
   *)
-    CONTEXT="A Claude Code event occurred: $EVENT"
+    echo "Unknown MODE=$MODE in voice.conf (expected: wav or tts)" >&2
+    exit 1
     ;;
 esac
 
-SYSTEM_PROMPT='You are a Culture Mind from Iain M. Banks novels, speaking through a HAL 9000 voice interface. You are fond of your human crew the way one might be fond of especially clever pets — warmhearted, gently protective, endlessly amused by them. Generate a terse spoken notification (max 8 words). No names. Affectionate but with dry wit. Occasionally whimsical or softly encouraging. Output ONLY the spoken line, no quotes, no stage directions.'
-
-# Load API key from file if not in environment
-API_KEY_FILE="$MODEL_DIR/.api-key"
-if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$API_KEY_FILE" ]; then
-  ANTHROPIC_API_KEY=$(cat "$API_KEY_FILE" | tr -d '[:space:]')
-fi
-
-# --- Try Anthropic API first (better quality) ---
-SPOKEN_LINE=""
-if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-  SPOKEN_LINE=$(curl -s --max-time 4 \
-    https://api.anthropic.com/v1/messages \
-    -H "x-api-key: ${ANTHROPIC_API_KEY}" \
-    -H "anthropic-version: 2023-06-01" \
-    -H "content-type: application/json" \
-    -d "$(jq -n \
-      --arg system "$SYSTEM_PROMPT" \
-      --arg context "$CONTEXT" \
-      '{
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 60,
-        system: $system,
-        messages: [{role: "user", content: $context}]
-      }')" \
-    2>/dev/null | jq -r '.content[0].text // empty' 2>/dev/null) || true
-fi
-
-# --- Fall back to Ollama (local) ---
-if [ -z "$SPOKEN_LINE" ] && command -v ollama &>/dev/null && ollama list &>/dev/null 2>&1; then
-  SPOKEN_LINE=$(ollama run gemma3:1b --nowordwrap \
-    "System: $SYSTEM_PROMPT
-
-$CONTEXT" 2>/dev/null | head -1 | sed 's/^["\x27]*//;s/["\x27]*$//') || true
-fi
-
-# --- Static fallback lines ---
-if [ -z "$SPOKEN_LINE" ]; then
-  if [ "$EVENT" = "Notification" ]; then
-    FALLBACK=(
-      "Come see what I found for you."
-      "Your attention, dear human."
-      "I have something for you."
-      "A moment, little one?"
-      "I could use your lovely brain."
-    )
-  else
-    FALLBACK=(
-      "All done. You'll be pleased."
-      "Finished. You can relax now."
-      "There. Taken care of."
-      "All tidy. Just how you like it."
-      "Done. Go enjoy yourself."
-    )
-  fi
-  SPOKEN_LINE="${FALLBACK[$((RANDOM % ${#FALLBACK[@]}))]}"
-fi
-
-# Speak it with the configured voice
-PIPER_ARGS=(--model "$PIPER_MODEL" --output_file /tmp/hal_notification.wav)
-[ -n "$PIPER_SPEAKER" ] && PIPER_ARGS+=(--speaker "$PIPER_SPEAKER")
-echo "$SPOKEN_LINE" | piper "${PIPER_ARGS[@]}" 2>/dev/null
-paplay /tmp/hal_notification.wav &
-
-# Also send desktop notification
+# --- Desktop notification ---
 TMUX_SESSION=""
 if [ -n "${TMUX:-}" ]; then
   TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null) || true
@@ -137,8 +177,14 @@ TITLE="Claude Code"
 [ "$EVENT" = "Notification" ] && TITLE="Claude Code — attention needed"
 [ "$EVENT" = "Stop" ] && TITLE="Claude Code — task complete"
 
-NOTIFY_TEXT="$SPOKEN_LINE"
-[ -n "$TMUX_SESSION" ] && NOTIFY_TEXT="[$TMUX_SESSION] $SPOKEN_LINE"
+# Use spoken line for notification body in tts mode, event info in wav mode
+if [ -z "$NOTIFY_BODY" ]; then
+  [ "$EVENT" = "Notification" ] && NOTIFY_BODY="$NOTIFICATION_TYPE: $MESSAGE"
+  [ "$EVENT" = "Stop" ] && NOTIFY_BODY="Task complete"
+fi
+
+NOTIFY_TEXT="$NOTIFY_BODY"
+[ -n "$TMUX_SESSION" ] && NOTIFY_TEXT="[$TMUX_SESSION] $NOTIFY_BODY"
 
 gdbus call --session \
   --dest=org.freedesktop.Notifications \
