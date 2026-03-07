@@ -1,0 +1,102 @@
+#!/bin/bash
+# Refresh GitHub task status in Obsidian vault
+# Checks open tasks in Work/GitHub/ against the GitHub API and marks
+# closed issues / merged PRs as done with a completion date.
+#
+# Usage: task-gh-refresh [--dry-run]
+#
+# Designed to run via cron every ~15 minutes.
+
+set -euo pipefail
+
+VAULT_PATH="$HOME/Documents/Private Sync"
+GH_DIR="$VAULT_PATH/Work/GitHub"
+TODAY=$(date +%Y-%m-%d)
+DRY_RUN=false
+
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+
+if [ ! -d "$GH_DIR" ]; then
+    exit 0
+fi
+
+# Safe line replacement — avoids sed delimiter issues with URLs
+replace_line() {
+    local file="$1" line_num="$2" new_text="$3"
+    local tmpfile
+    tmpfile=$(mktemp)
+    { head -n "$((line_num - 1))" "$file"
+      printf '%s\n' "$new_text"
+      tail -n "+$((line_num + 1))" "$file"
+    } > "$tmpfile" && mv "$tmpfile" "$file"
+}
+
+# Extract repo and number from a GitHub URL
+# e.g. https://github.com/Stravito/auth/issues/10 -> Stravito/auth issues 10
+parse_gh_url() {
+    local url="$1"
+    if [[ "$url" =~ github\.com/([^/]+/[^/]+)/(issues|pull)/([0-9]+) ]]; then
+        echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]} ${BASH_REMATCH[3]}"
+    fi
+}
+
+check_and_update() {
+    local file="$1"
+    local updated=0
+
+    # Find open task lines with GitHub URLs
+    while IFS= read -r match; do
+        [ -z "$match" ] && continue
+
+        local line_num="${match%%:*}"
+        local line="${match#*:}"
+
+        # Extract the GitHub URL
+        local gh_url_re='\(https://github\.com/([^)]+)\)'
+        if [[ "$line" =~ $gh_url_re ]]; then
+            local url="https://github.com/${BASH_REMATCH[1]}"
+        else
+            continue
+        fi
+
+        local parsed
+        parsed=$(parse_gh_url "$url")
+        [ -z "$parsed" ] && continue
+
+        local repo type number
+        read -r repo type number <<< "$parsed"
+
+        # Check status via gh CLI
+        local state=""
+        if [[ "$type" == "issues" ]]; then
+            state=$(gh issue view "$number" --repo "$repo" --json state -q .state 2>/dev/null) || continue
+        elif [[ "$type" == "pull" ]]; then
+            state=$(gh pr view "$number" --repo "$repo" --json state -q .state 2>/dev/null) || continue
+        fi
+
+        # Mark done if closed/merged
+        if [[ "$state" == "CLOSED" || "$state" == "MERGED" ]]; then
+            local updated_line
+            updated_line=$(printf '%s' "$line" | sed 's/- \[[ /]\] /- [x] /')
+            if [[ "$updated_line" != *"✅"* ]]; then
+                updated_line="$updated_line ✅ $TODAY"
+            fi
+
+            if [ "$DRY_RUN" = true ]; then
+                echo "[dry-run] Would complete: $line"
+            else
+                replace_line "$file" "$line_num" "$updated_line"
+                updated=$((updated + 1))
+                echo "✓ $state: $(printf '%s' "$updated_line" | sed 's/^- \[x\] //')"
+            fi
+        fi
+    done < <(grep -n '^- \[[ /]\] .*github\.com' "$file" 2>/dev/null || true)
+
+    return 0
+}
+
+count=0
+for file in "$GH_DIR"/*.md; do
+    [ -f "$file" ] || continue
+    check_and_update "$file"
+done

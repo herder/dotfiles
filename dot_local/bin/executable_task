@@ -35,6 +35,9 @@ case "$CMD" in
     sync|s)
         exec task-sync "$@"
         ;;
+    gh-refresh|gr)
+        exec task-gh-refresh "$@"
+        ;;
     help|--help|-h)
         echo "Usage: task <command> [args...]"
         echo ""
@@ -48,6 +51,7 @@ case "$CMD" in
         echo "  note, n    Open/create daily note    (daily-note)"
         echo "  tui, ui    Interactive work dashboard  (task-tui)"
         echo "  sync, s    Sync from external source (task-sync)"
+        echo "  gh-refresh,gr  Update GitHub task status (task-gh-refresh)"
         echo ""
         echo "Run 'task <command> --help' for command-specific help."
         ;;

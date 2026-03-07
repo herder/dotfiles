@@ -1,9 +1,13 @@
 #!/bin/bash
 # Mark an Obsidian task as completed
-# Usage: task-done [work|personal|all] [--include-tickler]
+# Usage: task-done [work|personal|all] [search text] [--include-tickler]
 #
-# Opens fzf with open tasks from the vault. Select one to mark it [x]
-# with a ✅ completion date, matching Obsidian Tasks plugin behavior.
+# With no search text: opens fzf to pick a task interactively.
+# With search text: filters tasks by case-insensitive match.
+#   - Exactly one match: completes it directly (no fzf needed).
+#   - Multiple matches + TTY: opens fzf pre-filtered with the query.
+#   - Multiple matches + no TTY: lists matches and exits.
+# Marks selected task [x] with a ✅ completion date, matching Obsidian Tasks.
 
 set -euo pipefail
 
@@ -20,13 +24,15 @@ replace_line() {
 
 VAULT_PATH="$HOME/Documents/Private Sync"
 TODAY=$(date +%Y-%m-%d)
-FILTER=""
+CONTEXT=""
+SEARCH=""
 INCLUDE_TICKLER=false
 
 for arg in "$@"; do
     case "$arg" in
         --include-tickler) INCLUDE_TICKLER=true ;;
-        *) FILTER="$arg" ;;
+        work|w|personal|private|p|all) CONTEXT="$arg" ;;
+        *) SEARCH="$arg" ;;
     esac
 done
 
@@ -41,10 +47,10 @@ find_tasks() {
         2>/dev/null || true
 }
 
-# Apply optional filter
-filter_tasks() {
+# Apply optional context filter
+filter_by_context() {
     local tasks="$1"
-    case "$FILTER" in
+    case "$CONTEXT" in
         work|w)
             echo "$tasks" | grep "#context/work" || true
             ;;
@@ -55,6 +61,16 @@ filter_tasks() {
             echo "$tasks"
             ;;
     esac
+}
+
+# Apply optional text search (case-insensitive)
+filter_by_search() {
+    local tasks="$1"
+    if [ -n "$SEARCH" ]; then
+        echo "$tasks" | grep -i "$SEARCH" || true
+    else
+        echo "$tasks"
+    fi
 }
 
 # Format grep lines for fzf display: strip vault path, show task text
@@ -82,20 +98,33 @@ if [ -z "$ALL_TASKS" ]; then
     exit 0
 fi
 
-FILTERED=$(filter_tasks "$ALL_TASKS" | exclude_tickled)
+FILTERED=$(filter_by_context "$ALL_TASKS" | exclude_tickled)
+FILTERED=$(filter_by_search "$FILTERED")
 
 if [ -z "$FILTERED" ]; then
     echo "📭 No matching tasks found"
     exit 0
 fi
 
-# Let user pick a task with fzf
-SELECTED=$(echo "$FILTERED" | format_for_fzf | fzf \
-    --prompt="Mark done > " \
-    --header="Select task to complete" \
-    --preview-window=hidden \
-    --no-multi \
-    --height=40%) || exit 0
+MATCH_COUNT=$(echo "$FILTERED" | wc -l)
+
+# If search narrowed to exactly one result, use it directly
+if [ -n "$SEARCH" ] && [ "$MATCH_COUNT" -eq 1 ]; then
+    SELECTED=$(echo "$FILTERED" | format_for_fzf)
+# Multiple matches or no search: use fzf if interactive, otherwise list and exit
+elif [ -t 0 ] && [ -t 1 ]; then
+    SELECTED=$(echo "$FILTERED" | format_for_fzf | fzf \
+        --prompt="Mark done > " \
+        --header="Select task to complete" \
+        --preview-window=hidden \
+        --no-multi \
+        --query="${SEARCH}" \
+        --height=40%) || exit 0
+else
+    echo "Multiple matches — pick one or refine your search:"
+    echo "$FILTERED" | format_for_fzf | sed 's/^/  /'
+    exit 1
+fi
 
 # Parse the selection back into file:line
 FILE="$VAULT_PATH/$(echo "$SELECTED" | cut -d: -f1)"

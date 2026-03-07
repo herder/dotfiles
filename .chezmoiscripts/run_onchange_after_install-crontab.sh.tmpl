@@ -1,0 +1,16 @@
+{{- if .personal -}}
+#!/bin/bash
+# Install user crontab — re-runs on any change to this file.
+#
+# crontab hash: {{ include "dot_local/bin/executable_task-gh-refresh" | sha256sum }}
+
+set -eufo pipefail
+
+crontab - <<'EOF'
+PATH={{ .chezmoi.homeDir }}/.local/bin:/usr/local/bin:/usr/bin:/bin
+# Refresh GitHub task status in Obsidian vault (every 15 min, weekdays 8-18)
+*/15 8-18 * * 1-5 task-gh-refresh
+EOF
+
+echo "✓ Crontab installed"
+{{- end -}}
