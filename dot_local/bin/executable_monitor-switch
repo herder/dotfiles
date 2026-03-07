@@ -22,25 +22,21 @@ usage() {
 # Single detect call, extract both buses
 detect_output=$(ddcutil detect 2>/dev/null)
 
-OMEN_BUS=$(echo "$detect_output" | awk '
-  /^Display /    { valid=1 }
-  /^Invalid /    { valid=0 }
-  /I2C bus:/ && valid { bus=$NF }
-  /Model:/ && valid && /OMEN 34c/ { print bus; exit }
-')
+extract_bus() {
+  local model=$1
+  echo "$detect_output" | awk -v model="$model" '
+    /^Display /    { valid=1 }
+    /^Invalid /    { valid=0 }
+    /I2C bus:/ && valid { bus=$NF }
+    /Model:/ && valid && index($0, model) { print bus; exit }
+  '
+}
 
-BENQ_BUS=$(echo "$detect_output" | awk '
-  /^Display /    { valid=1 }
-  /^Invalid /    { valid=0 }
-  /I2C bus:/ && valid { bus=$NF }
-  /Model:/ && valid && /BenQ GW2470/ { print bus; exit }
-')
+OMEN_BUS=$(extract_bus "OMEN 34c")
+BENQ_BUS=$(extract_bus "BenQ GW2470")
 
-if [[ -z "$OMEN_BUS" ]]; then echo "Error: OMEN 34c not found"; exit 1; fi
-if [[ -z "$BENQ_BUS" ]]; then echo "Error: BenQ GW2470 not found"; exit 1; fi
-
-OMEN_BUSNUM="${OMEN_BUS##*/i2c-}"
-BENQ_BUSNUM="${BENQ_BUS##*/i2c-}"
+OMEN_BUSNUM="${OMEN_BUS:+${OMEN_BUS##*/i2c-}}"
+BENQ_BUSNUM="${BENQ_BUS:+${BENQ_BUS##*/i2c-}}"
 
 switch_input() {
   local busnum=$1
@@ -51,21 +47,45 @@ switch_input() {
 case "${1:-}" in
   work)
     echo "Switching to WORK mode..."
-    echo "  OMEN 34c (bus $OMEN_BUSNUM) → HDMI-1"
-    switch_input "$OMEN_BUSNUM" "$HDMI1"
-    echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-2"
-    switch_input "$BENQ_BUSNUM" "$HDMI2"
+    if [[ -n "$OMEN_BUSNUM" ]]; then
+      echo "  OMEN 34c (bus $OMEN_BUSNUM) → HDMI-1"
+      switch_input "$OMEN_BUSNUM" "$HDMI1"
+    else
+      echo "  OMEN 34c — not detected, skipping"
+    fi
+    if [[ -n "$BENQ_BUSNUM" ]]; then
+      echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-2"
+      switch_input "$BENQ_BUSNUM" "$HDMI2"
+    else
+      echo "  BenQ     — not detected, skipping"
+    fi
     ;;
   personal)
     echo "Switching to PERSONAL mode..."
-    echo "  OMEN 34c (bus $OMEN_BUSNUM) → DP-1"
-    switch_input "$OMEN_BUSNUM" "$DP1"
-    echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-1"
-    switch_input "$BENQ_BUSNUM" "$HDMI1"
+    if [[ -n "$OMEN_BUSNUM" ]]; then
+      echo "  OMEN 34c (bus $OMEN_BUSNUM) → DP-1"
+      switch_input "$OMEN_BUSNUM" "$DP1"
+    else
+      echo "  OMEN 34c — not detected, skipping"
+    fi
+    if [[ -n "$BENQ_BUSNUM" ]]; then
+      echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-1"
+      switch_input "$BENQ_BUSNUM" "$HDMI1"
+    else
+      echo "  BenQ     — not detected, skipping"
+    fi
     ;;
   status)
-    echo "OMEN 34c  (bus $OMEN_BUSNUM): $(ddcutil getvcp 0x60 --bus "$OMEN_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
-    echo "BenQ      (bus $BENQ_BUSNUM): $(ddcutil getvcp 0x60 --bus "$BENQ_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
+    if [[ -n "$OMEN_BUSNUM" ]]; then
+      echo "OMEN 34c  (bus $OMEN_BUSNUM): $(ddcutil getvcp 0x60 --bus "$OMEN_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
+    else
+      echo "OMEN 34c: not detected"
+    fi
+    if [[ -n "$BENQ_BUSNUM" ]]; then
+      echo "BenQ      (bus $BENQ_BUSNUM): $(ddcutil getvcp 0x60 --bus "$BENQ_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
+    else
+      echo "BenQ:     not detected"
+    fi
     ;;
   *)
     usage
