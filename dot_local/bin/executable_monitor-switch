@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Switch monitor inputs between work and personal modes via DDC/CI.
+#
+# HP OMEN 34c (ultrawide) — serial CNC4381J1C
+# BenQ GW2470             — serial V8F03681019
+#
+# Work:     OMEN=HDMI-1, BenQ=HDMI-2
+# Personal: OMEN=DP-1,   BenQ=HDMI-1
+
+set -euo pipefail
+
+# Input source VCP values
+HDMI1=0x11
+HDMI2=0x12
+DP1=0x0f
+
+usage() {
+  echo "Usage: monitor-switch <work|personal|status>"
+  exit 1
+}
+
+# Single detect call, extract both buses
+detect_output=$(ddcutil detect 2>/dev/null)
+
+OMEN_BUS=$(echo "$detect_output" | awk '
+  /^Display /    { valid=1 }
+  /^Invalid /    { valid=0 }
+  /I2C bus:/ && valid { bus=$NF }
+  /Model:/ && valid && /OMEN 34c/ { print bus; exit }
+')
+
+BENQ_BUS=$(echo "$detect_output" | awk '
+  /^Display /    { valid=1 }
+  /^Invalid /    { valid=0 }
+  /I2C bus:/ && valid { bus=$NF }
+  /Model:/ && valid && /BenQ GW2470/ { print bus; exit }
+')
+
+if [[ -z "$OMEN_BUS" ]]; then echo "Error: OMEN 34c not found"; exit 1; fi
+if [[ -z "$BENQ_BUS" ]]; then echo "Error: BenQ GW2470 not found"; exit 1; fi
+
+OMEN_BUSNUM="${OMEN_BUS##*/i2c-}"
+BENQ_BUSNUM="${BENQ_BUS##*/i2c-}"
+
+switch_input() {
+  local busnum=$1
+  local value=$2
+  ddcutil setvcp 0x60 "$value" --bus "$busnum" 2>/dev/null || true
+}
+
+case "${1:-}" in
+  work)
+    echo "Switching to WORK mode..."
+    echo "  OMEN 34c (bus $OMEN_BUSNUM) → HDMI-1"
+    switch_input "$OMEN_BUSNUM" "$HDMI1"
+    echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-2"
+    switch_input "$BENQ_BUSNUM" "$HDMI2"
+    ;;
+  personal)
+    echo "Switching to PERSONAL mode..."
+    echo "  OMEN 34c (bus $OMEN_BUSNUM) → DP-1"
+    switch_input "$OMEN_BUSNUM" "$DP1"
+    echo "  BenQ     (bus $BENQ_BUSNUM) → HDMI-1"
+    switch_input "$BENQ_BUSNUM" "$HDMI1"
+    ;;
+  status)
+    echo "OMEN 34c  (bus $OMEN_BUSNUM): $(ddcutil getvcp 0x60 --bus "$OMEN_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
+    echo "BenQ      (bus $BENQ_BUSNUM): $(ddcutil getvcp 0x60 --bus "$BENQ_BUSNUM" 2>/dev/null | sed 's/.*(\(.*\))/\1/' | xargs)"
+    ;;
+  *)
+    usage
+    ;;
+esac

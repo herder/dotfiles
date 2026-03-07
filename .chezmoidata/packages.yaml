@@ -50,6 +50,7 @@ packages:
       - "autofs"
       - "btop"
       - "cmake"
+      - "ddcutil"
       - "direnv"
       - "docker-compose-v2"
       - "easyeffects"
