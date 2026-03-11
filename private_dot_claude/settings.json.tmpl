@@ -12,6 +12,17 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit'; then branch=$(git branch --show-current); if [ \"$branch\" = 'main' ]; then echo 'WARNING: You are on main branch!' >&2; fi; fi"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
