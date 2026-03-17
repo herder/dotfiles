@@ -1,0 +1,3 @@
+{
+    (modifiers: [Ctrl, Shift], key: "backslash"): Spawn("1password --quick-access"),
+}
