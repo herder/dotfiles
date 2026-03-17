@@ -62,6 +62,10 @@ while [[ $# -gt 0 ]]; do
             TARGET="inbox"
             shift
             ;;
+        due:*)
+            DUE_DATE="${1#due:}"
+            shift
+            ;;
         *)
             DESCRIPTION="$1"
             shift
@@ -89,6 +93,39 @@ if [ "$CONTEXT_SET" = false ]; then
     else
         CONTEXT="work"
     fi
+fi
+
+# Extract due:DATE from description if not already set via flag
+if [ -z "$DUE_DATE" ] && [[ "$DESCRIPTION" =~ due:([^ ]+) ]]; then
+    DUE_DATE="${BASH_REMATCH[1]}"
+    DESCRIPTION="${DESCRIPTION/due:${BASH_REMATCH[1]}/}"
+    DESCRIPTION="$(echo "$DESCRIPTION" | sed 's/  */ /g; s/^ *//; s/ *$//')"
+fi
+
+# Resolve relative dates to YYYY-MM-DD
+resolve_date() {
+    local input="$1"
+    case "$input" in
+        [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])
+            echo "$input" ;;
+        +[0-9]*d)
+            date -d "+${input:1:-1} days" +%Y-%m-%d ;;
+        +[0-9]*w)
+            date -d "+${input:1:-1} weeks" +%Y-%m-%d ;;
+        +[0-9]*m)
+            date -d "+${input:1:-1} months" +%Y-%m-%d ;;
+        *)
+            # Let date(1) try to parse it (handles "today", "tomorrow", "next friday", etc.)
+            date -d "$input" +%Y-%m-%d 2>/dev/null || { echo "Error: cannot parse date '$input'" >&2; exit 1; }
+            ;;
+    esac
+}
+
+if [ -n "$DUE_DATE" ]; then
+    DUE_DATE=$(resolve_date "$DUE_DATE")
+fi
+if [ -n "$TICKLE_DATE" ]; then
+    TICKLE_DATE=$(resolve_date "$TICKLE_DATE")
 fi
 
 # Build task line
