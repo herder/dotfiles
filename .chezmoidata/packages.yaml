@@ -1,6 +1,7 @@
 packages:
   linux:
     pacman:
+      - "android-tools"
       - "atool"
       - "cups"
       - "cups-pdf"
@@ -45,6 +46,7 @@ packages:
     apt:
       - "1password"
       - "1password-cli"
+      - "adb"
       - "age"
       - "atool"
       - "autofs"
@@ -86,6 +88,7 @@ packages:
       - "zsh"
   macos:
     brew:
+      - "android-platform-tools"
       - "age"
       - "atool"
       - "btop"
