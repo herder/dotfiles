@@ -6,7 +6,7 @@ set -euo pipefail
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
 
-git clone --depth 1 https://github.com/cosmic-utils/clipboard-manager.git "$dir"
+git clone --depth 1 https://github.com/Lcstyle/clipboard-manager.git "$dir"
 cd "$dir"
 just build-release
 sudo "$HOME/.local/bin/just" install
