@@ -1,0 +1,19 @@
+{{ if and (eq .osid "linux-pop") .personal .laptop -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# udev rule: when Thunderbolt dock connects, run iFi audio reset
+# Uses systemd-run to avoid blocking udev (which has a timeout)
+# rule hash: {{ include "dot_local/bin/executable_reset-ifi-audio" | sha256sum }}
+
+RULE_FILE="/etc/udev/rules.d/99-dock-reset-ifi-audio.rules"
+
+sudo tee "$RULE_FILE" > /dev/null << 'UDEV'
+# Reset iFi USB Audio SE when Thunderbolt dock is connected
+# The iFi often fails to enumerate through the USB switch on hot-plug
+ACTION=="add", SUBSYSTEM=="thunderbolt", ATTR{device_name}=="ThinkPad Thunderbolt 3 Dock", RUN+="/usr/bin/systemd-run --no-block {{ .chezmoi.homeDir }}/.local/bin/reset-ifi-audio"
+UDEV
+
+sudo udevadm control --reload-rules
+echo "Installed iFi audio reset udev rule"
+{{ end -}}

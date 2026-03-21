@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Reset iFi USB Audio SE after Thunderbolt dock connection.
+# The iFi often fails to enumerate properly through the USB switch
+# when the dock is hot-plugged. This script either resets the device
+# (if it enumerated) or rebinds the parent USB switch hub to force
+# re-enumeration.
+
+set -euo pipefail
+
+IFI_VID="2fc6"
+IFI_PID="f082"
+USB_SWITCH_VID="05e3"
+USB_SWITCH_PID="0610"
+MAX_WAIT=15
+
+find_usb_device() {
+    local vid="$1" pid="$2"
+    for dev in /sys/bus/usb/devices/*/; do
+        if [ -f "$dev/idVendor" ] && [ -f "$dev/idProduct" ] &&
+           [ "$(cat "$dev/idVendor")" = "$vid" ] &&
+           [ "$(cat "$dev/idProduct")" = "$pid" ]; then
+            basename "$dev"
+            return 0
+        fi
+    done
+    return 1
+}
+
+find_parent_hub() {
+    # Find the USB switch hub that would be the iFi's parent.
+    # We identify it by vendor ID and check it's downstream of a
+    # Thunderbolt controller (bus 10+).
+    for dev in /sys/bus/usb/devices/*/; do
+        local devname
+        devname=$(basename "$dev")
+        # Only consider devices on high-numbered buses (Thunderbolt)
+        local busnum=${devname%%-*}
+        if [ "$busnum" -lt 10 ] 2>/dev/null; then
+            continue
+        fi
+        if [ -f "$dev/idVendor" ] && [ -f "$dev/idProduct" ] &&
+           [ "$(cat "$dev/idVendor")" = "$USB_SWITCH_VID" ] &&
+           [ "$(cat "$dev/idProduct")" = "$USB_SWITCH_PID" ]; then
+            echo "$devname"
+            return 0
+        fi
+    done
+    return 1
+}
+
+log() {
+    logger -t reset-ifi-audio "$*"
+    echo "reset-ifi-audio: $*"
+}
+
+# Wait for USB tree to settle after dock connection
+sleep 5
+
+# Check if the iFi already enumerated
+if ifi_path=$(find_usb_device "$IFI_VID" "$IFI_PID"); then
+    log "iFi found at $ifi_path, checking ALSA registration..."
+    # Give it a moment to register with ALSA
+    sleep 2
+    if grep -q "iFi" /proc/asound/cards 2>/dev/null; then
+        log "iFi already registered with ALSA, nothing to do"
+        exit 0
+    fi
+    log "iFi enumerated but not in ALSA, resetting..."
+    usbreset "${IFI_VID}:${IFI_PID}" && log "usbreset succeeded" || log "usbreset failed"
+    exit 0
+fi
+
+log "iFi not found, waiting up to ${MAX_WAIT}s..."
+for ((i = 1; i <= MAX_WAIT; i++)); do
+    if find_usb_device "$IFI_VID" "$IFI_PID" > /dev/null; then
+        log "iFi appeared after ${i}s"
+        sleep 2
+        if grep -q "iFi" /proc/asound/cards 2>/dev/null; then
+            log "iFi registered with ALSA, nothing to do"
+            exit 0
+        fi
+        usbreset "${IFI_VID}:${IFI_PID}" && log "usbreset succeeded" || log "usbreset failed"
+        exit 0
+    fi
+    sleep 1
+done
+
+# iFi never appeared — rebind the USB switch hub to force re-enumeration
+log "iFi did not enumerate, rebinding USB switch hub..."
+if hub_path=$(find_parent_hub); then
+    log "Rebinding hub at $hub_path"
+    echo "$hub_path" > /sys/bus/usb/drivers/usb/unbind
+    sleep 1
+    echo "$hub_path" > /sys/bus/usb/drivers/usb/bind
+    log "Hub rebound, waiting for iFi..."
+    sleep 5
+    if find_usb_device "$IFI_VID" "$IFI_PID" > /dev/null; then
+        log "iFi appeared after hub rebind"
+    else
+        log "iFi still not found after hub rebind"
+    fi
+else
+    log "USB switch hub not found, cannot force re-enumeration"
+    exit 1
+fi
