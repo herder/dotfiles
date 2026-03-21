@@ -83,8 +83,8 @@ TMPPREFIX="${TMPDIR%/}/zsh"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
-export GH_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" }}
-export GITHUB_PERSONAL_ACCESS_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" }}
+export GH_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" .opAccount }}
+export GITHUB_PERSONAL_ACCESS_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" .opAccount }}
 {{- if .work }}
-export CIRCLECI_CLI_TOKEN={{ onepasswordRead "op://Private/5tvc3rwvne7s2ssbhnk3fmcvpq/credential" }}
+export CIRCLECI_CLI_TOKEN={{ onepasswordRead "op://Private/5tvc3rwvne7s2ssbhnk3fmcvpq/credential" .opAccount }}
 {{- end }}

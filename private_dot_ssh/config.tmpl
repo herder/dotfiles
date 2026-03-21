@@ -7,13 +7,13 @@ Match host * exec "test -z $SSH_CONNECTION"
 host pillsupply-root
     User root
     HostName adm.segfault.net
-    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" }}
+    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" .opAccount }}
     LocalForward 5900 0:5900
 
 host pillsupply
     User user
     HostName adm.segfault.net
-    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" }}
+    SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" .opAccount }}
     LocalForward 5900 0:5900
 
 Host unifi

@@ -2,7 +2,7 @@
   name = Niklas Herder
   email = {{ .email }}
   useConfigOnly = true
-  signingkey = {{ onepasswordRead "op://Private/Privat SSH/public key" }}
+  signingkey = {{ onepasswordRead "op://Private/Privat SSH/public key" .opAccount }}
 [gpg]
   format = ssh
 [gpg "ssh"]
