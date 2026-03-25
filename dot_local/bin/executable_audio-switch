@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Switch default audio sink or source using fzf
+# Usage: audio-switch [sink|source]
+
+set -euo pipefail
+
+type="${1:-sink}"
+
+case "$type" in
+    sink)   media_class="Audio/Sink";   label="output" ;;
+    source) media_class="Audio/Source"; label="input" ;;
+    *) echo "Usage: audio-switch [sink|source]" >&2; exit 1 ;;
+esac
+
+default_target="@DEFAULT_AUDIO_SINK@"
+[ "$type" = "source" ] && default_target="@DEFAULT_AUDIO_SOURCE@"
+current_default=$(wpctl inspect "$default_target" 2>/dev/null | awk 'NR==1{print $2}' | tr -d ',')
+
+nodes=$(pw-dump --no-colors | python3 -c "
+import json, sys
+current = int(sys.argv[1]) if sys.argv[1] else 0
+for n in json.load(sys.stdin):
+    p = n.get('info', {}).get('props', {})
+    if p.get('media.class') == '$media_class':
+        nid = n['id']
+        desc = p.get('node.description', p.get('node.name', 'Unknown'))
+        marker = ' *' if nid == current else ''
+        print(f'{nid}\t{desc}{marker}')
+" "${current_default:-0}")
+
+if [ -z "$nodes" ]; then
+    echo "No audio ${label}s found" >&2
+    exit 1
+fi
+
+selected=$(echo "$nodes" | fzf --prompt="Select $label: " \
+    --delimiter=$'\t' --with-nth=2 \
+    --height=~10 --layout=reverse --no-info) || exit 0
+
+node_id=$(echo "$selected" | cut -f1)
+node_desc=$(echo "$selected" | cut -f2 | sed 's/ \*$//')
+
+wpctl set-default "$node_id"
+echo "Default $label set to: $node_desc"
