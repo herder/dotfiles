@@ -2,6 +2,7 @@
 #!/usr/bin/env bash
 # weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
+. "$HOME/.cargo/env"
 
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
@@ -9,7 +10,7 @@ trap 'rm -rf "$dir"' EXIT
 git clone --depth 1 https://github.com/Lcstyle/clipboard-manager.git "$dir"
 cd "$dir"
 just build-release
-sudo "$HOME/.local/bin/just" install
+sudo env PATH="$PATH" "$HOME/.local/bin/just" install
 
 echo 'COSMIC_DATA_CONTROL_ENABLED=1' | sudo tee /etc/environment.d/cosmic.conf > /dev/null
 {{- end -}}
