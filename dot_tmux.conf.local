@@ -385,7 +385,35 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # -- catppuccin ----------------------------------------------------------------
 
-# flavor
+# Kanagawa colors mapped to catppuccin theme slots
+# (set before plugin loads — catppuccin uses -ogq so these take precedence)
+set -g @thm_bg "#1F1F28"          # sumiInk3
+set -g @thm_fg "#DCD7BA"          # fujiWhite
+set -g @thm_crust "#16161D"       # sumiInk0
+set -g @thm_mantle "#1a1a22"      # sumiInk2
+set -g @thm_surface_0 "#2A2A37"   # sumiInk4
+set -g @thm_surface_1 "#363646"   # sumiInk5
+set -g @thm_surface_2 "#54546D"   # sumiInk6
+set -g @thm_overlay_0 "#727169"   # fujiGray
+set -g @thm_overlay_1 "#938AA9"   # springViolet1
+set -g @thm_overlay_2 "#C8C093"   # oldWhite
+set -g @thm_subtext_0 "#C8C093"   # oldWhite
+set -g @thm_subtext_1 "#DCD7BA"   # fujiWhite
+set -g @thm_blue "#7E9CD8"        # crystalBlue
+set -g @thm_lavender "#7FB4CA"    # springBlue
+set -g @thm_sapphire "#658594"    # dragonBlue
+set -g @thm_sky "#A3D4D5"         # lightBlue
+set -g @thm_teal "#7AA89F"        # waveAqua2
+set -g @thm_green "#98BB6C"       # springGreen
+set -g @thm_yellow "#E6C384"      # carpYellow
+set -g @thm_peach "#FFA066"       # surimiOrange
+set -g @thm_maroon "#E46876"      # waveRed
+set -g @thm_red "#FF5D62"         # peachRed
+set -g @thm_mauve "#957FB8"       # oniViolet
+set -g @thm_pink "#D27E99"        # sakuraPink
+set -g @thm_flamingo "#DCA561"    # autumnYellow
+set -g @thm_rosewater "#C0A36E"   # boatYellow2
+
 set -g @catppuccin_flavor "mocha"
 
 # window status
@@ -403,20 +431,46 @@ set -g @catppuccin_pane_active_border_style "fg=#{@thm_lavender}"
 
 # status bar
 set -g @catppuccin_status_background "default"
-set -g @catppuccin_status_left_separator ""
-set -g @catppuccin_status_right_separator "█"
-set -g @catppuccin_status_connect_separator "yes"
+set -g @catppuccin_status_left_separator ""
+set -g @catppuccin_status_right_separator ""
+set -g @catppuccin_status_connect_separator "no"
+
+# Harmonize module backgrounds: dark pills with colored icon glyphs (matching window tabs)
+# icon_bg = text_bg (uniform pill), icon_fg = accent color, text_fg = fujiWhite
+# Also fixes catppuccin E: expansion mangling #DCD7BA (#D = tmux pane-ID format code)
+set -g @catppuccin_status_session_icon_fg "#98BB6C"
+set -g @catppuccin_status_session_icon_bg "#2A2A37"
+set -g @catppuccin_status_session_text_fg "#DCD7BA"
+set -g @catppuccin_status_uptime_icon_fg "#658594"
+set -g @catppuccin_status_uptime_icon_bg "#2A2A37"
+set -g @catppuccin_status_uptime_text_fg "#DCD7BA"
+set -g @catppuccin_status_battery_icon_fg "#7FB4CA"
+set -g @catppuccin_status_battery_icon_bg "#2A2A37"
+set -g @catppuccin_status_battery_text_fg "#DCD7BA"
+set -g @catppuccin_status_date_time_icon_fg "#7E9CD8"
+set -g @catppuccin_status_date_time_icon_bg "#2A2A37"
+set -g @catppuccin_status_date_time_text_fg "#DCD7BA"
+set -g @catppuccin_status_user_icon_fg "#A3D4D5"
+set -g @catppuccin_status_user_icon_bg "#2A2A37"
+set -g @catppuccin_status_user_text_fg "#DCD7BA"
+set -g @catppuccin_status_host_icon_fg "#957FB8"
+set -g @catppuccin_status_host_icon_bg "#2A2A37"
+set -g @catppuccin_status_host_text_fg "#DCD7BA"
 
 # icon padding (center icons in their pill)
 set -g @catppuccin_session_icon " "
 set -g @catppuccin_uptime_icon " 󰔟 "
 set -g @catppuccin_date_time_icon " 󰃰 "
-set -g @catppuccin_user_icon "  "
+set -g @catppuccin_user_icon " 󰀄 "
 set -g @catppuccin_host_icon " 󰒋 "
 
 # date_time module
 set -g @catppuccin_date_time_text "%R"
 set -g @catppuccin_date_time_color "#{@thm_blue}"
+
+# battery module: use direct script calls (#{battery_*} variables don't expand inside E: templates)
+set -g @catppuccin_battery_icon " #(~/.tmux/plugins/tmux-battery/scripts/battery_icon.sh) "
+set -g @catppuccin_battery_text " #(~/.tmux/plugins/tmux-battery/scripts/battery_graph.sh) #(~/.tmux/plugins/tmux-battery/scripts/battery_percentage.sh)"
 
 # status-left: session
 set -g status-left-length 100 #!important
@@ -425,7 +479,7 @@ set -g status-left "#{E:@catppuccin_status_session}" #!important
 # status-right: uptime, battery, date_time, user, host
 set -g status-right-length 100 #!important
 set -g  status-right "#{E:@catppuccin_status_uptime}" #!important
-set -ag status-right "#[fg=#{@thm_lavender}]#[fg=#11111b,bg=#{@thm_lavender}] #(~/.tmux/plugins/tmux-battery/scripts/battery_icon.sh) #[fg=#cdd6f4,bg=#313244] #(~/.tmux/plugins/tmux-battery/scripts/battery_graph.sh) #(~/.tmux/plugins/tmux-battery/scripts/battery_percentage.sh)#[fg=#313244]█" #!important
+set -ag status-right "#{E:@catppuccin_status_battery}" #!important
 set -ag status-right "#{E:@catppuccin_status_date_time}" #!important
 set -ag status-right "#{E:@catppuccin_status_user}" #!important
 set -ag status-right "#{E:@catppuccin_status_host}" #!important
