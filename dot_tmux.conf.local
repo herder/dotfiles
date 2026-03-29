@@ -83,7 +83,7 @@ tmux_conf_24b_colour=auto
 #   - tmux_conf_theme_mouse
 #   - tmux_conf_theme_root
 #   - tmux_conf_theme_synchronized
-tmux_conf_theme=enabled
+tmux_conf_theme=disabled
 
 # default theme
 tmux_conf_theme_colour_1="#080808"    # dark gray
@@ -383,6 +383,55 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # this is the place to override or undo settings
 
+# -- catppuccin ----------------------------------------------------------------
+
+# flavor
+set -g @catppuccin_flavor "mocha"
+
+# window status
+set -g @catppuccin_window_status_style "rounded"
+set -g @catppuccin_window_text " #W"
+set -g @catppuccin_window_number "#I"
+set -g @catppuccin_window_current_text " #W"
+set -g @catppuccin_window_current_number "#I"
+set -g @catppuccin_window_current_number_color "#{@thm_mauve}"
+set -g @catppuccin_window_flags "icon"
+
+# pane borders
+set -g @catppuccin_pane_border_style "fg=#{@thm_overlay_0}"
+set -g @catppuccin_pane_active_border_style "fg=#{@thm_lavender}"
+
+# status bar
+set -g @catppuccin_status_background "default"
+set -g @catppuccin_status_left_separator ""
+set -g @catppuccin_status_right_separator "█"
+set -g @catppuccin_status_connect_separator "yes"
+
+# icon padding (center icons in their pill)
+set -g @catppuccin_session_icon " "
+set -g @catppuccin_uptime_icon " 󰔟 "
+set -g @catppuccin_date_time_icon " 󰃰 "
+set -g @catppuccin_user_icon "  "
+set -g @catppuccin_host_icon " 󰒋 "
+
+# date_time module
+set -g @catppuccin_date_time_text "%R"
+set -g @catppuccin_date_time_color "#{@thm_blue}"
+
+# status-left: session
+set -g status-left-length 100 #!important
+set -g status-left "#{E:@catppuccin_status_session}" #!important
+
+# status-right: uptime, battery, date_time, user, host
+set -g status-right-length 100 #!important
+set -g  status-right "#{E:@catppuccin_status_uptime}" #!important
+set -ag status-right "#[fg=#{@thm_lavender}]#[fg=#11111b,bg=#{@thm_lavender}] #(~/.tmux/plugins/tmux-battery/scripts/battery_icon.sh) #[fg=#cdd6f4,bg=#313244] #(~/.tmux/plugins/tmux-battery/scripts/battery_graph.sh) #(~/.tmux/plugins/tmux-battery/scripts/battery_percentage.sh)#[fg=#313244]█" #!important
+set -ag status-right "#{E:@catppuccin_status_date_time}" #!important
+set -ag status-right "#{E:@catppuccin_status_user}" #!important
+set -ag status-right "#{E:@catppuccin_status_host}" #!important
+
+# -- end catppuccin ------------------------------------------------------------
+
 # increase history size
 #set -g history-limit 10000
 
@@ -452,7 +501,8 @@ set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin '27medkamal/tmux-session-wizard'
 set -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-continuum'
-# set -g @plugin 'catppuccin/tmux#v2.1.2'
+set -g @plugin 'catppuccin/tmux'
+set -g @plugin 'tmux-plugins/tmux-battery'
 set -g @plugin 'tmux-plugins/tmux-open'
 set -g @continuum-restore 'on'
 
