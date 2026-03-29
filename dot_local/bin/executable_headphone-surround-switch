@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Watch for Bluetooth/USB headphone connect/disconnect and switch
+# default sink to Virtual Surround Sink or back to normal.
+set -euo pipefail
+
+SURROUND_NODE="effect_input.virtual-surround-7.1-hesuvi"
+
+get_node_id() {
+    pw-cli ls Node 2>/dev/null | awk -v name="$1" '
+        /object.serial/ { id = $1 }
+        /node.name/ && $0 ~ "\"" name "\"" { gsub(/[^0-9]/, "", id); print id; exit }
+    '
+}
+
+get_default_sink_name() {
+    wpctl inspect @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk -F'"' '/node.name/ {print $2}'
+}
+
+has_headphone_sink() {
+    wpctl status 2>/dev/null | sed -n '/Sinks:/,/Sources:/p' | grep -iv 'iFi' | grep -qiE 'bluez|usb'
+}
+
+switch_to_surround() {
+    local surround_id
+    surround_id=$(get_node_id "$SURROUND_NODE")
+    if [ -n "$surround_id" ]; then
+        local current
+        current=$(get_default_sink_name)
+        if [ "$current" != "$SURROUND_NODE" ]; then
+            wpctl set-default "$surround_id"
+            echo "$(date): Switched to Virtual Surround Sink (headphones connected)"
+        fi
+    else
+        echo "$(date): Virtual Surround Sink not found, skipping"
+    fi
+}
+
+switch_to_normal() {
+    local current
+    current=$(get_default_sink_name)
+    if [ "$current" = "$SURROUND_NODE" ]; then
+        # Find the highest priority non-surround, non-headphone sink
+        local fallback_id
+        fallback_id=$(pw-dump --no-colors 2>/dev/null | python3 -c "
+import json, sys
+best_id, best_pri = None, -1
+for n in json.load(sys.stdin):
+    p = n.get('info', {}).get('props', {})
+    if p.get('media.class') == 'Audio/Sink':
+        name = p.get('node.name', '')
+        if 'bluez' not in name and 'virtual-surround' not in name:
+            pri = int(p.get('priority.session', 0))
+            if pri > best_pri:
+                best_id, best_pri = n['id'], pri
+if best_id:
+    print(best_id)
+")
+        if [ -n "$fallback_id" ]; then
+            wpctl set-default "$fallback_id"
+            echo "$(date): Switched back to normal sink (headphones disconnected)"
+        fi
+    fi
+}
+
+echo "$(date): Watching for Bluetooth/USB headphone changes..."
+
+# Check initial state
+if has_headphone_sink; then
+    switch_to_surround
+fi
+
+# Monitor PipeWire for node changes (covers BT connect/disconnect)
+pw-mon --no-colors 2>/dev/null | while read -r line; do
+    case "$line" in
+        *added*Node*|*removed*Node*)
+            # Brief delay to let PipeWire settle
+            sleep 1
+            if has_headphone_sink; then
+                switch_to_surround
+            else
+                switch_to_normal
+            fi
+            ;;
+    esac
+done

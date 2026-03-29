@@ -1,0 +1,8 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+# headphone-surround-switch.service hash: {{ include "private_dot_config/systemd/user/headphone-surround-switch.service" | sha256sum }}
+set -euo pipefail
+
+systemctl --user daemon-reload
+systemctl --user enable --now headphone-surround-switch.service
+{{- end -}}
