@@ -57,9 +57,11 @@ if command -v atuin &> /dev/null; then
     zvm_after_init_commands+=(my_init)
 fi
 
-# autoload -Uz add-zsh-hook
-# autoload -U edit-command-line
-# zle -N edit-command-line 
+# Reset terminal state before each prompt — TUI programs (atuin, docker
+# compose) sometimes leave echo disabled or cursor hidden on exit
+autoload -Uz add-zsh-hook
+_reset_tty() { stty echo 2>/dev/null; printf '\e[?25h'; }
+add-zsh-hook precmd _reset_tty
 
 # ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
 #
