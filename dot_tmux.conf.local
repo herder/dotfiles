@@ -486,6 +486,10 @@ set -ag status-right "#{E:@catppuccin_status_host}" #!important
 
 # -- end catppuccin ------------------------------------------------------------
 
+# highlight focused pane (oh-my-tmux theme is disabled, so set directly)
+set -g window-style "bg=#{@thm_crust}"
+set -g window-active-style "bg=#{@thm_bg}"
+
 # increase history size
 #set -g history-limit 10000
 
