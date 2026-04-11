@@ -68,12 +68,39 @@ else
     skip "sdkman"
 fi
 
+if has n; then
+    printf '   n (node)\n'
+    run n lts
+fi
+
+if has npm; then
+    printf '   npm globals\n'
+    run npm update -g
+fi
+
+if [ -d "$HOME/.goenv" ]; then
+    printf '   goenv\n'
+    run git -C "$HOME/.goenv" pull
+fi
+
+if [ -d "$HOME/.rbenv" ]; then
+    printf '   rbenv\n'
+    run git -C "$HOME/.rbenv" pull
+    for plugin_dir in "$HOME/.rbenv/plugins"/*/; do
+        [ -d "$plugin_dir/.git" ] && run git -C "$plugin_dir" pull
+    done
+fi
+
 # ── Dotfiles ─────────────────────────────────────────────────────────
 section "Dotfiles"
 
 if has chezmoi; then
-    printf '   chezmoi\n'
-    run chezmoi update --apply
+    if [ -n "${SSH_CONNECTION:-}" ]; then
+        printf '   chezmoi skipped (SSH session)\n'
+    else
+        printf '   chezmoi\n'
+        run chezmoi update --apply
+    fi
 fi
 
 # ── Plugin managers & tools ──────────────────────────────────────────
@@ -100,6 +127,22 @@ if [ -d "$HOME/.fzf" ] && [ -x "$HOME/.fzf/install" ]; then
     run "$HOME/.fzf/install" --all
 else
     skip "fzf (git install)"
+fi
+
+if [ -x "$HOME/.tmux/plugins/tpm/bin/update_plugins" ]; then
+    printf '   tpm (tmux plugins)\n'
+    run "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
+fi
+
+if has gh; then
+    printf '   gh extensions\n'
+    run gh extension upgrade --all
+fi
+
+if has fwupdmgr; then
+    printf '   firmware\n'
+    run fwupdmgr refresh --force
+    run fwupdmgr update
 fi
 
 # ── Ollama models ──────────────────────────────────────────────────
