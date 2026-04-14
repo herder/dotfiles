@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Watch for audio device changes and auto-switch:
-# - Route all output through Perfect EQ filter chain by default
+# - Perfect EQ auto-inserts via WirePlumber smart filter (no manual routing needed)
 # - When Bluetooth/USB headphones connect, switch to Virtual Surround Sink
-# - When headphones disconnect, switch back to Perfect EQ sink
-# - Activate iFi USB DAC profile when present (PipeWire routes EQ output to it)
+# - When headphones disconnect, switch back to best hardware sink
+# - Activate iFi USB DAC profile when present (highest priority → becomes default)
 set -euo pipefail
 
 SURROUND_NODE="effect_input.virtual-surround-7.1-hesuvi"
-EQ_NODE="effect_input.perfect-eq"
 
 get_node_id() {
     pw-cli ls Node 2>/dev/null | awk -v name="$1" '
@@ -32,18 +31,30 @@ ensure_ifi_profile() {
     fi
 }
 
-switch_to_eq() {
-    local eq_id
-    eq_id=$(get_node_id "$EQ_NODE")
-    if [ -n "$eq_id" ]; then
+# Find the highest-priority hardware sink (excludes virtual/filter sinks)
+switch_to_best_sink() {
+    local best_id
+    best_id=$(pw-dump --no-colors 2>/dev/null | python3 -c "
+import json, sys
+best_id, best_pri = None, -1
+for n in json.load(sys.stdin):
+    p = n.get('info', {}).get('props', {})
+    if p.get('media.class') == 'Audio/Sink':
+        name = p.get('node.name', '')
+        if 'bluez' not in name and 'virtual-surround' not in name and 'perfect-eq' not in name:
+            pri = int(p.get('priority.session', 0))
+            if pri > best_pri:
+                best_id, best_pri = n['id'], pri
+if best_id:
+    print(best_id)
+")
+    if [ -n "$best_id" ]; then
         local current
         current=$(get_default_sink_name)
-        if [ "$current" != "$EQ_NODE" ]; then
-            wpctl set-default "$eq_id"
-            echo "$(date): Switched to Perfect EQ sink"
+        if [ "$current" = "$SURROUND_NODE" ] || [ "$current" = "effect_input.perfect-eq" ]; then
+            wpctl set-default "$best_id"
+            echo "$(date): Switched to best hardware sink"
         fi
-    else
-        echo "$(date): Perfect EQ sink not found, skipping"
     fi
 }
 
@@ -67,7 +78,7 @@ echo "$(date): Watching for audio device changes..."
 # Check initial state
 ensure_ifi_profile
 sleep 0.5
-switch_to_eq
+switch_to_best_sink
 if has_headphone_sink; then
     switch_to_surround
 fi
@@ -82,7 +93,7 @@ pw-mon --no-colors 2>/dev/null | while read -r line; do
             if has_headphone_sink; then
                 switch_to_surround
             else
-                switch_to_eq
+                switch_to_best_sink
             fi
             ;;
     esac
