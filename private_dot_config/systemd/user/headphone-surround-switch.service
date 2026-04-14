@@ -1,5 +1,5 @@
 [Unit]
-Description=Switch to Virtual Surround Sink on headphone connect
+Description=Auto-switch audio sinks on device connect/disconnect
 After=pipewire.service wireplumber.service
 Requires=pipewire.service
 

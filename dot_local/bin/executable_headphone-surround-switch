@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Watch for Bluetooth/USB headphone connect/disconnect and switch
-# default sink to Virtual Surround Sink or back to normal.
+# Watch for audio device changes and auto-switch:
+# - Route all output through Perfect EQ filter chain by default
+# - When Bluetooth/USB headphones connect, switch to Virtual Surround Sink
+# - When headphones disconnect, switch back to Perfect EQ sink
+# - Activate iFi USB DAC profile when present (PipeWire routes EQ output to it)
 set -euo pipefail
 
 SURROUND_NODE="effect_input.virtual-surround-7.1-hesuvi"
+EQ_NODE="effect_input.perfect-eq"
 
 get_node_id() {
     pw-cli ls Node 2>/dev/null | awk -v name="$1" '
-        /object.serial/ { id = $1 }
-        /node.name/ && $0 ~ "\"" name "\"" { gsub(/[^0-9]/, "", id); print id; exit }
+        /^[[:space:]]*id [0-9]+,/ { split($2, a, ","); id = a[1] }
+        /node.name/ && $0 ~ "\"" name "\"" { print id; exit }
     '
 }
 
@@ -17,7 +21,30 @@ get_default_sink_name() {
 }
 
 has_headphone_sink() {
-    wpctl status 2>/dev/null | sed -n '/Sinks:/,/Sources:/p' | grep -iv 'iFi' | grep -qiE 'bluez|usb'
+    wpctl status 2>/dev/null | sed -n '/Sinks:/,/Sources:/p' | grep -iv 'iFi' | grep -iv 'Dock' | grep -qiE 'bluez|usb'
+}
+
+ensure_ifi_profile() {
+    local card
+    card=$(pactl list cards short 2>/dev/null | awk '/iFi/ {print $2}')
+    if [ -n "$card" ]; then
+        pactl set-card-profile "$card" pro-audio 2>/dev/null || true
+    fi
+}
+
+switch_to_eq() {
+    local eq_id
+    eq_id=$(get_node_id "$EQ_NODE")
+    if [ -n "$eq_id" ]; then
+        local current
+        current=$(get_default_sink_name)
+        if [ "$current" != "$EQ_NODE" ]; then
+            wpctl set-default "$eq_id"
+            echo "$(date): Switched to Perfect EQ sink"
+        fi
+    else
+        echo "$(date): Perfect EQ sink not found, skipping"
+    fi
 }
 
 switch_to_surround() {
@@ -35,36 +62,12 @@ switch_to_surround() {
     fi
 }
 
-switch_to_normal() {
-    local current
-    current=$(get_default_sink_name)
-    if [ "$current" = "$SURROUND_NODE" ]; then
-        # Find the highest priority non-surround, non-headphone sink
-        local fallback_id
-        fallback_id=$(pw-dump --no-colors 2>/dev/null | python3 -c "
-import json, sys
-best_id, best_pri = None, -1
-for n in json.load(sys.stdin):
-    p = n.get('info', {}).get('props', {})
-    if p.get('media.class') == 'Audio/Sink':
-        name = p.get('node.name', '')
-        if 'bluez' not in name and 'virtual-surround' not in name:
-            pri = int(p.get('priority.session', 0))
-            if pri > best_pri:
-                best_id, best_pri = n['id'], pri
-if best_id:
-    print(best_id)
-")
-        if [ -n "$fallback_id" ]; then
-            wpctl set-default "$fallback_id"
-            echo "$(date): Switched back to normal sink (headphones disconnected)"
-        fi
-    fi
-}
-
-echo "$(date): Watching for Bluetooth/USB headphone changes..."
+echo "$(date): Watching for audio device changes..."
 
 # Check initial state
+ensure_ifi_profile
+sleep 0.5
+switch_to_eq
 if has_headphone_sink; then
     switch_to_surround
 fi
@@ -75,10 +78,11 @@ pw-mon --no-colors 2>/dev/null | while read -r line; do
         *added*Node*|*removed*Node*)
             # Brief delay to let PipeWire settle
             sleep 1
+            ensure_ifi_profile
             if has_headphone_sink; then
                 switch_to_surround
             else
-                switch_to_normal
+                switch_to_eq
             fi
             ;;
     esac

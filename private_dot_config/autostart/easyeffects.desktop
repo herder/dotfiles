@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=Easy Effects
-Comment=Audio effects for PipeWire
-Exec=easyeffects --hide-window --load-preset "Perfect EQ"
-Type=Application
-X-GNOME-Autostart-enabled=true
