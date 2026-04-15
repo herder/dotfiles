@@ -3,7 +3,10 @@
 # - Perfect EQ auto-inserts via WirePlumber smart filter (no manual routing needed)
 # - When Bluetooth/USB headphones connect, switch to Virtual Surround Sink
 # - When headphones disconnect, switch back to best hardware sink
-# - Activate iFi USB DAC profile when present (highest priority → becomes default)
+# - Profile selection is left to WirePlumber (api.acp.auto-profile = true in
+#   50-ifi-usb-audio.conf). Forcing pro-audio has caused "No space left on
+#   device" / "Not enough bandwidth for altsetting 3" through the Thunderbolt
+#   dock's shared USB2 bus, and "no output" issues historically.
 set -euo pipefail
 
 SURROUND_NODE="effect_input.virtual-surround-7.1-hesuvi"
@@ -33,14 +36,6 @@ is_filter_sink() {
         effect_input.*|*virtual-surround*|*.bluez*) return 0 ;;
         *) return 1 ;;
     esac
-}
-
-ensure_ifi_profile() {
-    local card
-    card=$(pactl list cards short 2>/dev/null | awk '/iFi/ {print $2}')
-    if [ -n "$card" ]; then
-        pactl set-card-profile "$card" pro-audio 2>/dev/null || true
-    fi
 }
 
 # Find the highest-priority hardware sink (excludes filter/effect/virtual sinks)
@@ -108,7 +103,6 @@ switch_to_surround() {
 echo "$(date): Watching for audio device changes..."
 
 # Check initial state
-ensure_ifi_profile
 wait_for_hardware_sink
 switch_to_best_sink
 if has_headphone_sink; then
@@ -135,7 +129,6 @@ pw-mon --no-colors 2>/dev/null | while read -r line; do
             last_check=$now
             # Let PipeWire finish propagating the change before reading state
             sleep 1
-            ensure_ifi_profile
             if has_headphone_sink; then
                 switch_to_surround
             else
