@@ -1,0 +1,27 @@
+{{- if and .laptop (eq .osid "linux-pop") -}}
+#!/usr/bin/env bash
+# Disable Keybase autostart on laptops.
+#
+# Keybase's KBFS FUSE mount wedges often enough to be a recurring nuisance:
+# statfs() on /keybase hangs indefinitely, and any process that touches it
+# (cosmic-files walking recent dirs, osqueryd collecting mount stats) gets
+# stuck in D-state. When osqueryd is the stuck one, it refuses to freeze
+# during suspend and the whole system fails to sleep. See memory:
+# project_suspend_osqueryd_fuse.md.
+#
+# Not starting Keybase at login means no KBFS mount, no lockup, no hung
+# suspend. `run_keybase` still works when we actually want it.
+#
+# Weekly trigger so a reinstalling/updating Keybase package that re-adds
+# the autostart symlink gets cleaned up next apply.
+# weekly-tick: {{ div (now | unixEpoch) 604800 }}
+set -euo pipefail
+
+autostart="$HOME/.config/autostart/keybase.desktop"
+if [ -e "$autostart" ] || [ -L "$autostart" ]; then
+    rm -f "$autostart"
+    echo "Removed Keybase autostart: $autostart"
+fi
+
+# vim: ft=bash
+{{- end -}}
