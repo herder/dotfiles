@@ -115,11 +115,25 @@ if has_headphone_sink; then
     switch_to_surround
 fi
 
-# Monitor PipeWire for node changes (covers BT connect/disconnect)
+# Monitor PipeWire for any change (node add/remove or metadata change).
+# pw-mon emits multi-line events; the type lines are tab-indented, so the
+# action keyword (added:/removed:/changed:) appears on its own line at col 0.
+# An earlier pattern (*added*Node*) tried to match both on one line and never
+# fired. Reacting to `changed:` is what picks up default-sink metadata updates
+# so we can correct when something sets a filter node as the default.
+#
+# Rate-limit: pw-mon can emit hundreds of events in a burst (PipeWire startup,
+# USB enumeration). Keep a minimum gap between checks so we don't thrash.
+last_check=0
 pw-mon --no-colors 2>/dev/null | while read -r line; do
     case "$line" in
-        *added*Node*|*removed*Node*)
-            # Brief delay to let PipeWire settle
+        added:|removed:|changed:)
+            now=$(date +%s)
+            if [ $((now - last_check)) -lt 2 ]; then
+                continue
+            fi
+            last_check=$now
+            # Let PipeWire finish propagating the change before reading state
             sleep 1
             ensure_ifi_profile
             if has_headphone_sink; then
