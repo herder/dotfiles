@@ -21,11 +21,17 @@ import json, sys
 current = int(sys.argv[1]) if sys.argv[1] else 0
 for n in json.load(sys.stdin):
     p = n.get('info', {}).get('props', {})
-    if p.get('media.class') == '$media_class':
-        nid = n['id']
-        desc = p.get('node.description', p.get('node.name', 'Unknown'))
-        marker = ' *' if nid == current else ''
-        print(f'{nid}\t{desc}{marker}')
+    if p.get('media.class') != '$media_class':
+        continue
+    # Skip smart-filter sinks/sources (Perfect EQ, Speaker Auto Gain,
+    # Virtual Surround). They auto-insert into the graph; exposing them
+    # as selectable targets would route audio in unexpected ways.
+    if p.get('node.link-group'):
+        continue
+    nid = n['id']
+    desc = p.get('node.description', p.get('node.name', 'Unknown'))
+    marker = ' *' if nid == current else ''
+    print(f'{nid}\t{desc}{marker}')
 " "${current_default:-0}")
 
 if [ -z "$nodes" ]; then
