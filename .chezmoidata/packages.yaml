@@ -55,7 +55,6 @@ packages:
       - "ddcutil"
       - "direnv"
       - "docker-compose-v2"
-
       - "entr"
       - "ffmpeg"
       - "git-delta"
@@ -66,6 +65,7 @@ packages:
       - "libpcsclite-dev"
       - "libssl-dev"
       - "lsd"
+      - "lsp-plugins-ladspa"
       - "lutris"
       - "neofetch"
       - "pandoc"
