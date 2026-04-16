@@ -1,0 +1,6 @@
+#!/bin/sh
+# Graphical sudo password prompt. Callers can set SUDO_CMD to show
+# which command is requesting elevation.
+MSG="${1:-Password required}"
+[ -n "$SUDO_CMD" ] && MSG="$MSG\n\nCommand: $SUDO_CMD"
+exec zenity --password --title="sudo" --text="$MSG" 2>/dev/null
