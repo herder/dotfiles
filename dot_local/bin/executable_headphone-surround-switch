@@ -30,14 +30,6 @@ has_headphone_sink() {
     wpctl status 2>/dev/null | sed -n '/Sinks:/,/Sources:/p' | grep -iv 'iFi' | grep -iv 'Dock' | grep -qiE 'bluez|usb'
 }
 
-# True if the sink name is a filter/effect/virtual sink (not a real hardware sink)
-is_filter_sink() {
-    case "$1" in
-        effect_input.*|*virtual-surround*|*.bluez*) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
 # Find the highest-priority hardware sink (excludes filter/effect/virtual sinks)
 find_best_hw_sink() {
     pw-dump --no-colors 2>/dev/null | python3 -c "
@@ -60,16 +52,22 @@ if best_id:
 "
 }
 
-# If the current default is a filter sink (e.g., stuck on effect_input.perfect-eq
-# from a previous config), switch to the highest-priority hardware sink.
-switch_to_best_sink() {
+# If the current default is virtual surround (headphones disconnected),
+# switch to the best hardware sink. WirePlumber will re-insert smart
+# filters (Perfect EQ, Speaker Auto Gain) on the new default automatically.
+#
+# NOTE: only touch virtual surround here — it's the only filter managed
+# manually by this daemon. Smart filters (effect_input.perfect-eq,
+# effect_input.speaker-autogain) are managed by WirePlumber and MUST NOT
+# be "corrected" away, or the smart filter chain breaks.
+switch_from_surround() {
     local best_id current
     best_id=$(find_best_hw_sink)
     [ -z "$best_id" ] && return
     current=$(get_default_sink_name)
-    if is_filter_sink "$current"; then
+    if [ "$current" = "$SURROUND_NODE" ]; then
         wpctl set-default "$best_id"
-        echo "$(date): Switched default from '$current' to best hardware sink"
+        echo "$(date): Switched default from Virtual Surround to best hardware sink"
     fi
 }
 
@@ -104,7 +102,7 @@ echo "$(date): Watching for audio device changes..."
 
 # Check initial state
 wait_for_hardware_sink
-switch_to_best_sink
+switch_from_surround
 if has_headphone_sink; then
     switch_to_surround
 fi
@@ -113,8 +111,7 @@ fi
 # pw-mon emits multi-line events; the type lines are tab-indented, so the
 # action keyword (added:/removed:/changed:) appears on its own line at col 0.
 # An earlier pattern (*added*Node*) tried to match both on one line and never
-# fired. Reacting to `changed:` is what picks up default-sink metadata updates
-# so we can correct when something sets a filter node as the default.
+# fired. Reacting to `changed:` picks up device connect/disconnect events.
 #
 # Rate-limit: pw-mon can emit hundreds of events in a burst (PipeWire startup,
 # USB enumeration). Keep a minimum gap between checks so we don't thrash.
@@ -132,7 +129,7 @@ pw-mon --no-colors 2>/dev/null | while read -r line; do
             if has_headphone_sink; then
                 switch_to_surround
             else
-                switch_to_best_sink
+                switch_from_surround
             fi
             ;;
     esac
