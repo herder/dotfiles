@@ -1,0 +1,15 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+if ! type qbz >/dev/null; then
+  (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) &&
+    sudo mkdir -p -m 755 /etc/apt/keyrings &&
+    curl -fsSL https://vicrodh.github.io/qbz-apt/qbz-archive-keyring.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/qbz-archive-keyring.gpg > /dev/null
+    sudo chmod go+r /etc/apt/keyrings/qbz-archive-keyring.gpg &&
+    echo "deb [signed-by=/etc/apt/keyrings/qbz-archive-keyring.gpg arch=$(dpkg --print-architecture)] https://vicrodh.github.io/qbz-apt stable main" | sudo tee /etc/apt/sources.list.d/qbz.list
+    sudo apt update &&
+    sudo apt install qbz -y
+fi
+# vim: ft=bash
+{{- end -}}
+
+
