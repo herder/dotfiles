@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Print the active xkb layout (first entry in cosmic-comp's xkb_config).
+# cosmic-applet-input-sources rotates that list when the layout switches,
+# so the head of it tracks the active group.
+set -euo pipefail
+
+config="${XDG_CONFIG_HOME:-$HOME/.config}/cosmic/com.system76.CosmicComp/v1/xkb_config"
+layout=$(awk -F'"' '/^[[:space:]]*layout:/ {print $2; exit}' "$config" | cut -d, -f1)
+printf '%s\n' "${layout^^}"
