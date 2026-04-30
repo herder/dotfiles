@@ -1,6 +1,44 @@
 #!/bin/sh
-# Graphical sudo password prompt. Callers can set SUDO_CMD to show
-# which command is requesting elevation.
+# Graphical sudo password prompt with command + caller context.
+#
+# Sudo execs us with the prompt text as $1 and itself as our parent. We read
+# /proc/<sudo>/cmdline to recover the actual command being elevated, and walk
+# one step further up to name the script/process that invoked sudo. Callers
+# can still set SUDO_CMD for an explicit Context: line on top of that.
+set -u
 MSG="${1:-Password required}"
-[ -n "$SUDO_CMD" ] && MSG="$MSG\n\nCommand: $SUDO_CMD"
+
+SUDO_PID=$PPID
+SCRIPT_PID=$(awk '/^PPid:/ {print $2}' "/proc/$SUDO_PID/status" 2>/dev/null || true)
+
+cmd=""
+if [ -r "/proc/$SUDO_PID/cmdline" ]; then
+  # argv is NUL-separated. Drop "sudo" itself, any flags, and the leading
+  # `env KEY=val ...` wrapper that callers like chezmoi often use.
+  cmd=$(tr '\0' '\n' < "/proc/$SUDO_PID/cmdline" | awk '
+    NR == 1                              { next }                # "sudo"
+    skip_opt_arg                         { skip_opt_arg = 0; next }
+    /^--$/                               { started = 1; next }
+    /^-[ugDhprtTU]$/                     { skip_opt_arg = 1; next }
+    /^-/ && !started                     { next }                # other sudo flags
+    !started && $0 == "env"              { in_env = 1; next }
+    in_env && /^[A-Za-z_][A-Za-z0-9_]*=/ { next }                # env var
+    { in_env = 0; started = 1; print }
+  ' | paste -sd ' ' -)
+fi
+
+caller=""
+if [ -n "${SCRIPT_PID:-}" ] && [ -r "/proc/$SCRIPT_PID/cmdline" ]; then
+  caller=$(tr '\0' ' ' < "/proc/$SCRIPT_PID/cmdline" | sed 's/ *$//')
+fi
+
+[ -n "$cmd" ]    && MSG="$MSG
+
+Command: $cmd"
+[ -n "$caller" ] && MSG="$MSG
+Caller:  $caller"
+[ -n "${SUDO_CMD:-}" ] && MSG="$MSG
+
+Context: $SUDO_CMD"
+
 exec zenity --password --title="sudo" --text="$MSG" 2>/dev/null
