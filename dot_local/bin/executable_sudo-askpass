@@ -41,4 +41,7 @@ Caller:  $caller"
 
 Context: $SUDO_CMD"
 
-exec zenity --password --title="sudo" --text="$MSG" 2>/dev/null
+# NB: zenity --password ignores --text (only supports --password/--username),
+# so the message would never reach the dialog. --entry --hide-text is the
+# standard workaround: a labelled text entry that masks input.
+exec zenity --entry --hide-text --title="sudo" --text="$MSG" 2>/dev/null
