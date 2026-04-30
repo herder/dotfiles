@@ -41,7 +41,12 @@ Caller:  $caller"
 
 Context: $SUDO_CMD"
 
+# Soft-wrap at word boundaries so a long chezmoi temp-script path doesn't
+# stretch the dialog across the whole monitor. --width pins an upper bound
+# so GTK wraps the label even if the fold above misses something.
+MSG=$(printf '%s\n' "$MSG" | fold -s -w 72)
+
 # NB: zenity --password ignores --text (only supports --password/--username),
 # so the message would never reach the dialog. --entry --hide-text is the
 # standard workaround: a labelled text entry that masks input.
-exec zenity --entry --hide-text --title="sudo" --text="$MSG" 2>/dev/null
+exec zenity --entry --hide-text --width=560 --title="sudo" --text="$MSG" 2>/dev/null
