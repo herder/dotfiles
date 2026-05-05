@@ -159,12 +159,14 @@ set -g  status-left "#{E:@catppuccin_status_host}"
 set -ag status-left "#{E:@catppuccin_status_user}"
 set -ag status-left "#{E:@catppuccin_status_session}"
 
-# status-right: claude alerts, kbd, uptime, battery, date_time
+# status-right: claude alerts, kbd, uptime, battery (laptops only), date_time
 set -g status-right-length 130
 set -g  status-right "#(~/.claude/tmux-claude-alert-indicator.sh)"
 set -ag status-right "#[fg=#{@thm_surface_0},bg=default]█#[fg=#{@thm_peach},bg=#{@thm_surface_0}] 󰌌 #[fg=#{@thm_fg},bg=#{@thm_surface_0}]#(~/.local/bin/kbd-layout) #[fg=#{@thm_surface_0},bg=default]█"
 set -ag status-right "#{E:@catppuccin_status_uptime}"
+{{ if .laptop -}}
 set -ag status-right "#{E:@catppuccin_status_battery}"
+{{ end -}}
 set -ag status-right "#{E:@catppuccin_status_date_time}"
 
 # -- custom bindings -----------------------------------------------------------
