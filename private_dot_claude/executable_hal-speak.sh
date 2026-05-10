@@ -165,8 +165,13 @@ case "$MODE" in
 esac
 
 # --- Desktop notification ---
+# Resolve session via TMUX_PANE when available so we target the pane where
+# Claude is actually running, not whichever session tmux last happened to
+# resolve via client context (which can drift to phantom numeric sessions).
 TMUX_SESSION=""
-if [ -n "${TMUX:-}" ]; then
+if [ -n "${TMUX_PANE:-}" ]; then
+  TMUX_SESSION=$(tmux display-message -p -t "$TMUX_PANE" '#S' 2>/dev/null) || true
+elif [ -n "${TMUX:-}" ]; then
   TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null) || true
 fi
 
