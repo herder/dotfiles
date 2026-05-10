@@ -119,6 +119,13 @@
   stripComponents = 1
   path = "circleci"
 
+[".local/bin/trivy"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "aquasecurity/trivy" "trivy_*_Linux-64bit.tar.gz" | quote }}
+  refreshPeriod = "168h"
+  executable = true
+  path = "trivy"
+
 [".local/bin/opencode"]
     type = "archive-file"
     url = "https://github.com/anomalyco/opencode/releases/latest/download/opencode-linux-x64.tar.gz"
