@@ -1,0 +1,17 @@
+{{- if .work -}}
+#!/usr/bin/env bash
+# weekly refresh trigger: {{ div (now | unixEpoch) 604800 }}
+set -euo pipefail
+
+REPO="Stravito/base_template"
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=amd64
+PATTERN="stravinfra_*_${OS}_${ARCH}.tar.gz"
+
+OUTPUT_DIR=$(mktemp -d)
+trap 'rm -rf "$OUTPUT_DIR"' EXIT
+
+gh release download --repo "$REPO" --pattern "$PATTERN" --dir "$OUTPUT_DIR"
+tar -xzf "$OUTPUT_DIR"/stravinfra_*.tar.gz -C "$OUTPUT_DIR"
+install -m 0755 "$OUTPUT_DIR/stravinfra" "$HOME/.local/bin/stravinfra"
+{{- end -}}
