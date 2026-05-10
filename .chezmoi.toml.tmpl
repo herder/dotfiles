@@ -61,7 +61,6 @@
     laptop = {{ $laptop }}
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
-    opAccount = "my.1password.eu"
     kubectlVersion = "v1.33.3"
     ghProjectOwner = {{ $ghProjectOwner | quote }}
     ghProjectNumber = {{ $ghProjectNumber | quote }}
@@ -69,6 +68,7 @@
 
 [github]
     refreshPeriod = "12h"
+    accessToken = {{ onepasswordRead "op://Private/GH CLI/token" "my.1password.eu" | quote }}
 [merge]
     command = "nvim"
     args = [
