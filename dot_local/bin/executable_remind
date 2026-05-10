@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Schedule a desktop notification at a future time via at(1).
+#
+# Usage: remind <at-time-spec> <message...>
+# Examples:
+#   remind '10:00'          'Call Janna'
+#   remind 'now + 1 hour'   'Take a break'
+#   remind '18:00 tomorrow' 'Dinner reservation'
+#
+# Time-spec accepts anything at(1) understands; see `man at`.
+set -euo pipefail
+
+if [[ $# -lt 2 ]]; then
+    cat >&2 <<USAGE
+Usage: ${0##*/} <time-spec> <message...>
+Examples:
+  ${0##*/} '10:00' 'Call Janna'
+  ${0##*/} 'now + 1 hour' 'Take a break'
+  ${0##*/} '18:00 tomorrow' 'Dinner reservation'
+USAGE
+    exit 1
+fi
+
+time_spec="$1"
+shift
+message="$*"
+
+uid=$(id -u)
+# Escape single quotes for safe embedding as a single-quoted shell string
+escaped_body=${message//\'/\'\\\'\'}
+
+at "$time_spec" <<EOF
+export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus"
+gdbus call --session \\
+  --dest=org.freedesktop.Notifications \\
+  --object-path=/org/freedesktop/Notifications \\
+  --method=org.freedesktop.Notifications.Notify \\
+  'remind' 0 'appointment-soon' 'Reminder' '$escaped_body' '[]' '{}' 0 > /dev/null
+EOF

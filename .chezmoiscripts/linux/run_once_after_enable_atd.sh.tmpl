@@ -1,0 +1,8 @@
+{{ if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! systemctl is-enabled --quiet atd; then
+    sudo systemctl enable --now atd
+fi
+{{ end -}}

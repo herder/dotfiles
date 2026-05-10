@@ -48,6 +48,7 @@ packages:
       - "1password-cli"
       - "adb"
       - "age"
+      - "at"
       - "atool"
       - "autofs"
       - "btop"
