@@ -19,6 +19,19 @@
           {
             "type": "command",
             "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit'; then branch=$(git branch --show-current); if [ \"$branch\" = 'main' ]; then echo 'WARNING: You are on main branch!' >&2; fi; fi"
+          },
+          {
+            "type": "command",
+            "command": "bash {{ .chezmoi.homeDir }}/.claude/auto-approve-stravito-reads.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash {{ .chezmoi.homeDir }}/.claude/auto-approve-stravito-dir-reads.sh"
           }
         ]
       }
@@ -41,7 +54,31 @@
     "type": "command",
     "command": "bash {{ .chezmoi.homeDir }}/.claude/statusline-command.sh"
   },
+  "enabledPlugins": {
+    "stravenv@stravito-claude-marketplace": true,
+    "platform-version@stravito-claude-marketplace": true,
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "stravito-claude-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "Stravito/stravito-claude-marketplace"
+      },
+      "autoUpdate": true
+    }
+  },
   "alwaysThinkingEnabled": true,
-  "editorMode": "vim",
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "editorMode": "vim"
 }
