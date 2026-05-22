@@ -51,10 +51,12 @@
 {{- end -}}
 
 {{- $email := "niklas.herder@gmail.com" -}}
+{{- $name := promptStringOnce . "name" "Full name (for git etc.)" "Niklas Herder" -}}
 
 [data]
     ephemeral = {{ $ephemeral }}
     email = {{ $email | quote }}
+    name = {{ $name | quote }}
     work = {{ $work }}
     headless = {{ $headless }}
     hostname = {{ $hostname | quote }}
