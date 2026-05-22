@@ -1,0 +1,36 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+# Enable BlueZ experimental + KernelExperimental features in /etc/bluetooth/main.conf.
+# Needed for proper LE Audio / LC3 / Fast Pair handshake on devices like
+# Pixel Buds Pro 2. Without these, BlueZ refuses or fails advanced profile
+# negotiation even when the device link layer is up.
+#
+# Idempotent: only writes + restarts bluetooth when content actually changes.
+# Re-runs whenever this script's hash changes (i.e. when desired keys change).
+
+set -euo pipefail
+
+config=/etc/bluetooth/main.conf
+[[ -f "$config" ]] || exit 0
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp" "${tmp}.new"' EXIT
+
+# 1. Drop any existing Experimental / KernelExperimental lines (commented or not).
+sed -E '/^[[:space:]]*#?[[:space:]]*(Experimental|KernelExperimental)[[:space:]]*=/d' "$config" > "$tmp"
+
+# 2. Insert the keys right under [General]; create [General] at the top if missing.
+if grep -q '^\[General\]' "$tmp"; then
+  sed -i '/^\[General\]/a Experimental = true\nKernelExperimental = true' "$tmp"
+else
+  { printf '[General]\nExperimental = true\nKernelExperimental = true\n\n'; cat "$tmp"; } > "${tmp}.new"
+  mv "${tmp}.new" "$tmp"
+fi
+
+# 3. Only touch the system file and restart bluetooth if something actually changed.
+if ! cmp -s "$tmp" "$config"; then
+  sudo install -m 0644 -o root -g root "$tmp" "$config"
+  sudo systemctl restart bluetooth
+  echo "Updated $config and restarted bluetooth."
+fi
+{{- end -}}
