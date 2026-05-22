@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# tmux-resurrect post-restore-all hook.
+# Reads the .claude sidecar written by tmux-resurrect-save-claude and re-attaches
+# each restored pane to its prior Claude session via `claude --resume <id>`.
+#
+# Skips any pane that already has a live Claude — prevents the resume command
+# from being typed into a running Claude's input on manual prefix+Ctrl-r.
+#
+# Silently no-ops if claude/tmux are missing or no sidecar exists — never causes
+# the enclosing resurrect restore to fail.
+
+set -uo pipefail
+
+command -v claude >/dev/null 2>&1 || exit 0
+command -v tmux >/dev/null 2>&1 || exit 0
+
+resurrect_dir="$HOME/.local/share/tmux/resurrect"
+last_link="$resurrect_dir/last"
+[[ -L "$last_link" || -f "$last_link" ]] || exit 0
+
+last_save="$(readlink -f "$last_link" 2>/dev/null || true)"
+[[ -n "$last_save" && -f "$last_save" ]] || exit 0
+
+sidecar="${last_save}.claude"
+[[ -f "$sidecar" ]] || exit 0
+
+# Build pane_pid -> pane-ref map.
+declare -A pane_for_pid pane_exists
+while read -r pid ref; do
+  [[ -z "$pid" ]] && continue
+  pane_for_pid["$pid"]="$ref"
+  pane_exists["$ref"]=1
+done < <(tmux list-panes -aF '#{pane_pid} #{session_name}:#{window_index}.#{pane_index}' 2>/dev/null)
+
+# Walk a process's ancestry until we hit a known pane pid.
+ancestor_pane() {
+  local pid="$1" depth=0
+  while [[ -n "$pid" && "$pid" != 1 && "$pid" != 0 && $depth -lt 32 ]]; do
+    if [[ -n "${pane_for_pid[$pid]+x}" ]]; then
+      printf '%s\n' "${pane_for_pid[$pid]}"
+      return 0
+    fi
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+    depth=$((depth + 1))
+  done
+  return 1
+}
+
+# Build set of panes that already host a live Claude — those should be left
+# alone. Best-effort: if `claude agents --json` fails, assume no live sessions
+# and proceed (no worse than today).
+declare -A pane_has_claude
+agents_json="$(claude agents --json 2>/dev/null)" || agents_json=""
+if [[ -n "$agents_json" ]] && command -v jq >/dev/null 2>&1 \
+   && echo "$agents_json" | jq -e 'type == "array"' >/dev/null 2>&1; then
+  while IFS= read -r pid; do
+    [[ -z "$pid" ]] && continue
+    if pane=$(ancestor_pane "$pid"); then
+      pane_has_claude["$pane"]=1
+    fi
+  done < <(echo "$agents_json" | jq -r '.[] | select(.kind == "interactive") | .pid' 2>/dev/null)
+fi
+
+while IFS=$'\t' read -r pane sid _cwd; do
+  [[ -z "$pane" || -z "$sid" ]] && continue
+  [[ -n "${pane_exists[$pane]+x}" ]] || continue
+  [[ -n "${pane_has_claude[$pane]+x}" ]] && continue
+  tmux send-keys -t "$pane" "claude --resume $sid" Enter
+done < "$sidecar"
