@@ -1,7 +1,12 @@
+[".claude"]
+  type = "git-repo"
+  url = "git@github.com:herder/claude-private.git"
+  refreshPeriod = "168h"
+
 [".config/zsh/.antidote"]
   type = "git-repo"
   url = "https://github.com/mattmc3/antidote"
-  refreshPeriod = "168h" 
+  refreshPeriod = "168h"
 [".intellimacs"]
   type = "git-repo"
   url = "https://github.com/MarcoIeni/intellimacs"
@@ -133,32 +138,10 @@
     executable = true
     path = "opencode"
 
-{{- if not .headless }}
-[".claude/sounds/hal/chord.wav"]
-    type = "file"
-    url = "https://archive.org/download/Microsoft_Windows-95-System-Sounds/Windows-95-sound-effects/Windows95_%5Bwinsounds.com%5D_1897/CHORD.WAV"
-    refreshPeriod = "8760h"
-[".claude/sounds/hal/tada.wav"]
-    type = "file"
-    url = "https://archive.org/download/Microsoft_Windows-95-System-Sounds/Windows-95-sound-effects/Windows95_%5Bwinsounds.com%5D_1897/TADA.WAV"
-    refreshPeriod = "8760h"
-[".claude/sounds/hal/hal.onnx"]
-    type = "file"
-    url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx"
-    refreshPeriod = "8760h"
-[".claude/sounds/hal/hal.onnx.json"]
-    type = "file"
-    url = "https://huggingface.co/campwill/HAL-9000-Piper-TTS/resolve/main/hal.onnx.json"
-    refreshPeriod = "8760h"
-[".claude/sounds/hal/voices/en_GB-vctk-medium.onnx"]
-    type = "file"
-    url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx?download=true"
-    refreshPeriod = "8760h"
-[".claude/sounds/hal/voices/en_GB-vctk-medium.onnx.json"]
-    type = "file"
-    url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx.json?download=true"
-    refreshPeriod = "8760h"
-{{- end }}
+# Note: ~/.claude/sounds/hal/* (hal-speak audio + TTS models) and the
+# rendered .api-key are populated by .chezmoiscripts/run_onchange_setup-claude-assets.sh.tmpl.
+# They USED to be chezmoi externals here, but chezmoi can't nest a file external
+# inside a git-repo external at the same root.
 
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}

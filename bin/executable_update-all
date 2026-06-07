@@ -118,7 +118,9 @@ fi
 
 if has bob; then
     printf '   bob (neovim)\n'
-    run bob update --all
+    # follow latest stable; `bob update --all` only refreshes channel-pinned versions,
+    # so pinned semver installs would never see a major bump.
+    run bob use stable
 fi
 
 if [ -d "$HOME/.fzf" ] && [ -x "$HOME/.fzf/install" ]; then

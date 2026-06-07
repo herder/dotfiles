@@ -108,6 +108,8 @@ set -g @catppuccin_window_flags "icon"
 # pane borders
 set -g @catppuccin_pane_border_style "fg=#{@thm_overlay_0}"
 set -g @catppuccin_pane_active_border_style "fg=#{@thm_lavender}"
+set -g pane-border-status top
+set -g pane-border-format "#{?pane_active, #{?pane_title,#{pane_title},#{pane_current_command}} ,}"
 
 # status bar
 set -g @catppuccin_status_background "default"
