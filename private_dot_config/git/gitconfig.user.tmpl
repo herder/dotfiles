@@ -20,10 +20,15 @@
 [core]
   filemode = true
 [include]
-{{- if .work }}
-  path = ~/.config/git/gitconfig.work 
-{{- end }}
   path = ~/.config/git/gitconfig.diff
+{{- if .work }}
+
+# Work email applies only to repos under ~/src/git/github.com/Stravito/ (covers
+# both main checkouts and worktrees, since worktrees live under .../Stravito/worktrees/).
+# Everywhere else falls back to the personal email set above.
+[includeIf "gitdir:~/src/git/github.com/Stravito/"]
+  path = ~/.config/git/gitconfig.work
+{{- end }}
 
 #[url "ssh://git@github.com/"]
 #  insteadOf = "https://github.com/"
