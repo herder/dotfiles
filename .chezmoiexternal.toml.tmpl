@@ -138,10 +138,10 @@
     executable = true
     path = "opencode"
 
-# Note: ~/.claude/sounds/hal/* (hal-speak audio + TTS models) and the
-# rendered .api-key are populated by .chezmoiscripts/run_onchange_setup-claude-assets.sh.tmpl.
-# They USED to be chezmoi externals here, but chezmoi can't nest a file external
-# inside a git-repo external at the same root.
+# Note: this is chezmoi's ONLY touch on ~/.claude — it clones/refreshes the private
+# repo and writes nothing into it. Everything else (config, hooks, scripts, and the
+# sounds/hal assets + .api-key, fetched by the repo's own SessionStart hook
+# setup-assets.sh) lives in claude-private.
 
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
