@@ -213,5 +213,10 @@ set -g @resurrect-delete-backup-after '3'
 set -g @resurrect-keep-count '50'
 set -g @resurrect-hook-post-save-all '~/.local/bin/tmux-resurrect-prune'
 
+# Repair a truncated resurrect `last` save before continuum auto-restores, so an
+# empty save (e.g. from an unclean shutdown) can't make resurrect kill session 0
+# and collapse a freshly-booted server. Synchronous (no -b) -> runs before tpm.
+run-shell '~/.local/bin/tmux-resurrect-sanitise-last'
+
 # initialize tpm (keep this line at the very bottom)
 run '~/.tmux/plugins/tpm/tpm'

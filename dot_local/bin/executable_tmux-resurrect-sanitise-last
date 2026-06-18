@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# tmux-resurrect pre-restore guard. Run synchronously from .tmux.conf BEFORE tpm
+# initialises continuum, so it completes before @continuum-restore reads `last`.
+#
+# Why this exists: resurrect's handle_session_0() (restore.sh) kills the
+# placeholder session "0" whenever it restores "from scratch" and the save holds
+# no session 0 — including when the save is *empty*. An unclean shutdown can
+# truncate the in-flight continuum save to 0 bytes while `last` still points at
+# it; on the next boot continuum auto-restores nothing, then kills session 0, and
+# a freshly-started server collapses — closing the terminal the moment it opens.
+#
+# Guard: if `last` is missing or points at an empty file, repoint it to the
+# newest non-empty save. If no valid save exists, drop `last` so restore is a
+# clean no-op instead of a session-0 execution. Never fails the enclosing config.
+
+set -uo pipefail
+shopt -s nullglob
+
+# Resolve the resurrect dir exactly as resurrect's scripts/helpers.sh does:
+# @resurrect-dir wins, else ~/.tmux/resurrect if present, else the XDG path.
+resurrect_dir="$(tmux show-option -gqv @resurrect-dir 2>/dev/null || true)"
+if [[ -z "$resurrect_dir" ]]; then
+  if [[ -d "$HOME/.tmux/resurrect" ]]; then
+    resurrect_dir="$HOME/.tmux/resurrect"
+  else
+    resurrect_dir="${XDG_DATA_HOME:-$HOME/.local/share}/tmux/resurrect"
+  fi
+fi
+resurrect_dir="${resurrect_dir/#\~/$HOME}"   # expand leading ~ as resurrect does
+last="$resurrect_dir/last"
+
+# Healthy: `last` resolves to a non-empty regular file -> nothing to do.
+target="$(readlink -f "$last" 2>/dev/null || true)"
+[[ -n "$target" && -s "$target" ]] && exit 0
+
+# Pick the newest non-empty save. resurrect names saves tmux_resurrect_<ts>.txt
+# with a sortable timestamp, so the last lexical match is the most recent.
+newest_good=""
+for f in "$resurrect_dir"/tmux_resurrect_*.txt; do
+  [[ -s "$f" ]] && newest_good="$f"
+done
+
+if [[ -n "$newest_good" ]]; then
+  ln -sfn "$(basename "$newest_good")" "$last"
+  tmux display-message "resurrect: 'last' was empty; repointed to $(basename "$newest_good")" 2>/dev/null || true
+else
+  rm -f "$last"
+  tmux display-message "resurrect: no valid save found; cleared 'last' to skip restore" 2>/dev/null || true
+fi
+exit 0
