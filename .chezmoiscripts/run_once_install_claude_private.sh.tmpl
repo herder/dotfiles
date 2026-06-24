@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eufo pipefail
+
+# ~/.claude is a standalone checkout of claude-private, managed by its own
+# auto-commit hook — chezmoi deliberately does not track it as an external (that
+# clobbered the live working tree). Bootstrap-clone it once on a fresh machine;
+# bootstrap.sh has the 1Password SSH agent up before chezmoi runs. No-op if the
+# checkout already exists, so an established machine is never touched.
+target="${HOME}/.claude"
+[ -e "${target}/.git" ] || git clone git@github.com:herder/claude-private.git "${target}"

@@ -1,8 +1,3 @@
-[".claude"]
-  type = "git-repo"
-  url = "git@github.com:herder/claude-private.git"
-  refreshPeriod = "168h"
-
 [".config/zsh/.antidote"]
   type = "git-repo"
   url = "https://github.com/mattmc3/antidote"
@@ -138,10 +133,12 @@
     executable = true
     path = "opencode"
 
-# Note: this is chezmoi's ONLY touch on ~/.claude — it clones/refreshes the private
-# repo and writes nothing into it. Everything else (config, hooks, scripts, and the
-# sounds/hal assets + .api-key, fetched by the repo's own SessionStart hook
-# setup-assets.sh) lives in claude-private.
+# Note: ~/.claude is intentionally NOT a chezmoi external. It's a standalone
+# checkout of claude-private, managed solely by its own auto-commit hook
+# (auto-commit-memory.sh) and SessionStart asset bootstrap (setup-assets.sh).
+# chezmoi must not write into it. Fresh-machine bootstrap is handled once by
+# .chezmoiscripts/run_once_install_claude_private.sh (clone-if-absent), never
+# re-pulled — that re-pull is what made an external clobber the live tree.
 
 {{- if and (not .ephemeral) (not .headless) }}
 {{-   $fontDir := "" }}
