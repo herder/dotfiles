@@ -43,6 +43,8 @@ if has flatpak; then
     printf '   flatpak\n'
     run flatpak update -y
     run flatpak uninstall --unused -y
+    # repair prunes dangling objects from the local OSTree repo — flatpak has no `clean`
+    run sudo flatpak repair
 fi
 
 # ── Language toolchains ──────────────────────────────────────────────
