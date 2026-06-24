@@ -88,12 +88,6 @@
   url = {{ printf "https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-%s-%s" .chezmoi.os .chezmoi.arch | quote }}
   executable = true
   path = "chezmoi"
-[".local/bin/auth0"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "auth0/auth0-cli" (printf "auth0-cli_*_%s_x86_64.tar.gz" .chezmoi.kernel.ostype ) | quote }}
-  refreshPeriod = "72h"
-  executable = true
-  path = "auth0"
 [".local/bin/helm"]
   type = "archive-file"
   url = {{ (printf "https://get.helm.sh/helm-%s-%s-%s.tar.gz" ((gitHubLatestRelease "helm/helm").TagName | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
