@@ -1,0 +1,112 @@
+#!/bin/bash
+# tmux-claude-desc — fold each Claude pane's task into a session-name suffix so
+# `tmux list-sessions` and the session switcher show what every session is doing.
+#
+#   tmux-claude-desc capture   # snapshot THIS pane's title -> @claude_desc, refresh its session
+#   tmux-claude-desc clear     # drop THIS pane's contribution (Claude exiting), refresh its session
+#   tmux-claude-desc refresh    # recompute every session (cleanup after a pane closes)
+#
+# A pane contributes only via its own @claude_desc pane-option, and the session
+# name is always recomputed from scratch from all contributing panes. So panes
+# never clobber each other, and a closed pane drops out automatically (its
+# options die with it). Base name = current name minus any trailing " [ … ]",
+# so it is stateless and survives manual renames / resurrect restores.
+
+set -euo pipefail
+
+# ── tunables ─────────────────────────────────────────────────────────
+SEP=' | '        # separator between pane descriptions inside the suffix
+MAX_TOTAL=48     # max chars inside the [ … ] brackets
+MAX_ITEM=22      # max chars for a single pane's description
+ELLIPSIS='…'
+
+[ -z "${TMUX:-}" ] && exit 0
+
+# strip leading status glyph (Claude prefixes a spinner/marker), drop chars that
+# would break the "[ a | b ]" format, collapse and trim whitespace.
+clean() {
+    printf '%s' "$1" | sed -E 's/^[^[:alnum:]]+//; s/[][|]/ /g; s/[[:space:]]+/ /g; s/^ +//; s/ +$//'
+}
+
+# truncate $1 to $2 chars on a word boundary, appending an ellipsis if cut.
+truncate_words() {
+    local s=$1 max=$2 cut
+    [ "${#s}" -le "$max" ] && { printf '%s' "$s"; return; }
+    cut=${s:0:$max}
+    cut=${cut% *}                     # back off to the last whole word
+    [ -z "$cut" ] && cut=${s:0:$max}  # one very long word: hard cut
+    printf '%s%s' "$cut" "$ELLIPSIS"
+}
+
+join_by() { local sep=$1 out=$2; shift 2; printf '%s' "$out"; printf '%s' "${@/#/$sep}"; }
+
+base_of() { printf '%s' "$1" | sed -E 's/ \[[^][]*\]$//'; }
+
+refresh_one() {
+    local sid=$1 cur=$2 base
+    base=$(base_of "$cur")
+
+    local descs=() seen="" d
+    while IFS= read -r d; do
+        [ -z "$d" ] && continue
+        case "$seen" in *"|$d|"*) continue ;; esac
+        seen="$seen|$d|"
+        descs+=("$d")
+    done < <(tmux list-panes -s -t "$sid" -F '#{@claude_desc}' 2>/dev/null)
+
+    local suffix=""
+    if [ "${#descs[@]}" -gt 0 ]; then
+        local per=$(( MAX_TOTAL / ${#descs[@]} ))
+        [ "$per" -gt "$MAX_ITEM" ] && per=$MAX_ITEM
+        [ "$per" -lt 6 ] && per=6
+        local parts=()
+        for d in "${descs[@]}"; do parts+=("$(truncate_words "$d" "$per")"); done
+        suffix=" [$(join_by "$SEP" "${parts[@]}")]"
+    fi
+
+    local want="${base}${suffix}"
+    [ "$want" = "$cur" ] || tmux rename-session -t "$sid" "$want" 2>/dev/null || true
+}
+
+refresh_all() {
+    local sid cur
+    while IFS= read -r sid; do
+        [ -z "$sid" ] && continue
+        cur=$(tmux display -p -t "$sid" '#{session_name}' 2>/dev/null) || continue
+        refresh_one "$sid" "$cur"
+    done < <(tmux list-sessions -F '#{session_id}' 2>/dev/null)
+}
+
+capture() {
+    local pane=${TMUX_PANE:-}
+    [ -z "$pane" ] && exit 0
+    local title desc
+    title=$(tmux display -p -t "$pane" '#{pane_title}' 2>/dev/null) || exit 0
+    desc=$(clean "$title")
+    # skip the default "claude: <repo>" placeholder — no real task yet
+    case "$desc" in
+        claude:*|"") tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true ;;
+        *)           tmux set-option -p -t "$pane" @claude_desc "$desc" ;;
+    esac
+    local sid cur
+    sid=$(tmux display -p -t "$pane" '#{session_id}') || exit 0
+    cur=$(tmux display -p -t "$pane" '#{session_name}') || exit 0
+    refresh_one "$sid" "$cur"
+}
+
+clear_pane() {
+    local pane=${TMUX_PANE:-}
+    [ -z "$pane" ] && exit 0
+    tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true
+    local sid cur
+    sid=$(tmux display -p -t "$pane" '#{session_id}' 2>/dev/null) || exit 0
+    cur=$(tmux display -p -t "$pane" '#{session_name}' 2>/dev/null) || exit 0
+    refresh_one "$sid" "$cur"
+}
+
+case "${1:-refresh}" in
+    capture) capture ;;
+    clear)   clear_pane ;;
+    refresh) refresh_all ;;
+    *) echo "usage: tmux-claude-desc {capture|clear|refresh}" >&2; exit 2 ;;
+esac
