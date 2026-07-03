@@ -186,16 +186,22 @@ set-hook -g client-session-changed "set-option -t '#{hook_session}' -u @claude-a
 # Restore default new-window on shifted key
 bind C new-window
 
-# -- Claude session-name descriptions ------------------------------------------
-# Fold each Claude pane's task title into a " [ … | … ]" suffix on the session
-# name so `list-sessions` / the switcher show what each session is doing.
+# -- Claude session descriptions -----------------------------------------------
+# Fold each Claude pane's task title into a " [ … | … ]" suffix stored on the
+# SESSION-scoped @claude_session_desc option (NOT the session name — a decorated
+# name breaks session-wizard's directory-derived create/reuse). `prefix s` shows
+# it via choose-tree's -F; names stay clean so session-wizard stays correct.
 # Capture is driven by Claude Code hooks; here we only handle cleanup + manual refresh.
 # Script: ~/.local/bin/tmux-claude-desc (chezmoi: dot_local/bin/executable_tmux-claude-desc).
 # window-layout-changed fires when a pane is split/killed/resized (tmux has no
-# pane-close hook); a closed pane drops its @claude_desc, so a recompute prunes it.
-# Over-fires on resize, but refresh only renames when the name actually changes.
+# pane-close hook); a closed pane drops its @claude_desc, so a recompute prunes the
+# session aggregate. Over-fires on resize, but refresh only writes when it changes.
 set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh'"
 bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh'
+
+# Session picker: native choose-tree, sessions collapsed, decorated with the Claude
+# task on session lines only (window/pane lines keep their own name/title).
+bind s choose-tree -Zs -F '#{?session_format,#{session_name}#{@claude_session_desc},#{?window_format,#{window_index}: #{window_name}#{window_flags},#{pane_current_command}}}'
 
 # -- plugins (tpm) -------------------------------------------------------------
 
