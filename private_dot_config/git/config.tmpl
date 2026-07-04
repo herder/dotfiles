@@ -89,7 +89,7 @@
   t = tag -n                        # show tags with <n> lines of each tag message
 
   #sync and prune branches
-	sync = "!git switch main && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"
+	sync = "!git switch $(basename $(git symbolic-ref refs/remotes/origin/HEAD)) && git pull --prune && git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"
 [format]
   pretty = format:%C(blue)%ad%Creset %C(yellow)%h%C(green)%d%Creset %C(blue)%s %C(magenta) [%an]%Creset
 [mergetool]
