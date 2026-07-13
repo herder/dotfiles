@@ -77,6 +77,8 @@ fi
 
 if has npm; then
     printf '   npm globals\n'
+    # `npm update -g` refuses to upgrade npm itself; self-upgrade explicitly first.
+    run npm install -g npm@latest
     run npm update -g
 fi
 
