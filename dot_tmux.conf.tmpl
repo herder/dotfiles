@@ -22,9 +22,11 @@ set -g base-index 1
 setw -g pane-base-index 1
 set -g renumber-windows on
 
-# highlight focused pane (Kanagawa: crust=sumiInk0, bg=sumiInk3)
-set -g window-style "bg=#{@thm_crust}"
-set -g window-active-style "bg=#{@thm_bg}"
+# frosted glass: default bg lets the compositor blur show through both panes
+# (an explicit bg=colour is opaque and paints over the transparency)
+# set -g window-style "bg=#{@thm_crust}"
+set -g window-style "bg=default"
+set -g window-active-style "bg=default"
 
 # -- navigation ----------------------------------------------------------------
 
