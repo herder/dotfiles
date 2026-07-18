@@ -127,6 +127,15 @@
     executable = true
     path = "opencode"
 
+# beads — dependency-aware issue tracker; domestique's plan-of-record backend.
+# Repo moved steveyegge/beads → gastownhall/beads (old name 301-redirects).
+[".local/bin/bd"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "gastownhall/beads" (printf "beads_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+  refreshPeriod = "168h"
+  executable = true
+  path = "bd"
+
 # Note: ~/.claude is intentionally NOT a chezmoi external. It's a standalone
 # checkout of claude-private, managed solely by its own auto-commit hook
 # (auto-commit-memory.sh) and SessionStart asset bootstrap (setup-assets.sh).
