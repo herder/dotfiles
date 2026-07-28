@@ -25,10 +25,10 @@ for n in json.load(sys.stdin):
         continue
     # Hide smart-filter sinks/sources (Perfect EQ, Speaker Auto Gain): they
     # auto-insert into the graph, so exposing them as targets would misroute
-    # audio. The Virtual Surround sink is the deliberate exception — it's a
+    # audio. The SOFA Spatializer sink is the deliberate exception — it's a
     # filter sink you DO pick manually to enable HRTF surround over headphones.
     name = p.get('node.name', '')
-    if p.get('node.link-group') and 'virtual-surround-7' not in name:
+    if p.get('node.link-group') and 'spatializer' not in name:
         continue
     nid = n['id']
     desc = p.get('node.description', p.get('node.name', 'Unknown'))
