@@ -110,7 +110,7 @@
   url = {{ gitHubLatestReleaseAssetURL "CircleCI-Public/circleci-cli" (printf "circleci-cli_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
   refreshPeriod = "168h"
   executable = true
-  stripComponents = 1
+  # upstream flattened the tarball (~v1.0.47876): binary at root, no version dir
   path = "circleci"
 
 [".local/bin/trivy"]
