@@ -31,6 +31,40 @@ clean() {
 
 join_by() { local sep=$1 out=$2; shift 2; printf '%s' "$out"; printf '%s' "${@/#/$sep}"; }
 
+# Rewrite vague issue references ("work on github issue 123") into the
+# identifiable "<repo>#<N>: <issue title>" form. Repo comes from the pane cwd's
+# origin remote; the title from gh (issue, then PR), cached forever per slug+N
+# so the network is hit once per reference. Prints the input unchanged when
+# there's nothing to do or the lookup can't resolve a repo.
+enrich() {
+    local desc=$1 path=$2 num slug repo title cache key
+    # already carries a repo#N token — nothing to do
+    printf '%s' "$desc" | grep -qE '[A-Za-z0-9_.-]+#[0-9]+' && { printf '%s' "$desc"; return; }
+    num=$(printf '%s' "$desc" | grep -oiE '\b(issue|pull request|pr)s? ?#?[0-9]+|#[0-9]+' \
+        | grep -oE '[0-9]+' | head -n1) || true
+    [ -z "${num:-}" ] && { printf '%s' "$desc"; return; }
+    slug=$(git -C "${path:-/}" remote get-url origin 2>/dev/null \
+        | sed -E 's#^(git@|ssh://git@|https://)[^/:]+[:/]##; s#\.git$##') || slug=""
+    [ -z "$slug" ] && { printf '%s' "$desc"; return; }
+    repo=${slug##*/}
+    cache=${XDG_CACHE_HOME:-$HOME/.cache}/tmux-claude-desc
+    mkdir -p "$cache" 2>/dev/null || true
+    key=$cache/${slug//\//_}-$num
+    if [ -s "$key" ]; then
+        title=$(<"$key")
+    else
+        title=$(timeout 5 gh issue view "$num" -R "$slug" --json title --jq .title 2>/dev/null) \
+            || title=$(timeout 5 gh pr view "$num" -R "$slug" --json title --jq .title 2>/dev/null) \
+            || title=""
+        [ -n "$title" ] && printf '%s' "$title" >"$key" 2>/dev/null
+    fi
+    if [ -n "$title" ]; then
+        printf '%s#%s: %s' "$repo" "$num" "$(clean "$title")"
+    else
+        printf '%s#%s: %s' "$repo" "$num" "$desc"
+    fi
+}
+
 # recompute a session's @claude_session_desc from all its panes' @claude_desc.
 refresh_one() {
     local sid=$1
@@ -68,7 +102,17 @@ capture() {
     # skip the default "claude: <repo>" placeholder — no real task yet
     case "$desc" in
         claude:*|"") tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true ;;
-        *)           tmux set-option -p -t "$pane" @claude_desc "$desc" ;;
+        *)
+            local path enriched
+            path=$(tmux display -p -t "$pane" '#{pane_current_path}' 2>/dev/null) || path=""
+            enriched=$(enrich "$desc" "$path") || enriched=$desc
+            if [ -n "$enriched" ] && [ "$enriched" != "$desc" ]; then
+                desc=$enriched
+                # push back so the pane-border pill shows it too; Claude Code may
+                # overwrite next turn, and the next capture just re-enriches
+                tmux select-pane -t "$pane" -T "$desc" 2>/dev/null || true
+            fi
+            tmux set-option -p -t "$pane" @claude_desc "$desc" ;;
     esac
     local sid
     sid=$(tmux display -p -t "$pane" '#{session_id}') || exit 0
