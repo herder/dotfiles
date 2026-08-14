@@ -179,12 +179,18 @@ set -ag status-right "#{E:@catppuccin_status_date_time}"
 # reload config
 bind r source-file ~/.tmux.conf \; display "Config reloaded"
 
-# Jump to Claude Code sessions with pending alerts
+# Jump to the pane with a pending Claude alert. The @claude-alert flag is
+# PANE-scoped (set by ~/.claude/hal-speak.sh), so the jump restores window and
+# pane too — a session-scoped flag only got you to the session's active window.
 bind c run-shell '~/.claude/tmux-claude-alert.sh'
 
-# Clear the @claude-alert flag on the session being switched INTO.
-# Targets #{hook_session} explicitly so other sessions with pending alerts keep theirs.
-set-hook -g client-session-changed "set-option -t '#{hook_session}' -u @claude-alert"
+# Clear the flag once you actually land on the alerting pane. session-window-changed
+# and window-pane-changed cover navigation however it happens (keys, commands,
+# mouse); clear-active only touches each attached client's current pane, so alerts
+# pending in other windows survive.
+set-hook -g client-session-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+set-hook -g session-window-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+set-hook -g window-pane-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
 
 # Restore default new-window on shifted key
 bind C new-window
