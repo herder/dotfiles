@@ -136,6 +136,23 @@
   executable = true
   path = "bd"
 
+# Wonderbrushed — hand-drawn freedesktop icon theme (CC-BY-SA-4.0).
+# Select it in COSMIC via ~/.config/cosmic/com.system76.CosmicTk/v1/icon_theme,
+# which keys on the *directory* name ("Wonderbrushed"), not index.theme's Name=.
+# Inherits=breeze-dark,hicolor — both present on Pop, so fallbacks resolve.
+# Upstream does not flag betas as prereleases, so /releases/latest (what
+# gitHubLatestReleaseAssetURL uses) tracks beta tags too. Zip is ~237MB and
+# growing fast (66→103→237MB over three releases), hence the 30-day refresh.
+# exclude drops the shipped source art and a stray editor backup file.
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) (not .headless) }}
+[".local/share/icons/Wonderbrushed"]
+  type = "archive"
+  url = {{ gitHubLatestReleaseAssetURL "Bhavneeth-Games/Wonderbrushed" "Wonderbrushed.zip" | quote }}
+  refreshPeriod = "720h"
+  stripComponents = 1
+  exclude = ["**/Original Files/**", "**/*~"]
+{{- end }}
+
 # Mattermost Desktop — Electron tarball (~128MB), replaces the flathub install.
 # Upstream ships no .desktop file (only create_desktop_file.sh, which hardcodes an
 # absolute path); dot_local/share/applications/Mattermost.desktop.tmpl does that job.
