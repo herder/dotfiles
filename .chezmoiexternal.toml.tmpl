@@ -136,6 +136,22 @@
   executable = true
   path = "bd"
 
+# Mattermost Desktop — Electron tarball (~128MB), replaces the flathub install.
+# Upstream ships no .desktop file (only create_desktop_file.sh, which hardcodes an
+# absolute path); dot_local/share/applications/Mattermost.desktop.tmpl does that job.
+# chrome-sandbox is setuid-root in the tarball but extracts unprivileged — Electron
+# falls back to the userns sandbox, which Pop 24.04 permits (no apparmor userns
+# restriction sysctl). If that ever changes, the symptom is a SUID-sandbox error.
+# Lives under .local/share (a managed parent) rather than .local/opt, which chezmoi
+# refuses to create: "mkdir .local/opt: no such file or directory".
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) (not .headless) }}
+[".local/share/mattermost-desktop"]
+  type = "archive"
+  url = {{ gitHubLatestReleaseAssetURL "mattermost/desktop" "mattermost-desktop-*-linux-x64.tar.gz" | quote }}
+  refreshPeriod = "168h"
+  stripComponents = 1
+{{- end }}
+
 # Note: ~/.claude is intentionally NOT a chezmoi external. It's a standalone
 # checkout of claude-private, managed solely by its own auto-commit hook
 # (auto-commit-memory.sh) and SessionStart asset bootstrap (setup-assets.sh).
