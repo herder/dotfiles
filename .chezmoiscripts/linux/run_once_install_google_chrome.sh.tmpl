@@ -1,0 +1,18 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+# Chrome, for the Microsoft admin surfaces that only really work in a Chromium browser
+# (M365 Copilot connector setup posts an OAuth popup back to its opener; Firefox's Total
+# Cookie Protection partitions that handshake and it hangs silently).
+# Google's repo rather than the `chromium` apt package, which on Pop is a snap shim.
+if ! type google-chrome >/dev/null 2>&1; then
+  (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) &&
+    sudo mkdir -p -m 755 /etc/apt/keyrings &&
+    out=$(mktemp) && wget -nv -O$out https://dl.google.com/linux/linux_signing_key.pub &&
+    gpg --dearmor <$out | sudo tee /etc/apt/keyrings/google-chrome.gpg >/dev/null &&
+    sudo chmod go+r /etc/apt/keyrings/google-chrome.gpg &&
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null &&
+    sudo apt update &&
+    sudo apt install google-chrome-stable -y
+fi
+# vim: ft=bash
+{{- end -}}
