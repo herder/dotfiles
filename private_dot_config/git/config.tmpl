@@ -106,9 +106,9 @@
 [branch]
   autosetupmerge = true
 [push]
-  # 'git push' will push the current branch to its tracking branch
-  # the usual default is to push all branches
-  default = upstream
+  # push the current branch to a same-named branch on the remote; 'upstream'
+  # silently retargets the tracking branch's name (feature branch -> master)
+  default = current
 [core]
   autocrlf = input
   editor = nvim
