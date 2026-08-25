@@ -1,0 +1,62 @@
+// Curated web-search engines for pop-launcher.
+// A user plugin dir shadows /usr/lib/.../web entirely — this REPLACES the stock
+// engine list, it does not merge. Add back any stock keyword you miss.
+// Usage in the launcher: "<keyword> <terms>", e.g. "ddg how to reset udev".
+(
+    rules: [
+        // --- general ---
+        (
+            matches: ["ddg"],
+            queries: [(name: "DuckDuckGo", query: "duckduckgo.com/?q=")]
+        ),
+        (
+            matches: ["g", "google"],
+            queries: [(name: "Google", query: "google.com/search?q=")]
+        ),
+        (
+            matches: ["bs", "brave"],
+            queries: [(name: "Brave Search", query: "https://search.brave.com/search?q=")]
+        ),
+        (
+            matches: ["yt", "youtube"],
+            queries: [(name: "YouTube", query: "youtube.com/results?search_query=")]
+        ),
+        (
+            matches: ["wiki"],
+            queries: [(name: "Wikipedia", query: "en.wikipedia.org/w/index.php?search=")]
+        ),
+        // --- dev ---
+        (
+            matches: ["gh", "github"],
+            queries: [(name: "GitHub", query: "github.com/search?q=")]
+        ),
+        (
+            matches: ["so"],
+            queries: [(name: "Stack Overflow", query: "stackoverflow.com/search?q=")]
+        ),
+        (
+            matches: ["crates"],
+            queries: [
+                (name: "Crates.io", query: "crates.io/search?q="),
+                (name: "Lib.rs", query: "lib.rs/search?q="),
+            ]
+        ),
+        (
+            matches: ["docs"],
+            queries: [(name: "Docs.rs", query: "docs.rs/")]
+        ),
+        (
+            matches: ["arch"],
+            queries: [(name: "Arch Wiki", query: "wiki.archlinux.org/index.php/")]
+        ),
+        // --- custom (Niklas) ---
+        (
+            matches: ["st", "stravito"],
+            queries: [(name: "Stravito org (GitHub)", query: "github.com/search?q=org%3AStravito+")]
+        ),
+        (
+            matches: ["mvn", "maven"],
+            queries: [(name: "Maven Central", query: "central.sonatype.com/search?q=")]
+        ),
+    ]
+)
