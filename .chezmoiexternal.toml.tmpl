@@ -78,6 +78,11 @@
   url = {{ gitHubLatestReleaseAssetURL "wagoodman/dive" (printf "dive_*_linux_amd64.tar.gz") | quote }}
   executable = true
   path = "dive"
+[".local/bin/act"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "nektos/act" (printf "act_Linux_x86_64.tar.gz") | quote }}
+  executable = true
+  path = "act"
 [".local/bin/tilt"]
   type = "archive-file"
   url = {{ gitHubLatestReleaseAssetURL "tilt-dev/tilt" (printf "tilt.*.%s.x86_64.tar.gz" .chezmoi.os) | quote }}
