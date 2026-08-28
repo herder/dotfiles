@@ -180,8 +180,10 @@ set -ag status-right "#{E:@catppuccin_status_date_time}"
 bind r source-file ~/.tmux.conf \; display "Config reloaded"
 
 # Jump to the pane with a pending Claude alert. The @claude-alert flag is
-# PANE-scoped (set by ~/.claude/hal-speak.sh), so the jump restores window and
-# pane too — a session-scoped flag only got you to the session's active window.
+# PANE-scoped, so the jump restores window and pane too — a session-scoped flag
+# only got you to the session's active window. It is DERIVED from @claude-state
+# (working|blocked|done|idle) by ~/.claude/tmux-claude-state.sh, which Claude Code
+# hooks drive; the status-right pill counts states, prefix+c wants blocked|done.
 bind c run-shell '~/.claude/tmux-claude-alert.sh'
 
 # Clear the flag once you actually land on the alerting pane. session-window-changed
