@@ -1,0 +1,26 @@
+{{ if .work -}}
+# A second Claude account, work machines only.
+#
+# Credentials live in a single `claudeAiOauth` object per config dir, so one
+# config dir is one identity at a time -- /login rewrites it under any session
+# already running, silently, on their next API call. A separate
+# CLAUDE_CONFIG_DIR is the only way to have a work and a personal session up at
+# the same time.
+#
+# Generic knowledge (CLAUDE.md, rules, skills) is symlinked back to ~/.claude by
+# the setup script, so there is one copy to edit. Credentials, projects and
+# history are NOT shared: ~/.claude/.credentials.json also holds the mcpOAuth
+# tokens for Stravito Slack/Datadog/Atlassian, which a personal session has no
+# business holding.
+#
+# Personal machines (.work false) get nothing here: `claude` is already the
+# personal identity there, and a second config dir would be cost with no
+# benefit.
+claude-personal() {
+  local dir="$HOME/.claude-personal"
+  if [[ ! -d "$dir" ]]; then
+    "$HOME/.claude/setup-personal-config.sh" "$dir" || return
+  fi
+  CLAUDE_CONFIG_DIR="$dir" claude "$@"
+}
+{{- end }}
