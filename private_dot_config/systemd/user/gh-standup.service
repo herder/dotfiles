@@ -1,0 +1,13 @@
+[Unit]
+Description=Post yesterday's GitHub activity to Slack as a standup summary
+Documentation=https://github.com/Stravito
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/gh-standup
+# The script retries the API calls itself; a failure here is a real one
+# (gh unauthenticated, Slack OAuth expired) and should stay visible in
+# `systemctl --user status gh-standup.service` rather than be retried away.
+TimeoutStartSec=10min

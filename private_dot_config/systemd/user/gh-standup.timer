@@ -1,0 +1,13 @@
+[Unit]
+Description=Weekday GitHub standup summary to Slack
+
+[Timer]
+OnCalendar=Mon-Fri 08:05
+# The laptop is usually asleep overnight; without this a suspended morning
+# silently skips the summary instead of firing on wake.
+Persistent=true
+AccuracySec=1min
+Unit=gh-standup.service
+
+[Install]
+WantedBy=timers.target

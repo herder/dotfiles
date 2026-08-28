@@ -1,0 +1,7 @@
+{{ if not .work }}
+# Work tooling: the standup summary reads Stravito GitHub activity and posts to
+# the Stravito Slack. A personal machine must not be able to do either.
+.local/bin/gh-standup
+.config/systemd/user/gh-standup.service
+.config/systemd/user/gh-standup.timer
+{{ end }}
