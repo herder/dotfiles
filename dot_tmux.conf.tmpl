@@ -207,12 +207,17 @@ bind C new-window
 # window-layout-changed fires when a pane is split/killed/resized (tmux has no
 # pane-close hook); a closed pane drops its @claude_desc, so a recompute prunes the
 # session aggregate. Over-fires on resize, but refresh only writes when it changes.
-set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh'"
-bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh'
+set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'"
+bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'
 
 # Session picker: native choose-tree, sessions collapsed, decorated with the Claude
-# task on session lines only (window/pane lines keep their own name/title).
-bind s choose-tree -Zs -F '#{?session_format,#{session_name}#{@claude_session_desc},#{?window_format,#{window_index}: #{window_name}#{window_flags},#{pane_current_command}}}'
+# task on session lines (window/pane lines keep their own name/title) and a Claude
+# state glyph at every level: 󰂚 blocked, ✔ done, ▶ working, nothing when idle.
+# Session lines take the SESSION aggregate @claude_session_state (glyphs + counts,
+# maintained by ~/.claude/tmux-claude-state.sh) because a format can't sum over a
+# session's panes; window and pane lines resolve the pane-scoped @claude-state
+# directly — on a window line that's its active pane.
+bind s choose-tree -Zs -F '#{?session_format,#{session_name}#{?@claude_session_state, #{@claude_session_state},}#{@claude_session_desc},#{?window_format,#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{window_index}: #{window_name}#{window_flags},#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{pane_current_command}}}'
 
 # -- plugins (tpm) -------------------------------------------------------------
 
