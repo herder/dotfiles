@@ -1,8 +1,14 @@
 #!/bin/bash
 # Sync tasks from external sources into today's daily note
-# Usage: task-sync gh
+# Usage: task-sync <source>
+#
+# Sources:
+#   gh, github    Sync from GitHub project board
 
 set -euo pipefail
+
+# --help prints the header comment above, so help text and docs cannot drift.
+usage() { awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "${BASH_SOURCE[0]}"; exit 0; }
 
 # Configuration
 VAULT_PATH="$HOME/Documents/Private Sync"
@@ -237,10 +243,7 @@ case "$CMD" in
         sync_github
         ;;
     help|--help|-h)
-        echo "Usage: task-sync <source>"
-        echo ""
-        echo "Sources:"
-        echo "  gh, github    Sync from GitHub project board"
+        usage
         ;;
     *)
         echo "Unknown sync source: $CMD"
