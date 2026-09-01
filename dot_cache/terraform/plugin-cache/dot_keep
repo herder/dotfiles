@@ -1,0 +1,8 @@
+# Exists only so chezmoi creates this directory. Terraform silently ignores
+# plugin_cache_dir (~/.terraformrc) when the directory is missing and falls back
+# to downloading a private copy of every provider into each working directory.
+#
+# A zero-byte file would not work: chezmoi skips empty files unless they carry
+# the empty_ attribute, and the directory would then only appear as a side
+# effect of some other apply. Terraform ignores non-provider entries in the
+# cache, so this file is inert.

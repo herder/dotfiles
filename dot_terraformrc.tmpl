@@ -1,0 +1,17 @@
+# Share one copy of each provider plugin across every working directory.
+#
+# Without this, `terraform init` downloads a private copy of every provider into
+# each directory's .terraform/providers. Across ~20 worktrees of the Stravito
+# infrastructure repo that measured 17 GB, of which the git checkouts themselves
+# were ~36 MB each — the rest was duplicated provider binaries (the AWS provider
+# alone is ~1.1 GB per directory). With a cache, Terraform links into it instead.
+#
+# Under XDG_CACHE_HOME rather than Terraform's own ~/.terraform.d: this is a
+# genuine cache — wholly regenerable by `terraform init`, safe to delete, and
+# better left out of backups. Terraform's own paths predate XDG and it does not
+# expand ~ or environment variables here, so chezmoi templates the literal path.
+#
+# The directory has to exist or Terraform silently ignores this setting and
+# downloads per-directory as before. dot_cache/terraform/plugin-cache/dot_keep
+# is what creates it, and `chezmoi apply` restores it if the cache is ever wiped.
+plugin_cache_dir = "{{ env "XDG_CACHE_HOME" | default (printf "%s/.cache" .chezmoi.homeDir) }}/terraform/plugin-cache"
