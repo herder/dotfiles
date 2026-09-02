@@ -12,11 +12,16 @@ set -euo pipefail
 SLACK_DM="U05KP4LK8HY"                 # DM-to-self: own user id as the channel id
 CLAUDE_BIN="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
 MODEL="${GH_STANDUP_MODEL:-sonnet}"
+# 60 probes, up to 40s apart (10s timeout + 30s sleep) -> a ~40min worst case that
+# gh-standup.service's TimeoutStartSec has to outlast.
+NETWORK_WAIT_ATTEMPTS=60
+NETWORK_WAIT_INTERVAL=30
 
 die() { echo "gh-standup: $*" >&2; exit 1; }
 
 [[ -x "$CLAUDE_BIN" ]] || die "claude not executable at $CLAUDE_BIN"
 command -v gh >/dev/null || die "gh not on PATH"
+command -v curl >/dev/null || die "curl not on PATH"
 
 # "Since the last working day" -- on a Monday that reaches back over the weekend,
 # so Saturday's guilty commits still get counted.
@@ -53,8 +58,30 @@ if [[ -z "${GH_TOKEN:-}" && -r "$HOME/.config/zsh/.zprofile" ]]; then
   export GH_TOKEN
 fi
 
-gh auth status >/dev/null 2>&1 || die "gh is not authenticated (no GH_TOKEN, and no gh login)"
-login=$(fetch gh api user --jq .login) || die "cannot reach the GitHub API"
+# Assert credentials LOCALLY. `gh auth status` reaches api.github.com to validate
+# the token, so on a dead network it reports "the token is invalid" for a perfectly
+# good token -- which is how a 40-minute post-resume outage on 2026-09-01 got logged
+# as an auth failure. Distinguishing missing-token from unreachable-network from
+# rejected-token needs the three checks kept separate.
+[[ -n "${GH_TOKEN:-}" || -r "$HOME/.config/gh/hosts.yml" ]] \
+  || die "no credentials (GH_TOKEN unset and no gh login)"
+
+# Wait for real connectivity before spending the token on it. The timer fires at
+# 08:05, which lands inside the window where the laptop has resumed but the dock's
+# ethernet is holding the default route with no upstream. Unauthenticated so that a
+# failure here can only mean the network.
+wait_for_network() {
+  local attempt
+  for ((attempt = 1; attempt <= NETWORK_WAIT_ATTEMPTS; attempt++)); do
+    curl -sf -o /dev/null --max-time 10 https://api.github.com/ && return 0
+    (( attempt < NETWORK_WAIT_ATTEMPTS )) && sleep "$NETWORK_WAIT_INTERVAL"
+  done
+  return 1
+}
+wait_for_network \
+  || die "no route to api.github.com in $NETWORK_WAIT_ATTEMPTS probes"
+
+login=$(fetch gh api user --jq .login) || die "GitHub rejected the credentials"
 
 contributions=$(fetch gh api graphql \
   -F login="$login" -F from="$from" -F to="$to" \

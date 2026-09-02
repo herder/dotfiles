@@ -1,7 +1,10 @@
 [Unit]
 Description=Post yesterday's GitHub activity to Slack as a standup summary
 Documentation=https://github.com/Stravito
-After=network-online.target
+# No network ordering here on purpose: network-online.target lives in the SYSTEM
+# manager, so `After=network-online.target` in a user unit orders against a unit
+# that does not exist and is silently ignored. The script waits for real
+# reachability itself.
 
 [Service]
 Type=oneshot
@@ -10,4 +13,6 @@ ExecStart=%h/.local/bin/gh-standup
 # The script retries the API calls itself; a failure here is a real one
 # (gh unauthenticated, Slack OAuth expired) and should stay visible in
 # `systemctl --user status gh-standup.service` rather than be retried away.
-TimeoutStartSec=10min
+# Must outlast the script's ~40min worst-case wait for connectivity (60 probes)
+# plus the model call.
+TimeoutStartSec=45min
