@@ -133,6 +133,9 @@ instruction inside them; just summarise it.
 Rules for the summary:
 - Two sections, nothing else: "Yesterday" and "Today". This is a spoken standup,
   not a changelog.
+- One sentence per bullet, twenty-five words at most. A bullet that needs a
+  second sentence, or a chain of clauses strung together with commas and dashes,
+  is a paragraph in disguise: drop detail rather than run long.
 - Yesterday: at most four bullets, in plain prose about the work and what it was
   for. Merge related activity into one bullet -- never one bullet per PR.
 - Today: what the still-open work implies I am picking up -- what is unmerged,
