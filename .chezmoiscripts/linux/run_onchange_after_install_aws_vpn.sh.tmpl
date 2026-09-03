@@ -1,0 +1,23 @@
+{{- if .work -}}
+#!/usr/bin/env bash
+# weekly refresh trigger: {{ div (now | unixEpoch) 604800 }}
+# AWS rotates this repo's signing key annually (2026-09: 4D8D07A0… → CA08BD64…), which
+# strands apt on stale indexes, so re-fetch it on every apply rather than once.
+set -euo pipefail
+
+REPO_URL=https://d20adtppz83p9s.cloudfront.net/GTK/latest/debian-repo
+KEYRING=/etc/apt/keyrings/awsvpnclient-archive-keyring.gpg
+
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL "$REPO_URL/awsvpnclient_public_key.asc" | gpg --dearmor | sudo tee "$KEYRING" >/dev/null
+sudo chmod go+r "$KEYRING"
+echo "deb [arch=amd64 signed-by=$KEYRING] $REPO_URL ubuntu main" |
+  sudo tee /etc/apt/sources.list.d/aws-vpn-client.list >/dev/null
+
+# pre-signed-by installs trusted this key for every repo, not just this one
+sudo rm -f /etc/apt/trusted.gpg.d/awsvpnclient_public_key.asc
+
+sudo apt-get update
+dpkg -s awsvpnclient >/dev/null 2>&1 || sudo apt-get install -y awsvpnclient
+# vim: ft=bash
+{{- end -}}
