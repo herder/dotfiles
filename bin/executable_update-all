@@ -16,161 +16,169 @@ run() {
     "$@" || printf '\033[1;33m   ⚠ %s returned non-zero\033[0m\n' "$1"
 }
 
-# ── System packages ──────────────────────────────────────────────────
-section "System packages"
+# Everything lives in main() so the shell parses the whole file before running
+# any of it: chezmoi rewrites this very script, and dash reads by byte offset.
+main() {
+    # Dotfiles first — chezmoi's scripts install the apt repos and the tools every
+    # later section consumes, so applying them last leaves each step a run behind.
+    section "Dotfiles"
 
-if has apt; then
-    printf '   apt\n'
-    run sudo apt update
-    run sudo apt upgrade -y
-    run sudo apt autoremove -y
-elif has yay; then
-    printf '   yay\n'
-    run yay -Syu
-    run yay -Yc --noconfirm
-fi
-
-if has brew; then
-    printf '   brew\n'
-    run brew update
-    run brew upgrade
-    run brew upgrade --cask
-    run brew autoremove
-    run brew cleanup
-fi
-
-if has flatpak; then
-    printf '   flatpak\n'
-    run flatpak update -y
-    run flatpak uninstall --unused -y
-    # repair prunes dangling objects from the local OSTree repo — flatpak has no `clean`
-    run sudo flatpak repair
-fi
-
-# ── Language toolchains ──────────────────────────────────────────────
-section "Language toolchains"
-
-if has rustup; then
-    printf '   rustup\n'
-    run rustup update
-fi
-
-if has cargo && cargo install-update --version >/dev/null 2>&1; then
-    printf '   cargo install-update\n'
-    run cargo install-update -a
-else
-    skip "cargo-update"
-fi
-
-if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
-    printf '   sdkman\n'
-    bash -c '. "$HOME/.sdkman/bin/sdkman-init.sh" && sdk update && sdk upgrade' \
-        || printf '\033[1;33m   ⚠ sdkman returned non-zero\033[0m\n'
-else
-    skip "sdkman"
-fi
-
-if has n; then
-    printf '   n (node)\n'
-    run n lts
-fi
-
-if has npm; then
-    printf '   npm globals\n'
-    # `npm update -g` refuses to upgrade npm itself; self-upgrade explicitly first.
-    run npm install -g npm@latest
-    run npm update -g
-fi
-
-if [ -d "$HOME/.goenv" ]; then
-    printf '   goenv\n'
-    run git -C "$HOME/.goenv" pull
-fi
-
-if [ -d "$HOME/.rbenv" ]; then
-    printf '   rbenv\n'
-    run git -C "$HOME/.rbenv" pull
-    for plugin_dir in "$HOME/.rbenv/plugins"/*/; do
-        [ -d "$plugin_dir/.git" ] && run git -C "$plugin_dir" pull
-    done
-fi
-
-# ── Dotfiles ─────────────────────────────────────────────────────────
-section "Dotfiles"
-
-if has chezmoi; then
-    if [ -n "${SSH_CONNECTION:-}" ]; then
-        printf '   chezmoi skipped (SSH session)\n'
-    else
-        printf '   chezmoi\n'
-        run chezmoi update --apply
+    if has chezmoi; then
+        if [ -n "${SSH_CONNECTION:-}" ]; then
+            printf '   chezmoi skipped (SSH session)\n'
+        else
+            printf '   chezmoi\n'
+            # a newer update-all lands here, but only takes effect next run
+            run chezmoi update --apply
+        fi
     fi
-fi
 
-# ── Plugin managers & tools ──────────────────────────────────────────
-section "Plugins & tools"
+    # ── System packages ──────────────────────────────────────────────
+    section "System packages"
 
-if has antidote; then
-    printf '   antidote\n'
-    run antidote update
-fi
+    if has apt; then
+        printf '   apt\n'
+        run sudo apt update
+        run sudo apt upgrade -y
+        run sudo apt autoremove -y
+    elif has yay; then
+        printf '   yay\n'
+        run yay -Syu
+        run yay -Yc --noconfirm
+    fi
 
-if has uv; then
-    printf '   uv tools\n'
-    run uv tool upgrade --all
-fi
+    if has brew; then
+        printf '   brew\n'
+        run brew update
+        run brew upgrade
+        run brew upgrade --cask
+        run brew autoremove
+        run brew cleanup
+    fi
 
-if has bob; then
-    printf '   bob (neovim)\n'
-    # follow latest stable; `bob update --all` only refreshes channel-pinned versions,
-    # so pinned semver installs would never see a major bump.
-    run bob use stable
-fi
+    if has flatpak; then
+        printf '   flatpak\n'
+        run flatpak update -y
+        run flatpak uninstall --unused -y
+        # repair prunes dangling objects from the local OSTree repo — flatpak has no `clean`
+        run sudo flatpak repair
+    fi
 
-if [ -d "$HOME/.fzf" ] && [ -x "$HOME/.fzf/install" ]; then
-    printf '   fzf\n'
-    run git -C "$HOME/.fzf" pull
-    run "$HOME/.fzf/install" --all
-else
-    skip "fzf (git install)"
-fi
+    # ── Language toolchains ──────────────────────────────────────────
+    section "Language toolchains"
 
-if [ -x "$HOME/.tmux/plugins/tpm/bin/update_plugins" ]; then
-    printf '   tpm (tmux plugins)\n'
-    run "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
-fi
+    if has rustup; then
+        printf '   rustup\n'
+        run rustup update
+    fi
 
-if has gh; then
-    printf '   gh extensions\n'
-    run gh extension upgrade --all
-fi
+    if has cargo && cargo install-update --version >/dev/null 2>&1; then
+        printf '   cargo install-update\n'
+        run cargo install-update -a
+    else
+        skip "cargo-update"
+    fi
 
-if has fwupdmgr; then
-    printf '   firmware\n'
-    run fwupdmgr refresh --force
-    run fwupdmgr update
-fi
+    if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
+        printf '   sdkman\n'
+        bash -c '. "$HOME/.sdkman/bin/sdkman-init.sh" && sdk update && sdk upgrade' \
+            || printf '\033[1;33m   ⚠ sdkman returned non-zero\033[0m\n'
+    else
+        skip "sdkman"
+    fi
 
-# ── Ollama models ──────────────────────────────────────────────────
-if has ollama; then
-    stamp="$HOME/.local/state/ollama-model-update"
-    week_ago=$(( $(date +%s) - 604800 ))
-    last_update=$(cat "$stamp" 2>/dev/null || echo 0)
-    if [ "$last_update" -lt "$week_ago" ]; then
-        section "Ollama models"
-        for model in $(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}'); do
-            printf '   %s\n' "$model"
-            run ollama pull "$model"
+    if has n; then
+        printf '   n (node)\n'
+        run n lts
+    fi
+
+    if has npm; then
+        printf '   npm globals\n'
+        # `npm update -g` refuses to upgrade npm itself; self-upgrade explicitly first.
+        run npm install -g npm@latest
+        run npm update -g
+    fi
+
+    if [ -d "$HOME/.goenv" ]; then
+        printf '   goenv\n'
+        run git -C "$HOME/.goenv" pull
+    fi
+
+    if [ -d "$HOME/.rbenv" ]; then
+        printf '   rbenv\n'
+        run git -C "$HOME/.rbenv" pull
+        for plugin_dir in "$HOME/.rbenv/plugins"/*/; do
+            [ -d "$plugin_dir/.git" ] && run git -C "$plugin_dir" pull
         done
-        mkdir -p "$(dirname "$stamp")"
-        date +%s > "$stamp"
-    else
-        section "Ollama models"
-        printf '   updated < 7 days ago, skipping\n'
     fi
-else
-    skip "ollama"
-fi
 
-# ── Done ─────────────────────────────────────────────────────────────
-printf '\n\033[1;32mDone.\033[0m\n'
+    # ── Plugin managers & tools ──────────────────────────────────────
+    section "Plugins & tools"
+
+    if has antidote; then
+        printf '   antidote\n'
+        run antidote update
+    fi
+
+    if has uv; then
+        printf '   uv tools\n'
+        run uv tool upgrade --all
+    fi
+
+    if has bob; then
+        printf '   bob (neovim)\n'
+        # follow latest stable; `bob update --all` only refreshes channel-pinned versions,
+        # so pinned semver installs would never see a major bump.
+        run bob use stable
+    fi
+
+    if [ -d "$HOME/.fzf" ] && [ -x "$HOME/.fzf/install" ]; then
+        printf '   fzf\n'
+        run git -C "$HOME/.fzf" pull
+        run "$HOME/.fzf/install" --all
+    else
+        skip "fzf (git install)"
+    fi
+
+    if [ -x "$HOME/.tmux/plugins/tpm/bin/update_plugins" ]; then
+        printf '   tpm (tmux plugins)\n'
+        run "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
+    fi
+
+    if has gh; then
+        printf '   gh extensions\n'
+        run gh extension upgrade --all
+    fi
+
+    if has fwupdmgr; then
+        printf '   firmware\n'
+        run fwupdmgr refresh --force
+        run fwupdmgr update
+    fi
+
+    # ── Ollama models ────────────────────────────────────────────────
+    if has ollama; then
+        stamp="$HOME/.local/state/ollama-model-update"
+        week_ago=$(( $(date +%s) - 604800 ))
+        last_update=$(cat "$stamp" 2>/dev/null || echo 0)
+        if [ "$last_update" -lt "$week_ago" ]; then
+            section "Ollama models"
+            for model in $(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}'); do
+                printf '   %s\n' "$model"
+                run ollama pull "$model"
+            done
+            mkdir -p "$(dirname "$stamp")"
+            date +%s > "$stamp"
+        else
+            section "Ollama models"
+            printf '   updated < 7 days ago, skipping\n'
+        fi
+    else
+        skip "ollama"
+    fi
+
+    # ── Done ─────────────────────────────────────────────────────────
+    printf '\n\033[1;32mDone.\033[0m\n'
+}
+
+main "$@"
