@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# Which Claude Code session owns a pull request?
+#
+# Usage: claude-whose-pr <org/repo#N>
+#        claude-whose-pr <org/repo> <N>
+# Examples:
+#   claude-whose-pr Stravito/platform#9779
+#   claude-whose-pr Stravito/auth 226
+#
+# Derives the answer instead of storing it:
+#   PR -> head branch (gh) -> the worktree holding that branch (git)
+#      -> that worktree's claude-session.lock -> the owning session.
+#
+# Nothing is indexed, so nothing goes stale when a worktree changes hands. A
+# session may own many worktrees across many repos; that does not matter here
+# because the traversal is many-to-one and runs toward the one.
+#
+# The repo must be named: a bare number is ambiguous across repos, and gh would
+# resolve it against whatever directory you happen to be standing in.
+set -euo pipefail
+
+die() { printf '%s: %s\n' "${0##*/}" "$*" >&2; exit 1; }
+
+case $# in
+    1) [[ $1 == */*#* ]] || die "expected <org/repo#N>, got '$1'"
+       repo=${1%%#*}; num=${1##*#} ;;
+    2) repo=$1; num=$2 ;;
+    *) cat >&2 <<USAGE
+Usage: ${0##*/} <org/repo#N>
+       ${0##*/} <org/repo> <N>
+Examples:
+  ${0##*/} Stravito/platform#9779
+  ${0##*/} Stravito/auth 226
+USAGE
+       exit 2 ;;
+esac
+
+[[ $repo == */* ]]        || die "repo must be <org>/<name>, got '$repo'"
+[[ $num =~ ^[0-9]+$ ]]    || die "PR number must be numeric, got '$num'"
+
+org=${repo%%/*}
+name=${repo##*/}
+
+pr=$(gh pr view "$num" --repo "$repo" --json headRefName,state,title,url 2>/dev/null) \
+    || die "cannot read $repo#$num (does it exist? is gh authenticated?)"
+
+branch=$(jq -r '.headRefName' <<<"$pr")
+state=$(jq -r '.state' <<<"$pr")
+title=$(jq -r '.title' <<<"$pr")
+url=$(jq -r '.url' <<<"$pr")
+
+printf '%s#%s  [%s]  %s\n%s\n\n' "$repo" "$num" "$state" "$title" "$url"
+printf 'head branch: %s\n' "$branch"
+
+clone="$HOME/src/git/github.com/$org/$name"
+[[ -d $clone/.git ]] || die "no local clone at $clone"
+
+# Walk the worktree registry for the branch. `git worktree list --porcelain`
+# emits stanzas of `worktree <path>` / `branch refs/heads/<name>`, so pair them
+# up rather than assuming field order.
+worktree=$(git -C "$clone" worktree list --porcelain 2>/dev/null | awk -v want="refs/heads/$branch" '
+    /^worktree /  { path = $2 }
+    /^branch /    { if ($2 == want) { print path; exit } }
+')
+
+if [[ -n ${worktree:-} ]]; then
+    printf 'worktree:    %s\n' "$worktree"
+    lock="$(git -C "$worktree" rev-parse --git-dir)/claude-session.lock"
+    if [[ -r $lock ]]; then
+        printf '\n--- owning session ---\n'
+        cat "$lock"
+    else
+        printf '\nNo session lock: the worktree exists but no session has claimed it.\n'
+        printf 'Either the work predates the lock convention, or nobody is on it.\n'
+    fi
+else
+    printf 'worktree:    none (branch not checked out in any worktree)\n'
+    printf '\nThe worktree was probably removed after merge. Searching session\n'
+    printf 'transcripts for a session that mentioned this PR...\n\n'
+    # Match the URL and the fully-qualified shorthand; a bare "#N" would collide
+    # with unrelated issue numbers in other repos.
+    found=0
+    while IFS= read -r t; do
+        found=1
+        id=$(basename "$t" .jsonl)
+        # Subagent transcripts are named agent-*; only bare UUIDs are sessions a
+        # human was driving, which is what "whose" is actually asking about.
+        case $id in
+            agent-*) kind='subagent' ;;
+            *)       kind='session ' ;;
+        esac
+        printf '  %s %s  (last written %s)\n' "$kind" "$id" \
+            "$(date -r "$t" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '?')"
+    done < <(grep -rl -e "$url" -e "$repo#$num" \
+                 --include='*.jsonl' "$HOME/.claude/projects" 2>/dev/null | head -10)
+    (( found )) || printf '  nothing found — no transcript on this machine mentions it\n'
+    printf '\n(Transcript ids are Claude session UUIDs, not tmux panes; locks are\n'
+    printf 'per-machine, so another machine may hold the answer.)\n'
+fi
+
+# Live cross-check. Claude Code sets each pane's title to its current task, and
+# the tmux-claude-desc hook rewrites GitHub references into <repo>#<N>, so an
+# active pane working this PR shows up here even with no lock.
+if [[ -n ${TMUX:-} ]] || tmux list-panes -a >/dev/null 2>&1; then
+    panes=$(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_id}	#{pane_title}' 2>/dev/null \
+            | grep -F "$name#$num" || true)
+    if [[ -n $panes ]]; then
+        printf '\n--- live panes whose title names this PR ---\n%s\n' "$panes"
+    fi
+fi
