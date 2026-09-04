@@ -22,21 +22,35 @@ set -euo pipefail
 die() { printf '%s: %s\n' "${0##*/}" "$*" >&2; exit 1; }
 
 case $# in
-    1) [[ $1 == */*#* ]] || die "expected <org/repo#N>, got '$1'"
+    1) [[ $1 == *#* ]] || die "expected <org/repo#N> or <repo#N>, got '$1'"
        repo=${1%%#*}; num=${1##*#} ;;
     2) repo=$1; num=$2 ;;
     *) cat >&2 <<USAGE
-Usage: ${0##*/} <org/repo#N>
-       ${0##*/} <org/repo> <N>
+Usage: ${0##*/} <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
 Examples:
   ${0##*/} Stravito/platform#9779
+  ${0##*/} platform#9779          # org inferred from the cwd's origin remote
   ${0##*/} Stravito/auth 226
 USAGE
        exit 2 ;;
 esac
 
-[[ $repo == */* ]]        || die "repo must be <org>/<name>, got '$repo'"
-[[ $num =~ ^[0-9]+$ ]]    || die "PR number must be numeric, got '$num'"
+[[ $num =~ ^[0-9]+$ ]] || die "PR number must be numeric, got '$num'"
+
+# `platform#9779` is the natural thing to type. Infer the org from the current
+# repo's origin, but ONLY when the name matches -- inferring across repos would
+# silently answer about the wrong one, which is the whole reason the qualified
+# form is required in the first place.
+if [[ $repo != */* ]]; then
+    origin=$(git remote get-url origin 2>/dev/null || true)
+    [[ -n $origin ]] || die "'$repo' has no org, and the current directory is not a git repo to infer one from"
+    inferred=${origin%.git}; inferred=${inferred##*[:/]}
+    inferred_org=$(sed -E 's|.*[:/]([^/]+)/[^/]+$|\1|' <<<"${origin%.git}")
+    [[ $inferred == "$repo" ]] \
+        || die "'$repo' has no org, and this directory's origin is '$inferred_org/$inferred' -- name the org explicitly"
+    repo="$inferred_org/$repo"
+    printf 'inferred org from origin: %s\n' "$repo" >&2
+fi
 
 org=${repo%%/*}
 name=${repo##*/}
@@ -69,6 +83,20 @@ if [[ -n ${worktree:-} ]]; then
     if [[ -r $lock ]]; then
         printf '\n--- owning session ---\n'
         cat "$lock"
+        # A lock outlives the session that wrote it -- a resumed session comes
+        # back under a new name, and a crashed one never cleans up. The recorded
+        # pid is the cheapest local liveness signal; check the cmdline too, since
+        # pids get recycled and a stranger's process would otherwise read as live.
+        lock_pid=$(awk -F': *' '/^pid:/ {print $2; exit}' "$lock")
+        if [[ -n ${lock_pid:-} && -r /proc/$lock_pid/cmdline ]] \
+           && tr '\0' ' ' < "/proc/$lock_pid/cmdline" | grep -qi claude; then
+            printf '\nProcess %s is alive — the lock looks current.\n' "$lock_pid"
+        else
+            printf '\n*** STALE: process %s is gone, so that session has ended. ***\n' "${lock_pid:-?}"
+            printf 'The work may well be continuing under a new session name (a resumed\n'
+            printf 'session is renamed), so treat this as "nobody is holding it right now"\n'
+            printf 'rather than "nobody did it".\n'
+        fi
     else
         printf '\nNo session lock: the worktree exists but no session has claimed it.\n'
         printf 'Either the work predates the lock convention, or nobody is on it.\n'
