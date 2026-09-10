@@ -1,0 +1,13 @@
+{{- if .work -}}
+#!/usr/bin/env bash
+# Claude Code, work machines only (see rules: machine-identity-separation). The native
+# installer puts versions in ~/.local/share/claude and a symlink in ~/.local/bin; it
+# self-updates afterwards, so run_once is enough. ~/.claude itself is a separate
+# checkout of claude-private, cloned by run_once_install_claude_private.
+set -euo pipefail
+if [ ! -x "$HOME/.local/bin/claude" ]; then
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
+"$HOME/.local/bin/claude" --version
+# vim: ft=bash
+{{- end -}}
