@@ -2,7 +2,8 @@
 #!/usr/bin/env bash
 # weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
-export PATH="$HOME/.cargo/bin:$PATH"
+# chezmoi may be invoked from a shell without the user bin dirs on PATH (externals live in ~/.local/bin)
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
