@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # -y: no confirmation prompt; -n: leave shell init files alone (zshrc already exports N_PREFIX).
-if [ ! -x "$HOME/n/bin/n" ]; then
-  curl -L https://bit.ly/n-install | N_PREFIX="$HOME/n" bash -s -- -y -n
+# n itself defaults to /usr/local/n unless N_PREFIX is in *its* environment too.
+export N_PREFIX="$HOME/n"
+if [ ! -x "$N_PREFIX/bin/n" ]; then
+  curl -L https://bit.ly/n-install | bash -s -- -y -n
 fi
-"$HOME/n/bin/n" latest
+"$N_PREFIX/bin/n" latest
 # vim: ft=bash
