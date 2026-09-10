@@ -1,28 +1,30 @@
-{{- if and (not .headless) (not .ephemeral) -}}
+{{- if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
 #!/usr/bin/env bash
 # weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
 
-latest=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | jq -r '.tag_name' | tr -d 'v')
-
-if [ -z "$latest" ] || [ "$latest" = "null" ]; then
-  echo "Failed to fetch latest Obsidian version"
+# /releases/latest is not enough: Obsidian tags Android-only releases too (v1.13.8 shipped
+# just an .apk), so take the newest release that actually carries an amd64 .deb, and use
+# the asset URL the API gives us rather than constructing one.
+read -r version url < <(curl -fsSL 'https://api.github.com/repos/obsidianmd/obsidian-releases/releases?per_page=15' \
+  | jq -r '[.[] | select(.prerelease == false) | .assets[] | select(.name | endswith("_amd64.deb"))
+            | "\(.name | capture("obsidian_(?<v>[0-9.]+)_amd64").v) \(.browser_download_url)"] | first // empty')
+if [ -z "${version:-}" ]; then
+  echo "Could not find an Obsidian release with an amd64 .deb (API rate-limited?)" >&2
   exit 1
 fi
 
-installed=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || echo "")
-
-if [ "$installed" = "$latest" ]; then
-  echo "Obsidian $latest already installed"
+installed=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || true)
+if [ "$installed" = "$version" ]; then
+  echo "Obsidian $version already installed"
   exit 0
 fi
 
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
-
-echo "Installing Obsidian $latest (was: ${installed:-not installed})..."
-curl -Lo "$dir/obsidian.deb" "https://github.com/obsidianmd/obsidian-releases/releases/download/v${latest}/obsidian_${latest}_amd64.deb"
-sudo dpkg -i "$dir/obsidian.deb" || sudo apt-get install -f -y
-
+echo "Installing Obsidian $version (was: ${installed:-not installed}) from $url"
+curl -fsSL -o "$dir/obsidian.deb" "$url"
+sudo apt-get install -y "$dir/obsidian.deb"
+[ "$(dpkg-query -W -f='${Version}' obsidian)" = "$version" ] || { echo "Obsidian install did not land" >&2; exit 1; }
 # vim: ft=bash
 {{- end }}
