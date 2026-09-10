@@ -83,6 +83,9 @@ TMPPREFIX="${TMPDIR%/}/zsh"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
+# Leading `warn` keeps other Rust programs' defaults; bare cosmic_comp=info silences them.
+export RUST_LOG='warn,cosmic_comp=info'
+
 export GH_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" .opAccount }}
 export GITHUB_PERSONAL_ACCESS_TOKEN={{ onepasswordRead "op://Private/GH CLI/token" .opAccount }}
 {{- if .work }}
