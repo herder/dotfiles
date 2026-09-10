@@ -84,7 +84,6 @@ packages:
       - "pandoc"
       - "postgresql-client-common"
       - "ripgrep"
-      - "slack-desktop"
       - "sqlfluff"
       - "steam"
       - "tig"

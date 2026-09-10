@@ -1,0 +1,19 @@
+{{- if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
+#!/usr/bin/env bash
+# Slack from Slack's own apt repo. Pop's proprietary repo carries slack-desktop too, but
+# a year behind (4.33 vs 4.52 in 2026-09), so this must win: keyed on the repo file, not the
+# binary, so a machine that already has the Pop build gets moved over.
+set -euo pipefail
+LIST=/etc/apt/sources.list.d/slack.list
+KEYRING=/etc/apt/keyrings/slack-archive-keyring.gpg
+if [ ! -f "$LIST" ]; then
+  sudo mkdir -p -m 755 /etc/apt/keyrings
+  curl -fsSL https://packagecloud.io/slacktechnologies/slack/gpgkey | gpg --dearmor | sudo tee "$KEYRING" >/dev/null
+  sudo chmod go+r "$KEYRING"
+  echo "deb [signed-by=$KEYRING] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee "$LIST" >/dev/null
+  sudo apt-get update
+fi
+# installs or upgrades; the deb's postinst then takes over $LIST with its own copy
+sudo apt-get install -y slack-desktop
+# vim: ft=bash
+{{- end -}}
