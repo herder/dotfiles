@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+set -euo pipefail
+# --bin: binary only. dot_zsh.after/fzf.zsh sources ~/.fzf/shell/* itself, and the
+# installer's rc edits would land in a ~/.zshrc that ZDOTDIR makes zsh ignore.
 if [[ ! -d ~/.fzf ]]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install
 fi
+~/.fzf/install --bin
 # vim: ft=bash

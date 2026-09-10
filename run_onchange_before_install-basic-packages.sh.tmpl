@@ -1,23 +1,17 @@
 #!/usr/bin/env bash
 # packages.yaml hash: {{ include ".chezmoidata/packages.yaml" | sha256sum }}
+set -eu
 {{ if eq .osid "linux-arch" }}
 echo "Installing required arch packages"
 yes | sudo pacman -S {{ .packages.linux.pacman | quoteList | join " " }}
 yes | yay -S {{ .packages.linux.yay | quoteList | join " " }}
 {{ else if eq .osid "linux-pop" }}
-echo "Pop os detected, do something"
-sudo apt install -y {{ .packages.linux.apt | quoteList | join " " }}
+echo "Installing required apt packages"
+sudo apt-get install -y {{ .packages.linux.apt | quoteList | join " " }}
 {{ else if eq .osid "darwin" }}
 echo "Installing macOS packages via Homebrew"
 brew install {{ .packages.macos.brew | quoteList | join " " }}
 brew install --cask {{ .packages.macos.cask | quoteList | join " " }}
 {{ end }}
-
-ln -sf ~/.tmux_runtime/.tmux.conf ~/.tmux.conf
-if ! type cargo >/dev/null 2>&1; then
-  source $HOME/.cargo/env
-fi
-{{ range .packages.cargolocked -}}
-yes | cargo binstall --locked {{ . | quote }}
-{{ end -}}
-yes | cargo binstall {{ .packages.cargo | quoteList | join " " }}
+# cargo tools live in run_onchange_after_install-cargo-tools: this runs before the
+# rust toolchain exists on a fresh machine.

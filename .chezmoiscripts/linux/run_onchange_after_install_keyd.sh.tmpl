@@ -1,13 +1,15 @@
-{{ if and (eq .osid "linux-pop") .personal -}}
+{{ if and (eq .chezmoi.os "linux") (not .ephemeral) -}}
 #!/usr/bin/env bash
-
-dir=$(mktemp -d)
-echo "install keyd"
-git clone https://github.com/rvaiya/keyd $dir
-cd $dir
-mkdir -p /etc/keyd
-make && sudo make install
-sudo mv -f examples/capslock-escape-with-vim-mode.conf /etc/keyd/default.conf
+set -euo pipefail
+if ! command -v keyd >/dev/null 2>&1; then
+  dir=$(mktemp -d)
+  trap 'rm -rf "$dir"' EXIT
+  echo "install keyd"
+  git clone --depth 1 https://github.com/rvaiya/keyd "$dir"
+  cd "$dir"
+  make && sudo make install
+  sudo mkdir -p /etc/keyd
+  sudo install -m 0644 examples/capslock-escape-with-vim-mode.conf /etc/keyd/default.conf
+fi
 sudo systemctl enable --now keyd
 {{ end -}}
-

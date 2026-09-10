@@ -5,14 +5,22 @@ Chezmoi-managed dotfiles for Linux (apt/pacman) and macOS.
 ## Fresh machine setup
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/herder/dotfiles/main/bootstrap.sh | bash
+bash <(curl -fsSL https://raw.githubusercontent.com/herder/dotfiles/main/bootstrap.sh)
 ```
+
+Process substitution, not `curl | bash`: the script and everything it runs (chezmoi's
+config prompts, chsh, apt, rustup, ssh) must have the terminal on stdin. The script
+re-attaches `/dev/tty` itself if you forget, but it cannot do that from a non-interactive
+context.
+
+In the 1Password app, enable **both** Settings → Developer → *Integrate with 1Password
+CLI* and *Use the SSH agent*. The script waits for each and says which one it is missing.
 
 This handles the chicken-and-egg problem: 1Password must be installed and authenticated before chezmoi can apply (templates use `onepasswordRead`). The script:
 
 1. Detects OS (apt / pacman / macOS+Homebrew)
 2. Installs 1Password + CLI
-3. Walks through sign-in and waits for SSH agent
+3. Walks through sign-in, proves `op read` works, waits for the SSH agent to offer a key
 4. Installs zsh, sets it as default shell
 5. Installs chezmoi and runs `chezmoi init --apply`
 

@@ -1,7 +1,6 @@
 {{- if (not .ephemeral) -}}
 #!/bin/bash
-
 set -eufo pipefail
-
-chsh -s /usr/bin/zsh
+# bootstrap.sh has usually done this already; only prompt for a password when it hasn't
+[ "$(getent passwd "$USER" | cut -d: -f7)" = /usr/bin/zsh ] || chsh -s /usr/bin/zsh
 {{- end -}}

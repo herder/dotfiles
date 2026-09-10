@@ -8,6 +8,15 @@
 
 set -euo pipefail
 
+# `curl | bash` leaves stdin as the pipe. Anything below that reads stdin — chsh,
+# apt, rustup, ssh's host-key prompt, and chezmoi itself — would then either eat
+# the rest of this script or see "not a TTY". chezmoi's config template treats a
+# non-TTY stdin as an ephemeral headless machine and remembers that answer, so
+# this is the difference between a workstation and a container.
+if [ ! -t 0 ]; then
+  exec </dev/tty || { echo "No terminal available; run this from an interactive shell." >&2; exit 1; }
+fi
+
 # --- OS Detection ---
 
 detect_os() {
@@ -34,6 +43,24 @@ detect_os() {
 
 OS="$(detect_os)"
 echo "Detected OS: $OS"
+
+# --- Prerequisites the rest of this script and chezmoi init take for granted ---
+
+install_prereqs() {
+  case "$OS" in
+    linux-apt)
+      local missing=()
+      for p in git curl gpg; do command -v "$p" >/dev/null 2>&1 || missing+=("$p"); done
+      if [ ${#missing[@]} -gt 0 ]; then
+        echo "Installing prerequisites: ${missing[*]}"
+        sudo apt-get update
+        sudo apt-get install -y "${missing[@]}"
+      fi
+      ;;
+  esac
+}
+
+install_prereqs
 
 # --- 1Password Installation ---
 
@@ -92,8 +119,10 @@ echo "============================================"
 echo " 1Password Setup"
 echo "============================================"
 echo ""
-echo "After signing in, enable:"
-echo "  Settings -> Developer -> SSH Agent"
+echo "After signing in, enable BOTH of these in the 1Password app:"
+echo "  Settings -> Developer -> Integrate with 1Password CLI   (chezmoi reads secrets through 'op')"
+echo "  Settings -> Developer -> Use the SSH agent               (git clone over SSH during apply)"
+echo "Nothing below proceeds until both are on."
 echo ""
 
 start_1password_login() {
@@ -106,8 +135,13 @@ start_1password_login() {
     echo "Opening 1Password GUI... Please sign in."
     1password &>/dev/null &
     echo "Waiting for you to sign in via the GUI..."
+    local waited=0
     while ! op account list 2>/dev/null | grep -q .; do
       sleep 2
+      waited=$((waited + 2))
+      if [ $((waited % 30)) -eq 0 ]; then
+        echo "  still waiting — 'op account list' is empty until Settings -> Developer -> Integrate with 1Password CLI is enabled"
+      fi
     done
     echo "1Password sign-in detected."
   else
@@ -117,6 +151,29 @@ start_1password_login() {
 }
 
 start_1password_login
+
+# --- Prove the CLI integration works for the item chezmoi init reads first ---
+
+verify_op_read() {
+  local ref="op://Private/GH CLI/token" account="my.1password.eu"
+  echo "Verifying 'op read' via the desktop-app integration..."
+  local attempts=0
+  until op read "$ref" --account "$account" >/dev/null 2>&1; do
+    attempts=$((attempts + 1))
+    if [ $((attempts % 10)) -eq 0 ]; then
+      echo "  still failing: approve the CLI authorization prompt in the 1Password app, and check the app is unlocked" >&2
+    fi
+    if [ $attempts -ge 90 ]; then
+      echo "Timed out: 'op read $ref' never succeeded. chezmoi init would fail on its first template." >&2
+      op read "$ref" --account "$account" >/dev/null || true
+      exit 1
+    fi
+    sleep 2
+  done
+  echo "op read works."
+}
+
+verify_op_read
 
 # --- Wait for 1Password SSH Agent ---
 
@@ -146,12 +203,22 @@ wait_for_ssh_agent() {
   export SSH_AUTH_SOCK="$sock"
   echo "SSH agent socket found. Verifying..."
 
-  if ssh-add -l >/dev/null 2>&1; then
-    echo "SSH agent is working."
-  else
-    echo "Warning: SSH agent socket exists but no keys listed yet."
-    echo "This is normal if you haven't added SSH keys to 1Password."
-  fi
+  # chezmoi apply clones herder/claude-private over SSH, so a key-less agent is a
+  # guaranteed failure later. Wait for a key rather than warn and carry on.
+  attempts=0
+  until ssh-add -l >/dev/null 2>&1; do
+    attempts=$((attempts + 1))
+    if [ $((attempts % 15)) -eq 0 ]; then
+      echo "  agent answers but lists no keys — unlock 1Password and check the SSH key lives in a vault the agent serves" >&2
+    fi
+    if [ $attempts -ge 90 ]; then
+      echo "Timed out waiting for the 1Password SSH agent to offer a key." >&2
+      ssh-add -l || true
+      exit 1
+    fi
+    sleep 2
+  done
+  echo "SSH agent is working: $(ssh-add -l | wc -l) key(s)."
 }
 
 wait_for_ssh_agent

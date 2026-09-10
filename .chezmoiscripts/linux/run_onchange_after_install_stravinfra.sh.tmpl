@@ -3,6 +3,10 @@
 # weekly refresh trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
 
+# gh has no hosts.yml here; it authenticates via GH_TOKEN, which .zprofile exports for
+# interactive shells but chezmoi's script environment does not have.
+export GH_TOKEN="${GH_TOKEN:-$(op read 'op://Private/GH CLI/token' --account {{ .opAccount }})}"
+
 REPO="Stravito/base_template"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=amd64

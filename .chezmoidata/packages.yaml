@@ -52,6 +52,14 @@ packages:
       - "atool"
       - "autofs"
       - "btop"
+      # toolchain: stock Pop!_OS ships no compiler; rustup, keyd and the COSMIC applet
+      # builds (libcosmic needs xkbcommon + wayland headers) all assume one
+      - "build-essential"
+      - "pkg-config"
+      - "libxkbcommon-dev"
+      - "libwayland-dev"
+      - "git"
+      - "unzip"
       - "cmake"
       - "ddcutil"
       - "direnv"

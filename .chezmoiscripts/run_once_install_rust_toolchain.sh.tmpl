@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-if ! type rustup >/dev/null 2>&1; then
-  curl https://sh.rustup.rs -sSf | sh
-  cargo install cargo-binstall
+set -euo pipefail
+# --no-modify-path: ~/.cargo/bin is already on PATH via dot_zsh.before/01_local.zsh, and
+# rustup would otherwise edit the chezmoi-managed ~/.zshenv.
+if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 fi
 . "$HOME/.cargo/env"
-
-# vim ft=bash
-
+if ! command -v cargo-binstall >/dev/null 2>&1; then
+  curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+fi
+# vim: ft=bash

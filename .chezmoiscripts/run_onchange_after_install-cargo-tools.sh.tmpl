@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Runs after run_once_install_rust_toolchain has put cargo + cargo-binstall in place.
+# packages.yaml hash: {{ include ".chezmoidata/packages.yaml" | sha256sum }}
+set -euo pipefail
+. "$HOME/.cargo/env"
+command -v cargo-binstall >/dev/null 2>&1 || { echo "cargo-binstall missing; rust toolchain script did not run?" >&2; exit 1; }
+{{ range .packages.cargolocked -}}
+cargo binstall --no-confirm --locked {{ . | quote }}
+{{ end -}}
+cargo binstall --no-confirm {{ .packages.cargo | quoteList | join " " }}

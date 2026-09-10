@@ -16,6 +16,11 @@ host pillsupply
     SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" .opAccount }}
     LocalForward 5900 0:5900
 
+# First contact happens inside chezmoi apply (claude-private clone); trust-on-first-use
+# beats an interactive prompt there. Later key changes still fail loudly.
+Host github.com
+  StrictHostKeyChecking accept-new
+
 Host unifi
 	User ubuntu
 

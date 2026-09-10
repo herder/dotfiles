@@ -1,9 +1,14 @@
 {{- if eq .osid "linux-pop" -}}
 #!/usr/bin/env bash
-curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
-sudo apt install ./keybase_amd64.deb
-run_keybase
-
+set -euo pipefail
+if ! command -v keybase >/dev/null 2>&1; then
+  dir=$(mktemp -d)
+  trap 'rm -rf "$dir"' EXIT
+  curl -fsSL -o "$dir/keybase_amd64.deb" https://prerelease.keybase.io/keybase_amd64.deb
+  sudo apt-get install -y "$dir/keybase_amd64.deb"
+  # First sign-in needs the services and GUI up. Only on a fresh install: on laptops
+  # run_onchange_after_disable_keybase_autostart keeps it off afterwards on purpose.
+  run_keybase
+fi
 # vim: ft=bash
 {{- end -}}
-
