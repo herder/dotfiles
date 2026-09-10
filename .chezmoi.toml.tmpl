@@ -4,6 +4,7 @@
 {{- $laptop := false -}}{{/* true if this machine is a laptop*/}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
+{{- $tailscale := false -}}{{/* true to install Tailscale and join the tailnet */}}
 {{- $keybase := false -}}{{/* true to install Keybase (KBFS wedges suspend on laptops; opt in deliberately) */}}
 {{- "" -}}
 
@@ -39,6 +40,7 @@
 {{-   $work = promptBoolOnce . "work" "work machine" -}}
 {{-   $laptop = promptBoolOnce . "laptop" "laptop" -}}
 {{-   $keybase = promptBoolOnce . "keybase" "install Keybase" -}}
+{{-   $tailscale = promptBoolOnce . "tailscale" "install Tailscale" -}}
 {{- else if and (not $ephemeral) (not (stdinIsATTY)) -}}
 {{-   $ephemeral = true -}}
 {{-   $headless = true -}}
@@ -65,6 +67,7 @@
     laptop = {{ $laptop }}
     personal = {{ $personal }}
     keybase = {{ $keybase }}
+    tailscale = {{ $tailscale }}
     osid = {{ $osID | quote }}
     kubectlVersion = "v1.33.3"
     ghProjectOwner = {{ $ghProjectOwner | quote }}

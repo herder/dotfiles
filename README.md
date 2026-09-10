@@ -47,6 +47,7 @@ on success, so re-running is safe.
 | `work` | Stravito tooling: Claude Code, AWS CLI/VPN, eksctl, sops, stravinfra, gh-standup, work git identity; also prompts for GitHub project owner/number/username |
 | `laptop` | Keybase autostart removal, Thunderbolt-dock udev rule |
 | `keybase` | opt-in Keybase install; KBFS is a known suspend-wedger, so it is never installed by default |
+| `tailscale` | opt-in Tailscale install (then `sudo tailscale up` to join the tailnet) |
 
 To change an answer: edit `chezmoi.toml`, or delete it and re-run `chezmoi init`. Work
 tooling that must never exist on a personal machine is additionally excluded via
