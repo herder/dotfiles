@@ -42,8 +42,8 @@ on success, so re-running is safe.
 | Flag | Gates |
 |---|---|
 | `ephemeral` | containers/VMs/codespaces: skips chsh, keyd, fonts, desktop apps; auto-true when stdin is not a TTY |
-| `headless` | no display: skips fonts, icon theme, Mattermost, Ollama, piper, Obsidian |
-| `personal` | personal secrets and tools: SSH origin, crontab, Dropbox, JetBrains Toolbox, iFi audio rules |
+| `headless` | no display: skips fonts, icon theme, Mattermost, Ollama, piper, Obsidian, qbz, Dropbox, JetBrains Toolbox |
+| `personal` | personal machine: dotfiles origin over SSH, task-refresh crontab, iFi audio udev rules |
 | `work` | Stravito tooling: AWS CLI/VPN, eksctl, sops, stravinfra, gh-standup, work git identity; also prompts for GitHub project owner/number/username |
 | `laptop` | Keybase autostart removal, Thunderbolt-dock udev rule |
 | `keybase` | opt-in Keybase install; KBFS is a known suspend-wedger, so it is never installed by default |
