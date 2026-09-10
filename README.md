@@ -109,6 +109,11 @@ the repo.
   and idempotent.
 - `run_onchange_before_install-basic-packages` runs before anything else and only installs
   distro packages. Anything needing rust, gh or a display belongs in an `after` script.
+- **Plain (non-`before`/`after`) scripts run before `~/.config` and `~/.local` exist.**
+  chezmoi orders entries by target name and scripts sort as `.chezmoiscripts/…`, which comes
+  before `.config/…`, `.local/…` and `.ssh/…`. A script that needs a managed file or an
+  external binary (uv, just, …) must therefore be `run_*_after_*`; plain scripts may only
+  rely on distro packages and the network.
 - `~/.claude` is **not** managed here. It is a separate checkout of `herder/claude-private`,
   cloned once by `run_once_install_claude_private` and thereafter owned by its own hooks.
 - `docs/superpowers/specs/` holds design notes for the larger pieces (the tmux/Claude session
