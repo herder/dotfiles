@@ -1,0 +1,20 @@
+{{ if and (eq .chezmoi.os "linux") (not .ephemeral) -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The docker package creates the group; its absence means the package install
+# did not run, and silently skipping would leave a broken docker on the machine.
+if ! getent group docker >/dev/null; then
+    echo "docker group missing: did the docker package install?" >&2
+    exit 1
+fi
+
+if ! systemctl is-enabled --quiet docker; then
+    sudo systemctl enable --now docker
+fi
+
+if ! id -nG "$USER" | tr ' ' '\n' | grep -qx docker; then
+    sudo usermod -aG docker "$USER"
+    echo "Added $USER to the docker group; log out and back in to pick it up."
+fi
+{{ end -}}
