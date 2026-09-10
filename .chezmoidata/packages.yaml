@@ -58,6 +58,10 @@ packages:
       - "pkg-config"
       - "libxkbcommon-dev"
       - "libwayland-dev"
+      # kdeconnect applet: libdbus-sys, libpulse-sys, drm-sys
+      - "libdbus-1-dev"
+      - "libpulse-dev"
+      - "libdrm-dev"
       - "git"
       - "unzip"
       - "cmake"
