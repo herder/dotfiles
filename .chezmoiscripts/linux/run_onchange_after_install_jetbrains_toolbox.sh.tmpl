@@ -1,4 +1,4 @@
-{{- if .personal -}}
+{{- if and (not .headless) (not .ephemeral) -}}
 #!/usr/bin/env bash
 # weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail

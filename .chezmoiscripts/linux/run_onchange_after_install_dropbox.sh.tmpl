@@ -1,11 +1,13 @@
-{{- if .personal -}}
+{{- if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
 #!/usr/bin/env bash
-
-curl -L -o dropbox.deb "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2025.05.20_amd64.deb" 
-sudo dpkg -i dropbox.deb
-rm -f dropbox.deb
-
-dropbox start
-
+set -euo pipefail
+if ! command -v dropbox >/dev/null 2>&1; then
+  dir=$(mktemp -d)
+  trap 'rm -rf "$dir"' EXIT
+  curl -fsSL -o "$dir/dropbox.deb" "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_2025.05.20_amd64.deb"
+  sudo apt-get install -y "$dir/dropbox.deb"
+  # first start downloads the proprietary daemon and opens the sign-in flow
+  dropbox start -i
+fi
 # vim: ft=bash
 {{- end -}}
