@@ -1,15 +1,14 @@
-{{- if eq .osid "linux-pop" -}}
+{{- if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
 #!/usr/bin/env bash
-if ! type qbz >/dev/null; then
-  (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) &&
-    sudo mkdir -p -m 755 /etc/apt/keyrings &&
-    curl -fsSL https://vicrodh.github.io/qbz-apt/qbz-archive-keyring.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/qbz-archive-keyring.gpg > /dev/null
-    sudo chmod go+r /etc/apt/keyrings/qbz-archive-keyring.gpg &&
-    echo "deb [signed-by=/etc/apt/keyrings/qbz-archive-keyring.gpg arch=$(dpkg --print-architecture)] https://vicrodh.github.io/qbz-apt stable main" | sudo tee /etc/apt/sources.list.d/qbz.list
-    sudo apt update &&
-    sudo apt install qbz -y
+# qbz: Qobuz hi-fi client. Every machine with a screen gets it.
+set -euo pipefail
+if ! command -v qbz >/dev/null 2>&1; then
+  sudo mkdir -p -m 755 /etc/apt/keyrings
+  curl -fsSL https://vicrodh.github.io/qbz-apt/qbz-archive-keyring.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/qbz-archive-keyring.gpg > /dev/null
+  sudo chmod go+r /etc/apt/keyrings/qbz-archive-keyring.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/qbz-archive-keyring.gpg arch=$(dpkg --print-architecture)] https://vicrodh.github.io/qbz-apt stable main" | sudo tee /etc/apt/sources.list.d/qbz.list > /dev/null
+  sudo apt-get update
+  sudo apt-get install -y qbz
 fi
 # vim: ft=bash
 {{- end -}}
-
-
