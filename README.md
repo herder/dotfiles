@@ -48,7 +48,10 @@ Chezmoi config (`.chezmoi.toml.tmpl`) sets feature flags based on hostname:
 | `lebowski` | yes      | yes  | yes    | no       |
 | `ubuntu`   | yes      | no   | no     | yes      |
 
-Unknown hosts get interactive prompts. Flags control which packages, configs, and secrets are applied.
+All hosts are prompted on first `chezmoi init` (`promptBoolOnce`, so answers stick): ephemeral,
+headless, personal, work, laptop, and **keybase** (opt-in; KBFS is a known suspend-wedger on
+laptops). Flags control which packages, configs, and secrets are applied. To change an answer
+later, edit `~/.config/chezmoi/chezmoi.toml` or delete it and re-run `chezmoi init`.
 
 ## Re-applying
 

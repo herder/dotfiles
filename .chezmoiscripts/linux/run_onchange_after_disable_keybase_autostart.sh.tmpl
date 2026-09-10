@@ -1,4 +1,4 @@
-{{- if and .laptop (eq .osid "linux-pop") -}}
+{{- if and .laptop (eq .osid "linux-pop") (get . "keybase") -}}
 #!/usr/bin/env bash
 # Disable Keybase autostart on laptops.
 #

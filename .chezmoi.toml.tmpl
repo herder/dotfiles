@@ -4,6 +4,7 @@
 {{- $laptop := false -}}{{/* true if this machine is a laptop*/}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
+{{- $keybase := false -}}{{/* true to install Keybase (KBFS wedges suspend on laptops; opt in deliberately) */}}
 {{- "" -}}
 
 {{- $osID := .chezmoi.os -}}
@@ -37,6 +38,7 @@
 {{-   $personal = promptBoolOnce . "personal" "personal machine" -}}
 {{-   $work = promptBoolOnce . "work" "work machine" -}}
 {{-   $laptop = promptBoolOnce . "laptop" "laptop" -}}
+{{-   $keybase = promptBoolOnce . "keybase" "install Keybase" -}}
 {{- else if and (not $ephemeral) (not (stdinIsATTY)) -}}
 {{-   $ephemeral = true -}}
 {{-   $headless = true -}}
@@ -62,6 +64,7 @@
     hostname = {{ $hostname | quote }}
     laptop = {{ $laptop }}
     personal = {{ $personal }}
+    keybase = {{ $keybase }}
     osid = {{ $osID | quote }}
     kubectlVersion = "v1.33.3"
     ghProjectOwner = {{ $ghProjectOwner | quote }}
