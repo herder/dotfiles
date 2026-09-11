@@ -1,0 +1,14 @@
+# Shadows /usr/share/applications/awsvpnclient.desktop, whose Exec quotes the
+# spaces as "AWS\sVPN\sClient" — GLib unescapes that, COSMIC's launcher does not,
+# so the app silently never spawns from the launcher.
+[Desktop Entry]
+Type=Application
+Name=AWS VPN Client
+Comment=AWS VPN Client
+Exec="/opt/awsvpnclient/AWS VPN Client" %u
+Path=/opt/awsvpnclient
+Icon=acvc-64.png
+Terminal=false
+Categories=Network;VPN;
+Keywords=vpn;aws;
+StartupWMClass=AWS VPN Client

@@ -4,4 +4,7 @@
 .local/bin/gh-standup
 .config/systemd/user/gh-standup.service
 .config/systemd/user/gh-standup.timer
+
+# Pairs with .chezmoiscripts/linux/run_onchange_after_install_aws_vpn.sh.tmpl.
+.local/share/applications/awsvpnclient.desktop
 {{ end }}
