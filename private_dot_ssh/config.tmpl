@@ -16,9 +16,15 @@ host pillsupply
     SetEnv SECRET={{ onepasswordRead "op://Private/Pillsupply/password" .opAccount }}
     LocalForward 5900 0:5900
 
+# github.com's A record now resolves into Azure (4.225.11.194), which serves 443 but drops
+# 22, so plain SSH times out. Port 443 is GitHub's documented SSH endpoint and presents the
+# same host keys, so HostKeyAlias keeps the existing github.com known_hosts entries valid.
 # First contact happens inside chezmoi apply (claude-private clone); trust-on-first-use
 # beats an interactive prompt there. Later key changes still fail loudly.
 Host github.com
+  HostName ssh.github.com
+  Port 443
+  HostKeyAlias github.com
   StrictHostKeyChecking accept-new
 
 Host unifi
