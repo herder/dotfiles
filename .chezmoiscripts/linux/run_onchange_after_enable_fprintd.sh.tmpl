@@ -1,0 +1,10 @@
+{{ if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# libpam-fprintd ships its profile with `Default: no`, so installing it enables nothing.
+# fprintd-list fails only when no reader is present; enrolment state is irrelevant here.
+if fprintd-list "$USER" >/dev/null 2>&1; then
+    sudo pam-auth-update --enable fprintd
+fi
+{{ end -}}
