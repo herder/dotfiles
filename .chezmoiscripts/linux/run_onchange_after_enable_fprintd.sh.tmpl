@@ -2,9 +2,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# libpam-fprintd ships its profile with `Default: no`, so installing it enables nothing.
 # fprintd-list fails only when no reader is present; enrolment state is irrelevant here.
-if fprintd-list "$USER" >/dev/null 2>&1; then
-    sudo pam-auth-update --enable fprintd
-fi
+fprintd-list "$USER" >/dev/null 2>&1 || exit 0
+
+# libpam-fprintd ships its profile disabled (`Default: no`) and hardcodes max-tries=1
+# timeout=10 against upstream's 3/30, so one non-match ends the fingerprint leg and the
+# greeter offers no way back to it -- PAM is serialised, so there is nothing to cancel
+# (pam_fprintd(8), LIMITATIONS). That file is not a conffile, so dpkg silently reverts
+# any edit on upgrade; hence a higher-priority profile that Conflicts it out instead.
+sudo tee /usr/share/pam-configs/fprintd-local >/dev/null <<'PROFILE'
+Name: Fingerprint authentication (upstream retry defaults)
+Default: no
+Priority: 261
+Conflicts: fprint fprintd
+Auth-Type: Primary
+Auth:
+	[success=end default=ignore]	pam_fprintd.so max-tries=3 timeout=30
+PROFILE
+
+sudo pam-auth-update --disable fprintd
+sudo pam-auth-update --enable fprintd-local
 {{ end -}}
