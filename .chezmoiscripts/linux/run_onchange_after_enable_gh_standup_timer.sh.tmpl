@@ -1,0 +1,20 @@
+{{ if and (eq .osid "linux-pop") .work -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# chezmoi deploys the unit files, but `systemctl --user enable` writes its symlink
+# into ~/.config/systemd/user/timers.target.wants, which chezmoi does not manage --
+# so a new machine gets the units and never runs them. That is how the standup
+# silently stopped on the migration to biglebowski (2026-09-15): files present,
+# timer `disabled`, no error anywhere.
+# timer hash: {{ include "private_dot_config/systemd/user/gh-standup.timer" | sha256sum }}
+# service hash: {{ include "private_dot_config/systemd/user/gh-standup.service" | sha256sum }}
+
+# No user manager means the enable would be a no-op that looks like success.
+systemctl --user show-environment >/dev/null 2>&1 \
+  || { echo "no systemd user manager; cannot enable gh-standup.timer" >&2; exit 1; }
+
+systemctl --user daemon-reload
+systemctl --user enable --now gh-standup.timer
+echo "Enabled gh-standup.timer"
+{{ end -}}
