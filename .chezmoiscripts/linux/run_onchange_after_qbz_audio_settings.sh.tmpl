@@ -1,0 +1,63 @@
+{{ if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# qbz keeps its audio settings in SQLite (~/.local/share/qbz/audio_settings.db),
+# not a config file. The DB is app-mutated state — WAL, device caches, per-track
+# scratch — so it is deliberately NOT a chezmoi-managed file; this script declares
+# only the columns worth pinning and asserts them.
+#
+# Why PipeWire rather than the "System" default: on SystemDefault qbz opens ALSA
+# `default` without pinning a rate and rodio resamples to whatever the device is
+# already clocked at (qbz-audio/src/backend.rs, create_output_stream), so a 24/192
+# track reaches the DAC at 44.1 kHz. The PipeWire backend sets clock.force-rate per
+# track instead, which is what the 99-qbz-dac-*.conf files under
+# .config/{pipewire,wireplumber} exist to support.
+#
+# db state: {{ if stat (joinPath .chezmoi.homeDir ".local/share/qbz/audio_settings.db") }}present{{ else }}absent{{ end }}
+
+DB="{{ .chezmoi.homeDir }}/.local/share/qbz/audio_settings.db"
+
+if [ ! -f "$DB" ]; then
+  echo "qbz audio settings: $DB does not exist yet — launch qbz once, then 'chezmoi apply'."
+  exit 0
+fi
+
+python3 - "$DB" <<'PY'
+import sqlite3
+import subprocess
+import sys
+
+# Column -> value, exactly as qbz stores it. backend_type is a JSON-encoded enum.
+DESIRED = {
+    "backend_type": '"PipeWire"',
+    "skip_sink_switch": 0,
+}
+
+db = sys.argv[1]
+con = sqlite3.connect(db, timeout=5)
+cols = ", ".join(DESIRED)
+row = con.execute(f"SELECT {cols} FROM audio_settings WHERE id = 1").fetchone()
+if row is None:
+    sys.exit("qbz audio settings: no row id=1 — launch qbz once so it seeds the table.")
+
+drift = {k: v for k, v in DESIRED.items() if dict(zip(DESIRED, row))[k] != v}
+if not drift:
+    print("qbz audio settings: already as declared")
+    sys.exit(0)
+
+# qbz caches these in memory and rewrites the row on its own next save, so a write
+# underneath a live instance is silently lost. Refuse rather than pretend.
+if subprocess.run(["pgrep", "-x", "qbz"], capture_output=True).returncode == 0:
+    sys.exit(
+        "qbz audio settings: need to change "
+        + ", ".join(sorted(drift))
+        + " but qbz is running and would overwrite it. Quit qbz and re-run 'chezmoi apply'."
+    )
+
+assignments = ", ".join(f"{k} = ?" for k in drift)
+con.execute(f"UPDATE audio_settings SET {assignments} WHERE id = 1", list(drift.values()))
+con.commit()
+print("qbz audio settings: set " + ", ".join(f"{k}={v!r}" for k, v in sorted(drift.items())))
+PY
+{{ end -}}
