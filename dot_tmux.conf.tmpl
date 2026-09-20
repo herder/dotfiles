@@ -184,15 +184,24 @@ bind r source-file ~/.tmux.conf \; display "Config reloaded"
 # only got you to the session's active window. It is DERIVED from @claude-state
 # (working|blocked|done|idle) by ~/.claude/tmux-claude-state.sh, which Claude Code
 # hooks drive; the status-right pill counts states, prefix+c wants blocked|done.
-bind c run-shell '~/.claude/tmux-claude-alert.sh'
+#
+# The ~/.claude/*.sh helpers come from the claude-private checkout, absent wherever
+# Claude Code isn't installed (personal machines). tmux announces a failed run-shell
+# as a "'...' returned 127" message to every attached client, and these hooks fire on
+# every navigation — so gate the whole integration on the helpers being there rather
+# than guarding each call site. Evaluated at config load; prefix+r picks up a later
+# install. status-right needs no guard: a missing #() command expands to "".
+if-shell '[ -x ~/.claude/tmux-claude-state.sh ]' {
+  bind c run-shell '~/.claude/tmux-claude-alert.sh'
 
-# Clear the flag once you actually land on the alerting pane. session-window-changed
-# and window-pane-changed cover navigation however it happens (keys, commands,
-# mouse); clear-active only touches each attached client's current pane, so alerts
-# pending in other windows survive.
-set-hook -g client-session-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
-set-hook -g session-window-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
-set-hook -g window-pane-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+  # Clear the flag once you actually land on the alerting pane. session-window-changed
+  # and window-pane-changed cover navigation however it happens (keys, commands,
+  # mouse); clear-active only touches each attached client's current pane, so alerts
+  # pending in other windows survive.
+  set-hook -g client-session-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+  set-hook -g session-window-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+  set-hook -g window-pane-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
+}
 
 # Restore default new-window on shifted key
 bind C new-window
@@ -207,8 +216,12 @@ bind C new-window
 # window-layout-changed fires when a pane is split/killed/resized (tmux has no
 # pane-close hook); a closed pane drops its @claude_desc, so a recompute prunes the
 # session aggregate. Over-fires on resize, but refresh only writes when it changes.
-set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'"
-bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'
+# Same claude-private guard as above — without Claude Code there are no pane titles
+# to fold, so the whole thing is moot anyway.
+if-shell '[ -x ~/.claude/tmux-claude-state.sh ]' {
+  set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'"
+  bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'
+}
 
 # Session picker: native choose-tree, sessions collapsed, decorated with the Claude
 # task on session lines (window/pane lines keep their own name/title) and a Claude
