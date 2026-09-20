@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# bob is only the version manager; it ships no neovim. Without a `bob use` the
+# ~/.local/share/bob/nvim-bin that dot_zsh.after/bob.zsh puts on PATH never exists,
+# and the vim/vi aliases in dot_zsh.after/nvim.zsh resolve to nothing.
+set -euo pipefail
+bob="$HOME/.local/bin/bob"  # not a login shell, so PATH cannot be relied on here
+[ -x "$bob" ] || { echo "bob missing at $bob; did the .chezmoiexternal entry apply?" >&2; exit 1; }
+"$bob" use stable
+command -v "$HOME/.local/share/bob/nvim-bin/nvim" >/dev/null || { echo "bob use stable left no nvim behind" >&2; exit 1; }
