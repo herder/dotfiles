@@ -1,13 +1,36 @@
 {{- if and (eq .osid "linux-pop") (not .headless) (not .ephemeral) -}}
 #!/usr/bin/env bash
 # qbz: Qobuz hi-fi client. Every machine with a screen gets it.
+# weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
+
+repo_url=https://vicrodh.github.io/qbz-apt
+suite=stable
+list=/etc/apt/sources.list.d/qbz.list
+keyring=/etc/apt/keyrings/qbz-archive-keyring.gpg
+
+# Upstream vanished on 2026-09-19 (404 on the keyring and dists/stable/Release), so probe
+# before touching apt config: a dead entry in sources.list.d makes every later apt-get
+# update exit non-zero, machine-wide. Weekly retrigger picks the repo back up if it returns.
+if ! curl -fsS --max-time 10 -o /dev/null "$repo_url/dists/$suite/Release"; then
+  if [ -e "$list" ]; then
+    echo "qbz: $repo_url is gone — removing $list so apt-get update keeps working" >&2
+    sudo rm -f "$list"
+  else
+    echo "qbz: $repo_url is unreachable — skipping install" >&2
+  fi
+  exit 0
+fi
+
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL "$repo_url/qbz-archive-keyring.gpg" | gpg --dearmor | sudo tee "$keyring" > /dev/null
+sudo chmod go+r "$keyring"
+echo "deb [signed-by=$keyring arch=$(dpkg --print-architecture)] $repo_url $suite main" | sudo tee "$list" > /dev/null
+
 if ! command -v qbz >/dev/null 2>&1; then
-  sudo mkdir -p -m 755 /etc/apt/keyrings
-  curl -fsSL https://vicrodh.github.io/qbz-apt/qbz-archive-keyring.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/qbz-archive-keyring.gpg > /dev/null
-  sudo chmod go+r /etc/apt/keyrings/qbz-archive-keyring.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/qbz-archive-keyring.gpg arch=$(dpkg --print-architecture)] https://vicrodh.github.io/qbz-apt stable main" | sudo tee /etc/apt/sources.list.d/qbz.list > /dev/null
-  sudo apt-get update
+  # Scoped to our own list: an unrelated broken repo shouldn't fail the qbz install.
+  sudo apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts=/dev/null \
+    -o APT::Get::List-Cleanup=0
   sudo apt-get install -y qbz
 fi
 # vim: ft=bash
