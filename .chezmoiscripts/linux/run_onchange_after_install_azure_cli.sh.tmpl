@@ -1,0 +1,20 @@
+{{- if .work -}}
+#!/usr/bin/env bash
+set -euo pipefail
+# chezmoi may be invoked from a shell without the user bin dirs on PATH (externals live in ~/.local/bin)
+export PATH="$HOME/.local/bin:$PATH"
+
+# NOT a .chezmoiexternal entry: the Azure CLI is a Python application, not a
+# static binary. Microsoft ships it only as distro packages (into /opt/az on
+# Debian/Ubuntu), an install script, or PyPI — there is no release tarball for
+# `type = "archive-file"` to unpack. Same shape as the mmdc problem.
+#
+# uv rather than Microsoft's apt repo: no sudo, no third-party apt source, and
+# `update-all` already runs `uv tool upgrade --all`, so it joins an update path
+# that exists instead of needing a new one. Note `az upgrade` does not work on
+# a non-package install — it defers to the package manager — so upgrades go
+# through update-all.
+uv tool install azure-cli
+
+# vim: ft=bash
+{{- end }}
