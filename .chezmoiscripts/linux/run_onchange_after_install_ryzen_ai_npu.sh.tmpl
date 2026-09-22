@@ -1,0 +1,77 @@
+{{- if and (eq .chezmoi.os "linux") (not .headless) (not .ephemeral) -}}
+#!/usr/bin/env bash
+# Userspace for the Ryzen AI NPU (XDNA 2): XRT plus Lemonade's local LLM server.
+#
+# PPA and package list come from .chezmoidata/ppa.yaml.
+# ppa: {{ .ppa.lemonade.uri }}
+# packages: {{ .ppa.lemonade.packages | join " " }}
+set -euo pipefail
+
+PPA_URI="{{ .ppa.lemonade.uri }}"
+PPA_ORIGIN="{{ .ppa.lemonade.origin }}"
+PACKAGES=({{ range .ppa.lemonade.packages }}{{ . | quote }} {{ end }})
+
+# Gate on the hardware, not on a machine tag. sobchak's 7950X has no NPU and
+# never will, and a tag would only encode today's inventory.
+npu_dev=""
+for d in /sys/bus/pci/drivers/amdxdna/[0-9a-f]*; do
+  [ -e "$d" ] && { npu_dev="$d"; break; }
+done
+if [ -z "$npu_dev" ]; then
+  echo "ryzen-ai: no amdxdna NPU bound on this machine — skipping." >&2
+  exit 0
+fi
+
+# FastFlowLM requires XDNA 2 and firmware 1.1.0.0 or later. Refuse loudly rather
+# than install a stack that cannot work: the failure without this check happens
+# later, inside a runtime, and reads as a Lemonade bug.
+fw="$(cat "$npu_dev/fw_version" 2>/dev/null || echo 0)"
+fw_major_minor="$(printf '%s\n' "$fw" | cut -d. -f1,2)"
+case "$fw_major_minor" in
+  1.0|0.*) echo "ryzen-ai: NPU firmware $fw is older than 1.1.0.0 — update the BIOS before installing." >&2; exit 1 ;;
+esac
+echo "ryzen-ai: NPU at ${npu_dev##*/}, firmware $fw"
+
+# The in-tree driver is the supported path on 7.0+; amdxdna-dkms is deliberately
+# absent from the package list, so assert the module is really there.
+if ! lsmod | grep -q '^amdxdna'; then
+  echo "ryzen-ai: amdxdna module not loaded despite a bound device — refusing to continue." >&2
+  exit 1
+fi
+
+if ! grep -Rqs "lemonade-team" /etc/apt/sources.list.d/; then
+  sudo add-apt-repository -y "$PPA_URI"
+fi
+
+missing=()
+for p in "${PACKAGES[@]}"; do
+  dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
+done
+
+if [ "${#missing[@]}" -gt 0 ]; then
+  sudo apt-get update
+  sudo apt-get install -y "${missing[@]}"
+fi
+
+# Pop!_OS pins o=pop-os-release at 1001 for Package: *, so anything Pop also
+# builds would win over this PPA at its default 500 — silently, and only
+# visible as an older version. Pop ships none of these today; assert it rather
+# than assume it, the same way the alsa-ucm-conf pin is asserted.
+for p in "${PACKAGES[@]}"; do
+  origin="$(apt-cache policy "$p" | awk '/\*\*\*/{getline; print $2, $3}')"
+  case "$origin" in
+    *"$PPA_ORIGIN"*|*ppa.launchpadcontent.net*) ;;
+    *) echo "ryzen-ai: $p was installed from '$origin', not $PPA_URI — check the Pop pin." >&2 ;;
+  esac
+done
+
+# /dev/accel/accel0 is root:render 0660, so the NPU is unreachable without the
+# group. Needs a fresh login to take effect — say so, rather than leaving the
+# next xrt-smi to fail with a bare permission error.
+if ! id -nG "$USER" | tr ' ' '\n' | grep -qx render; then
+  sudo usermod -aG render "$USER"
+  echo "ryzen-ai: added $USER to 'render'; log out and back in before the NPU is usable."
+fi
+
+# vim: ft=bash
+{{- end -}}

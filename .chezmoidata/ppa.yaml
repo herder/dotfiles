@@ -1,0 +1,25 @@
+# Launchpad PPAs, declared here rather than inline in the scripts that consume
+# them, so the source of a package is visible without reading shell.
+#
+# `suites` lists the Ubuntu series the PPA actually builds for. Pop!_OS 24.04 is
+# noble-based, so an entry without a noble build would install nothing and say
+# nothing — worth stating rather than discovering.
+ppa:
+  lemonade:
+    uri: ppa:lemonade-team/stable
+    origin: LP-PPA-lemonade-team-stable
+    description: >-
+      AMD Lemonade SDK — local LLM serving on Ryzen AI NPUs and Radeon GPUs,
+      plus the XRT runtime the NPU path needs.
+    suites: [noble, questing, resolute]
+    packages:
+      # XRT is the userspace half of the NPU stack; the kernel half (amdxdna)
+      # has been in-tree since 7.0 and needs nothing from here.
+      # libxrt-utils-npu is what provides xrt-smi, i.e. the only way to see
+      # whether the NPU is actually working.
+      - libxrt-npu2
+      - libxrt-utils-npu
+      - lemonade-server
+    # Deliberately NOT installed: amdxdna-dkms. The driver is in-tree on 7.0+
+    # (this machine runs 7.1.5 with amdxdna 0.8.0 loaded), and stacking a DKMS
+    # build on top of a working in-tree module is how you end up with two.
