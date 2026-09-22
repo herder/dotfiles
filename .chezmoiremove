@@ -1,0 +1,7 @@
+# Retired with the move to mise (2026-09-22). chezmoi does not reclaim targets
+# whose source files were deleted, so the orphans are named explicitly; these
+# entries are no-ops on a machine that never had them.
+.zsh.after/tfenv.zsh
+.zsh.after/goenv.zsh
+.zsh.after/rbenv.zsh
+.config/tfenv/use-gpgv

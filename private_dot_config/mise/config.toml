@@ -1,0 +1,11 @@
+# Global toolchain versions. A repo's own mise.toml, .tool-versions or idiomatic
+# version file overrides these; `mise install` in the repo then makes it so.
+
+[tools]
+go = "latest"
+terraform = "latest"
+
+[settings]
+# Off by default in mise, but Stravito/infrastructure pins terraform through
+# .terraform-version — without this, every repo silently gets the global version.
+idiomatic_version_file_enable_tools = ["terraform", "go"]

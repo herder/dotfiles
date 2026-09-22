@@ -67,6 +67,14 @@ main() {
     # ── Language toolchains ──────────────────────────────────────────
     section "Language toolchains"
 
+    if has mise; then
+        printf '   mise\n'
+        # NOT `mise self-update` — the binary is a chezmoi external.
+        run mise upgrade
+    else
+        skip "mise"
+    fi
+
     if has rustup; then
         printf '   rustup\n'
         run rustup update
@@ -99,18 +107,6 @@ main() {
         run npm update -g
     fi
 
-    if [ -d "$HOME/.goenv" ]; then
-        printf '   goenv\n'
-        run git -C "$HOME/.goenv" pull
-    fi
-
-    if [ -d "$HOME/.rbenv" ]; then
-        printf '   rbenv\n'
-        run git -C "$HOME/.rbenv" pull
-        for plugin_dir in "$HOME/.rbenv/plugins"/*/; do
-            [ -d "$plugin_dir/.git" ] && run git -C "$plugin_dir" pull
-        done
-    fi
 
     # ── Plugin managers & tools ──────────────────────────────────────
     section "Plugins & tools"

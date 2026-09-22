@@ -35,9 +35,15 @@
   stripComponents = 1
   path = "bob"
 
-[".tfenv"]
-  type = "git-repo"
-  url = "https://github.com/tfutils/tfenv.git"
+# Asset names use "x64", not chezmoi's "amd64"; the glob must end at .tar.gz so
+# it cannot match the -musl / .tar.xz / .tar.zst siblings.
+[".local/bin/mise"]
+  type = "archive-file"
+  url = {{ gitHubLatestReleaseAssetURL "jdx/mise" (printf "mise-*-%s-x64.tar.gz" .chezmoi.os) | quote }}
+  refreshPeriod = "72h"
+  executable = true
+  stripComponents = 1
+  path = "bin/mise"
 
 
 [".local/bin/uv"]

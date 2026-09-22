@@ -1,6 +1,0 @@
-# Verify HashiCorp release signatures with gpgv against tfenv's bundled keyring
-# ($TFENV_ROOT/share/hashicorp-keys.pgp). Without this file tfenv prefers the
-# keybase path, which fails permanently: `keybase pgp verify -S hashicorp`
-# re-identifies hashicorp, whose _keybase.hashicorp.com DNS proof no longer
-# exists, so every install dies on "SHA256SUMS signature does not match!".
-trust-tfenv: yes

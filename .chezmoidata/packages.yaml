@@ -36,7 +36,6 @@ packages:
       - "binsider"
       - "coolercontrol"
       - "discord"
-      - "goenv"
       - "jetbrains-toolbox"
       - "keybase-bin"
       - "moonlight-qt"
