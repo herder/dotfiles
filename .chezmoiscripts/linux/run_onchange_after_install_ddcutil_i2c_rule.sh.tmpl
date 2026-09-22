@@ -1,0 +1,17 @@
+{{ if and (eq .chezmoi.os "linux") (not .ephemeral) -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ddcutil's own 60-ddcutil.rules grants uaccess only under ATTRS{class}=="0x030000";
+# AMD's newer iGPUs (Strix, 1002:150e) enumerate as 0x038000 "Display controller",
+# so without this the i2c-dev nodes keep root:i2c 0660 and ddcutil sees no displays.
+RULE_FILE="/etc/udev/rules.d/61-ddcutil-display-class.rules"
+
+sudo tee "$RULE_FILE" > /dev/null << 'UDEV'
+SUBSYSTEM=="i2c-dev", KERNEL=="i2c-[0-9]*", ATTRS{class}=="0x038000", TAG+="uaccess"
+UDEV
+
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=i2c-dev
+echo "Installed ddcutil i2c uaccess rule for 0x038000 display controllers"
+{{ end -}}

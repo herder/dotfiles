@@ -1,0 +1,23 @@
+{{ if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pop rebuilds alsa-ucm-conf as a stripped subset (403 files vs Ubuntu's 717) with no
+# sof-soundwire/acp-dmic.conf, which breaks UCM on AMD ACP SoundWire + RT722, and pins
+# its whole release repo at 1001 -- so `apt upgrade` tries to downgrade onto it.
+# Match on a= (suite); n= is the codename `noble` for every Ubuntu pocket, so a pin
+# written as n=noble-updates matches nothing and loses to Pop's 1001 in silence.
+sudo tee /etc/apt/preferences.d/alsa-ucm-conf >/dev/null <<'PIN'
+Package: alsa-ucm-conf
+Pin: release o=Ubuntu,a=noble-updates
+Pin-Priority: 1002
+PIN
+
+candidate=$(apt-cache policy alsa-ucm-conf | awk '/Candidate:/ {print $2}')
+case "$candidate" in
+    *pop*)
+        echo "alsa-ucm-conf pin matched nothing: candidate is still $candidate" >&2
+        exit 1
+        ;;
+esac
+{{ end -}}

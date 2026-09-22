@@ -134,6 +134,41 @@ if command -v lemonade >/dev/null 2>&1; then
   fi
 fi
 
+# FLM locks model weights and raises RLIMIT_MEMLOCK itself — but only as far as
+# the hard limit allows, and the default ceiling is ~1/8 of RAM (11.6 GB of 93
+# here). A 14 GB gpt-oss-20b therefore logs:
+#   Warning: could not raise memlock limit to 19585 MB
+# and runs partly unpinned. Bigger models make it worse: qwen3.6-moe-35b is
+# 22 GB on disk.
+#
+# Two paths, because flm runs both ways: PAM limits govern the interactive
+# shell, and systemd services ignore limits.conf entirely, so lemond needs its
+# own drop-in.
+#
+# `unlimited` rather than a number: any fixed ceiling is one model away from
+# silently degrading again, which is the failure this is fixing. The cost is
+# that a runaway process on this machine can lock all 93 GB — acceptable on a
+# single-user laptop, and the reason it is scoped to @render rather than to
+# everyone.
+limits=/etc/security/limits.d/90-npu-memlock.conf
+want_limits="@render soft memlock unlimited
+@render hard memlock unlimited"
+if [ "$(cat "$limits" 2>/dev/null)" != "$want_limits" ]; then
+  printf '%s\n' "$want_limits" | sudo tee "$limits" >/dev/null
+  echo "ryzen-ai: raised the memlock limit for @render; needs a re-login to take effect"
+fi
+
+dropin_dir=/etc/systemd/system/lemond.service.d
+want_dropin="[Service]
+LimitMEMLOCK=infinity"
+if [ "$(cat "$dropin_dir/memlock.conf" 2>/dev/null)" != "$want_dropin" ]; then
+  sudo mkdir -p "$dropin_dir"
+  printf '%s\n' "$want_dropin" | sudo tee "$dropin_dir/memlock.conf" >/dev/null
+  sudo systemctl daemon-reload
+  systemctl is-active --quiet lemond && sudo systemctl restart lemond
+  echo "ryzen-ai: lemond memlock raised"
+fi
+
 # /dev/accel/accel0 is root:render 0660, so the NPU is unreachable without the
 # group. Needs a fresh login to take effect — say so, rather than leaving the
 # next xrt-smi to fail with a bare permission error.
