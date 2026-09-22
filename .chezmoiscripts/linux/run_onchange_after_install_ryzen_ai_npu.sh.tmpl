@@ -34,7 +34,11 @@ echo "ryzen-ai: NPU at ${npu_dev##*/}, firmware $fw"
 
 # The in-tree driver is the supported path on 7.0+; amdxdna-dkms is deliberately
 # absent from the package list, so assert the module is really there.
-if ! lsmod | grep -q '^amdxdna'; then
+# /sys/module rather than `lsmod | grep -q`: under `set -o pipefail` that
+# pipeline returns 141, because grep -q exits on the first match while lsmod is
+# still writing and takes SIGPIPE. It therefore fails precisely when the module
+# IS loaded — a fail-closed check that only misfires on success.
+if [ ! -e /sys/module/amdxdna ]; then
   echo "ryzen-ai: amdxdna module not loaded despite a bound device — refusing to continue." >&2
   exit 1
 fi
