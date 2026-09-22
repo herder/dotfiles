@@ -93,6 +93,10 @@ installed="$(dpkg-query -W -f='${Version}' fastflowlm 2>/dev/null || true)"
 if [ "$installed" != "$FLM_VERSION" ]; then
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
+  # mktemp -d is 0700, which the _apt user cannot read, so apt drops its
+  # sandbox and warns. Cosmetic, but the warning looks like a permissions
+  # fault in a script that is otherwise silent when it works.
+  chmod 755 "$tmp"
   url="https://github.com/${FLM_REPO}/releases/download/v${FLM_VERSION}/${asset}"
   echo "ryzen-ai: fetching ${asset}"
   if ! curl -fsSL -o "$tmp/$asset" "$url"; then
@@ -106,6 +110,25 @@ if [ "$installed" != "$FLM_VERSION" ]; then
     exit 1
   }
   sudo apt-get install -y "$tmp/$asset"
+fi
+
+# lemond enumerates its backends at startup, so a server older than flm never
+# offers the FLM models — while /api/v1/system-info cheerfully reports the NPU
+# as available, because detection and the model catalogue are separate and only
+# the catalogue is stale. Observed here: lemond started 10:51:15, flm installed
+# 11:01:07, `lemonade list` showed 0 FLM entries against 88 llamacpp ones.
+#
+# Deliberately OUTSIDE the install branch above. Putting it there would mean it
+# only ever ran on the apply that installed flm — which is exactly the apply
+# where this machine had already installed it, so the fix would never have
+# fired on the machine that needed it.
+flm_installed_at="$(stat -c %Y /var/lib/dpkg/info/fastflowlm.list 2>/dev/null || echo 0)"
+lemond_started_at="$(date -d "$(systemctl show lemond -p ActiveEnterTimestamp --value)" +%s 2>/dev/null || echo 0)"
+if systemctl is-active --quiet lemond \
+   && [ "$flm_installed_at" -gt 0 ] && [ "$lemond_started_at" -gt 0 ] \
+   && [ "$lemond_started_at" -lt "$flm_installed_at" ]; then
+  echo "ryzen-ai: lemond predates the FastFlowLM install — restarting so it sees the backend"
+  sudo systemctl restart lemond
 fi
 
 # /dev/accel/accel0 is root:render 0660, so the NPU is unreachable without the
