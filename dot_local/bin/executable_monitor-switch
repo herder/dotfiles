@@ -20,7 +20,18 @@ usage() {
 }
 
 # Single detect call, extract both buses
-detect_output=$(ddcutil detect 2>/dev/null)
+detect_output=$(ddcutil detect 2>&1)
+
+# ddcutil exits 0 even when every i2c bus was refused, so an empty result is
+# ambiguous: distinguish "no DDC/CI at all" from "a monitor happens to be off".
+if ! grep -q '^Display ' <<<"$detect_output"; then
+  echo "monitor-switch: ddcutil detected no displays at all." >&2
+  if grep -q 'not readable and writable' <<<"$detect_output"; then
+    echo "monitor-switch: /dev/i2c-* is inaccessible - no udev rule tags this GPU for uaccess." >&2
+    echo "                see https://www.ddcutil.com/i2c_permissions" >&2
+  fi
+  exit 1
+fi
 
 extract_bus() {
   local model=$1
@@ -38,10 +49,15 @@ BENQ_BUS=$(extract_bus "BenQ GW2470")
 OMEN_BUSNUM="${OMEN_BUS:+${OMEN_BUS##*/i2c-}}"
 BENQ_BUSNUM="${BENQ_BUS:+${BENQ_BUS##*/i2c-}}"
 
+failed=0
+
 switch_input() {
   local busnum=$1
   local value=$2
-  ddcutil setvcp 0x60 "$value" --bus "$busnum" 2>/dev/null || true
+  if ! ddcutil setvcp 0x60 "$value" --bus "$busnum"; then
+    echo "  bus $busnum: setvcp 0x60 failed" >&2
+    failed=1
+  fi
 }
 
 case "${1:-}" in
@@ -91,3 +107,5 @@ case "${1:-}" in
     usage
     ;;
 esac
+
+exit "$failed"

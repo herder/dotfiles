@@ -112,23 +112,26 @@ if [ "$installed" != "$FLM_VERSION" ]; then
   sudo apt-get install -y "$tmp/$asset"
 fi
 
-# lemond enumerates its backends at startup, so a server older than flm never
-# offers the FLM models — while /api/v1/system-info cheerfully reports the NPU
-# as available, because detection and the model catalogue are separate and only
-# the catalogue is stale. Observed here: lemond started 10:51:15, flm installed
-# 11:01:07, `lemonade list` showed 0 FLM entries against 88 llamacpp ones.
+# Lemonade ships its own FLM and ignores the system one by default:
+#   backend_versions.json  flm: {"npu": "v1.0.3"}
+#   defaults.json          flm = {"args": "", "prefer_system": false}
+# Left alone, it downloads a second, older FLM beside the v1.0.6 installed
+# above. prefer_system=true points it at /usr/bin/flm instead.
 #
-# Deliberately OUTSIDE the install branch above. Putting it there would mean it
-# only ever ran on the apply that installed flm — which is exactly the apply
-# where this machine had already installed it, so the fix would never have
-# fired on the machine that needed it.
-flm_installed_at="$(stat -c %Y /var/lib/dpkg/info/fastflowlm.list 2>/dev/null || echo 0)"
-lemond_started_at="$(date -d "$(systemctl show lemond -p ActiveEnterTimestamp --value)" +%s 2>/dev/null || echo 0)"
-if systemctl is-active --quiet lemond \
-   && [ "$flm_installed_at" -gt 0 ] && [ "$lemond_started_at" -gt 0 ] \
-   && [ "$lemond_started_at" -lt "$flm_installed_at" ]; then
-  echo "ryzen-ai: lemond predates the FastFlowLM install — restarting so it sees the backend"
-  sudo systemctl restart lemond
+# NOT about startup ordering. An earlier version of this script restarted
+# lemond whenever the service predated the flm install, on the theory that it
+# enumerates backends once at startup. A reboot disproved that: lemond came up
+# at 11:09:11, well after flm landed at 11:01:08, and `lemonade list` still
+# offered zero FLM models. The setting is the mechanism; the restart is only
+# needed because the running server has already read the config.
+if command -v lemonade >/dev/null 2>&1; then
+  if [ "$(lemonade config 2>/dev/null | awk '/flm.prefer_system/{print $2}')" != "true" ]; then
+    lemonade config set flm.prefer_system=true
+    if systemctl is-active --quiet lemond; then
+      echo "ryzen-ai: restarting lemond to pick up flm.prefer_system"
+      sudo systemctl restart lemond
+    fi
+  fi
 fi
 
 # /dev/accel/accel0 is root:render 0660, so the NPU is unreachable without the
