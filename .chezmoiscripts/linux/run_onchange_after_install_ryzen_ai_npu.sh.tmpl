@@ -2,7 +2,8 @@
 #!/usr/bin/env bash
 # Userspace for the Ryzen AI NPU (XDNA 2): XRT plus Lemonade's local LLM server.
 #
-# PPA and package list come from .chezmoidata/ppa.yaml.
+# PPA and package list come from .chezmoidata/ppa.yaml; the FastFlowLM release
+# pin comes from .chezmoidata/fastflowlm.yaml.
 # ppa: {{ .ppa.lemonade.uri }}
 # packages: {{ .ppa.lemonade.packages | join " " }}
 set -euo pipefail
@@ -68,6 +69,44 @@ for p in "${PACKAGES[@]}"; do
     *) echo "ryzen-ai: $p was installed from '$origin', not $PPA_URI — check the Pop pin." >&2 ;;
   esac
 done
+
+# FastFlowLM: the piece that actually runs a model on the NPU. XRT above only
+# makes the device addressable — Lemonade without this serves on CPU and the
+# iGPU, and `lemonade list` shows no FLM models at all.
+#
+# A GitHub release rather than the PPA (which ships no FLM package), and the
+# distro .deb rather than the portable tarball: the payload is /opt/fastflowlm
+# with 26 per-model NPU kernel libraries and dependencies on libavcodec60,
+# libboost-program-options1.83.0, libfftw3-single3 and libxrt2 — apt resolves
+# those, an archive extraction cannot.
+FLM_REPO="{{ .fastflowlm.repo }}"
+FLM_VERSION="{{ .fastflowlm.version }}"
+FLM_SHA256="{{ index .fastflowlm.sha256 "ubuntu24.04" }}"
+
+# The asset is named for the Ubuntu series it was built against. Pop!_OS
+# reports the Ubuntu VERSION_ID it derives from, which is what the upstream
+# builds are keyed on.
+series="$(. /etc/os-release && echo "${VERSION_ID}")"
+asset="fastflowlm_${FLM_VERSION}_ubuntu${series}_amd64.deb"
+
+installed="$(dpkg-query -W -f='${Version}' fastflowlm 2>/dev/null || true)"
+if [ "$installed" != "$FLM_VERSION" ]; then
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+  url="https://github.com/${FLM_REPO}/releases/download/v${FLM_VERSION}/${asset}"
+  echo "ryzen-ai: fetching ${asset}"
+  if ! curl -fsSL -o "$tmp/$asset" "$url"; then
+    echo "ryzen-ai: no FastFlowLM build for ubuntu${series} at v${FLM_VERSION} ($url)" >&2
+    exit 1
+  fi
+  # Installed with sudo from outside any apt signing chain, so the digest is
+  # the only integrity check there is. Refuse rather than warn.
+  echo "${FLM_SHA256}  $tmp/$asset" | sha256sum -c - >/dev/null || {
+    echo "ryzen-ai: ${asset} failed its sha256 check — refusing to install." >&2
+    exit 1
+  }
+  sudo apt-get install -y "$tmp/$asset"
+fi
 
 # /dev/accel/accel0 is root:render 0660, so the NPU is unreachable without the
 # group. Needs a fresh login to take effect — say so, rather than leaving the

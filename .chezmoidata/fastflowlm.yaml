@@ -1,0 +1,19 @@
+# FastFlowLM — the runtime that actually executes LLMs on the Ryzen AI NPU.
+# Lemonade serves models; without this, it serves them on CPU and the iGPU and
+# the NPU sits idle.
+#
+# Not a .chezmoiexternal entry despite shipping a tarball: the payload is
+# /opt/fastflowlm with 26 per-model NPU kernel libraries beside the binary, and
+# real distro dependencies (libavcodec60, libboost-program-options1.83.0,
+# libfftw3-single3, libxrt2) that an archive extraction cannot satisfy. The .deb
+# declares them, so apt resolves them. See [[chezmoi-tool-installs]].
+fastflowlm:
+  repo: FastFlowLM/FastFlowLM
+  version: "1.0.6"
+  # Pinned rather than tracking latest: this is a 30 MB binary installed with
+  # sudo from a GitHub release, outside any apt repo's signing chain. A version
+  # and a digest are the only things standing in for that.
+  # Bumping the version here re-renders the script, which is what makes
+  # run_onchange fire again.
+  sha256:
+    ubuntu24.04: "76ef9577488f91021a90e05ea38ea330c87f15ae5f20716189e60b732fa569fe"
