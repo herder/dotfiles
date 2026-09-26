@@ -13,3 +13,6 @@ syncthing:
       label: Wallpapers
       path: Pictures/Wallpapers
       # devices: [biglebowski, sobchak]
+    sync:
+      label: Sync
+      path: Sync
