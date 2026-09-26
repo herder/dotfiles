@@ -11,3 +11,4 @@ syncthing:
     wallpapers:
       label: Wallpapers
       path: Pictures/Wallpapers
+      # devices: [biglebowski, sobchak]
