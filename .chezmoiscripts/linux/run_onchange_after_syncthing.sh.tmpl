@@ -8,9 +8,13 @@ set -euo pipefail
 # their tailscale IPs and refused from anywhere else.
 tailnet='["100.64.0.0/10","fd7a:115c:a1e0::/48"]'
 declare -A peers=({{ range $host, $id := .syncthing.devices }}[{{ $host }}]={{ $id }} {{ end }})
-{{- $members := list }}{{ range .syncthing.devices }}{{ $members = append $members (dict "deviceID" .) }}{{ end }}
 declare -A folders=(
 {{- range $id, $f := .syncthing.folders }}
+{{-   $members := list }}
+{{-   range $host := get $f "devices" | default (keys $.syncthing.devices | sortAlpha) }}
+{{-     if not (hasKey $.syncthing.devices $host) }}{{ fail (printf "syncthing folder %s: unknown device %s" $id $host) }}{{ end }}
+{{-     $members = append $members (dict "deviceID" (get $.syncthing.devices $host)) }}
+{{-   end }}
     [{{ $id }}]={{ dict "id" $id "label" $f.label "path" (printf "%s/%s" $.chezmoi.homeDir $f.path) "devices" $members | toJson | squote }}
 {{- end }}
 )
