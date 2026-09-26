@@ -1,6 +1,6 @@
 {{- $home := .chezmoi.homeDir -}}
 # Applied by .chezmoiscripts/linux/run_onchange_after_syncthing.sh.tmpl, which
-# also pins it to the tailnet. Extra folders: mount them at the same path.
+# also pins it to the tailnet. Shared folders come from .chezmoidata/syncthing.yaml.
 services:
   syncthing:
     image: syncthing/syncthing:2
@@ -15,6 +15,9 @@ services:
     volumes:
       - {{ $home }}/.local/state/syncthing:/var/syncthing/config
       - {{ $home }}/Sync:{{ $home }}/Sync
+{{- range .syncthing.folders }}
+      - {{ $home }}/{{ .path }}:{{ $home }}/{{ .path }}
+{{- end }}
     restart: unless-stopped
     healthcheck:
       test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -q OK

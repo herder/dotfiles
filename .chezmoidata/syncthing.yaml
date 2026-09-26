@@ -5,3 +5,9 @@ syncthing:
   devices:
     biglebowski: N5JZ6GM-NI2YXVT-3UEKJ6C-TU37T4I-XSBGLGN-H3ZOHMP-7LBYAHI-GQVVRQU
     sobchak: DJKJCBJ-UUOIAG3-NKZS7LG-7GN5CTT-WKTLAQC-5RJLIJI-ZM7HRWS-N6S4EAR
+  # Shared with every device above; path is relative to $HOME and mounted into
+  # the container at the same absolute path.
+  folders:
+    wallpapers:
+      label: Wallpapers
+      path: Pictures/Wallpapers
