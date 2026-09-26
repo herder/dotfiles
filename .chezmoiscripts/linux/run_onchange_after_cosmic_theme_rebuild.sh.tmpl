@@ -1,0 +1,46 @@
+{{- if eq .osid "linux-pop" -}}
+#!/usr/bin/env bash
+# COSMIC apps read the derived CosmicTheme.{Dark,Light}, which only cosmic-settings
+# rebuilds from the chezmoi-managed *.Builder, and only on an Appearance change.
+# builders: {{ range glob (joinPath .chezmoi.sourceDir "private_dot_config/cosmic/com.system76.CosmicTheme.*.Builder/v2/*") }}{{ include . | sha256sum | trunc 12 }} {{ end }}
+# data: {{ .cosmic_theme | toJson | sha256sum }}
+# cosmic-settings: {{ output "dpkg-query" "-W" "-f=${Version}" "cosmic-settings" }}
+set -euo pipefail
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Build against the libcosmic the installed cosmic-settings uses, so the derivation matches.
+commit=$(dpkg-query -W -f='${Version}' cosmic-settings | sed 's/.*~//')
+rev=$(curl -fsSL "https://raw.githubusercontent.com/pop-os/cosmic-settings/$commit/Cargo.lock" \
+  | grep -A2 '^name = "cosmic-theme"$' | grep -oP 'libcosmic#\K[0-9a-f]{40}')
+
+dir="$HOME/.cache/cosmic-theme-rebuild"
+mkdir -p "$dir/src"
+cat > "$dir/Cargo.toml" <<TOML
+[package]
+name = "cosmic-theme-rebuild"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cosmic-theme = { git = "https://github.com/pop-os/libcosmic", rev = "$rev", default-features = false }
+cosmic-config = { git = "https://github.com/pop-os/libcosmic", rev = "$rev", default-features = false }
+TOML
+cat > "$dir/src/main.rs" <<'RUST'
+// What cosmic-settings does on every appearance change: derive Theme from ThemeBuilder.
+use cosmic_config::CosmicConfigEntry;
+use cosmic_theme::{Theme, ThemeBuilder};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    for (mode, builder_config, theme_config) in [
+        ("dark", ThemeBuilder::dark_config()?, Theme::dark_config()?),
+        ("light", ThemeBuilder::light_config()?, Theme::light_config()?),
+    ] {
+        let builder = ThemeBuilder::get_entry(&builder_config)
+            .map_err(|(errs, _)| format!("{mode} theme builder: {errs:?}"))?;
+        builder.build().write_entry(&theme_config)?;
+    }
+    Ok(())
+}
+RUST
+cargo run --release --quiet --manifest-path "$dir/Cargo.toml"
+{{- end }}

@@ -1,0 +1,9 @@
+{{- /* Renders a CosmicTheme.*.Builder palette. Args: dict "variant" (Dark|Light) "palette" (map). */ -}}
+{{ .variant }}((
+    name: "cosmic-{{ lower .variant }}",
+{{- $p := .palette }}
+{{- range list "bright_red" "bright_green" "bright_orange" "gray_1" "gray_2" "neutral_0" "neutral_1" "neutral_2" "neutral_3" "neutral_4" "neutral_5" "neutral_6" "neutral_7" "neutral_8" "neutral_9" "neutral_10" "accent_blue" "accent_indigo" "accent_purple" "accent_pink" "accent_red" "accent_orange" "accent_yellow" "accent_green" "accent_warm_grey" "ext_warm_grey" "ext_orange" "ext_yellow" "ext_blue" "ext_purple" "ext_pink" "ext_indigo" }}
+{{- $v := get $p . }}{{ if not $v }}{{ fail (printf "cosmic_theme palette is missing %s" .) }}{{ end }}
+    {{ . }}: "{{ $v }}FF",
+{{- end }}
+))
