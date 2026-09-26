@@ -1,2 +1,2 @@
-# Hostnames with OLED panels: these run COSMIC in dark mode, everything else light.
+# Hostnames with OLED panels. COSMIC runs light mode only on non-OLED laptops; dark elsewhere.
 oled_hosts: [biglebowski]
