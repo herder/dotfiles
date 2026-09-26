@@ -1,0 +1,53 @@
+{{ if and (not .ephemeral) .tailscale -}}
+#!/usr/bin/env bash
+# compose: {{ include "private_dot_config/syncthing/compose.yaml.tmpl" | sha256sum }}
+# devices: {{ .syncthing | toJson | sha256sum }}
+set -euo pipefail
+
+# Tailnet-only: no discovery, relays or NAT punching; peers are dialled at
+# their tailscale IPs and refused from anywhere else.
+tailnet='["100.64.0.0/10","fd7a:115c:a1e0::/48"]'
+declare -A peers=({{ range $host, $id := .syncthing.devices }}[{{ $host }}]={{ $id }} {{ end }})
+
+state="$HOME/.local/state/syncthing"
+mkdir -p "$state" "$HOME/Sync"
+docker compose -f "$HOME/.config/syncthing/compose.yaml" up -d --wait
+
+self_ip=$(tailscale ip -4)
+key=$(sed -n 's:.*<apikey>\(.*\)</apikey>.*:\1:p' "$state/config.xml")
+api() { curl -fsS -H "X-API-Key: $key" -H 'Content-Type: application/json' "$@"; }
+base=http://127.0.0.1:8384/rest
+
+api -X PATCH "$base/config/options" -d '{
+  "listenAddresses": ["tcp://'"$self_ip"':22000", "quic://'"$self_ip"':22000"],
+  "globalAnnounceEnabled": false,
+  "localAnnounceEnabled": false,
+  "relaysEnabled": false,
+  "natEnabled": false,
+  "urAccepted": -1,
+  "crashReportingEnabled": false
+}'
+api -X PATCH "$base/config/defaults/folder" -d '{"path": "'"$HOME/Sync"'"}'
+
+self=$(api "$base/system/status" | jq -r .myID)
+for host in "${!peers[@]}"; do
+    id=${peers[$host]}
+    [[ $id == "$self" ]] && continue
+    ip=$(tailscale ip -4 "$host")
+    dev='{"deviceID": "'"$id"'", "name": "'"$host"'",
+          "addresses": ["tcp://'"$ip"':22000", "quic://'"$ip"':22000"],
+          "allowedNetworks": '"$tailnet"'}'
+    # PUT replaces the device wholesale (dropping GUI tweaks); PATCH needs it to exist.
+    if api "$base/config/devices/$id" >/dev/null 2>&1; then
+        api -X PATCH "$base/config/devices/$id" -d "$dev"
+    else
+        api -X PUT "$base/config/devices/$id" -d "$dev"
+    fi
+done
+
+if [[ " ${peers[*]} " != *" $self "* ]]; then
+    echo "syncthing: add to .chezmoidata/syncthing.yaml and apply on every peer:"
+    echo "  {{ .chezmoi.hostname }}: $self"
+fi
+echo "syncthing: GUI at http://127.0.0.1:8384"
+{{ end -}}

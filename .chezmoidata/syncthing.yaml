@@ -1,0 +1,6 @@
+# Syncthing cluster over the tailnet, keyed by tailnet hostname. A new machine
+# prints its device ID on first `chezmoi apply`; add it here and apply on every
+# peer. Example entry:  sobchak: XXXXXXX-XXXXXXX-...-XXXXXXX
+syncthing:
+  devices:
+    biglebowski: N5JZ6GM-NI2YXVT-3UEKJ6C-TU37T4I-XSBGLGN-H3ZOHMP-7LBYAHI-GQVVRQU
