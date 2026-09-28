@@ -6,146 +6,14 @@
   type = "git-repo"
   url = "https://github.com/MarcoIeni/intellimacs"
   refreshPeriod = "168h"
-[".local/bin/wtf"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "wtfutil/wtf" (printf "wtf_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
-  executable = true
-  path = "wtfutil"
-[".local/bin/starship"]
-  type = "archive-file"
-  {{- if eq .chezmoi.os "linux"}}
-  url = "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz"
-  {{- end }}
-  executable = true
-  path = "starship"
-[".local/bin/atuin"]
-  type = "archive-file"
-  {{- if eq .chezmoi.os "linux"}}
-  url = "https://github.com/atuinsh/atuin/releases/latest/download/atuin-x86_64-unknown-linux-gnu.tar.gz"
-  {{- end }}
-  executable = true
-  stripComponents = 1
-  path = "atuin"
-[".local/bin/bob"]
-  type = "archive-file"
-  {{- if eq .chezmoi.os "linux"}}
-  url = {{ printf "https://github.com/MordechaiHadad/bob/releases/latest/download/bob-%s-x86_64.zip" .chezmoi.os | quote }}
-  {{- end }}
-  executable = true
-  stripComponents = 1
-  path = "bob"
 
-# Asset names use "x64", not chezmoi's "amd64"; the glob must end at .tar.gz so
-# it cannot match the -musl / .tar.xz / .tar.zst siblings.
-[".local/bin/mise"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "jdx/mise" (printf "mise-*-%s-x64.tar.gz" .chezmoi.os) | quote }}
-  refreshPeriod = "72h"
-  executable = true
-  stripComponents = 1
-  path = "bin/mise"
-
-
-[".local/bin/uv"]
-    type = "archive-file"
-    url = "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz"
-    refreshPeriod = "72h"
-    executable = true
-    stripComponents = 1
-    path = "uv"
-
-[".local/bin/uvx"]
-    type = "archive-file"
-    url = "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz"
-    refreshPeriod = "72h"
-    executable = true
-    stripComponents = 1
-    path = "uvx"
-
-[".local/bin/pack"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "buildpacks/pack" (printf "pack-*-linux.tgz") | quote }}
-  executable = true
-  path = "pack"
-
-[".local/bin/k9s"]
-  type = "archive-file"
-  url = "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz"
-  executable = true
-  path = "k9s"
-
-[".local/bin/just"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "casey/just" (printf "just-*-x86_64-unknown-linux-musl.tar.gz") | quote }}
-  executable = true
-  path = "just"
-[".local/bin/dive"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "wagoodman/dive" (printf "dive_*_linux_amd64.tar.gz") | quote }}
-  executable = true
-  path = "dive"
-[".local/bin/act"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "nektos/act" (printf "act_Linux_x86_64.tar.gz") | quote }}
-  executable = true
-  path = "act"
-[".local/bin/tilt"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "tilt-dev/tilt" (printf "tilt.*.%s.x86_64.tar.gz" .chezmoi.os) | quote }}
-  executable = true
-  path = "tilt"
-[".local/bin/chezmoi"]
-  type = "file"
-  url = {{ printf "https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-%s-%s" .chezmoi.os .chezmoi.arch | quote }}
-  executable = true
-  path = "chezmoi"
-[".local/bin/helm"]
-  type = "archive-file"
-  url = {{ (printf "https://get.helm.sh/helm-%s-%s-%s.tar.gz" ((gitHubLatestRelease "helm/helm").TagName | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
-  executable = true
-  stripComponents = 1
-  path = "helm"
+# CLI binaries live in ~/.config/mise/config.toml; only non-binaries and the
+# docker CLI plugin (which docker looks up by path) stay here.
 [".docker/cli-plugins/docker-mcp"]
   type = "archive-file"
   url = {{ (printf "https://github.com/docker/mcp-gateway/releases/download/%s/docker-mcp-%s-%s.tar.gz" ((gitHubLatestTag "docker/mcp-gateway").Name | toString ) .chezmoi.os .chezmoi.arch ) | quote }}
   executable = true
   path = "docker-mcp"
-[".local/bin/cloudlens"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "one2nc/cloudlens" (printf "cloudlens_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
-  executable = true
-  path = "cloudlens"
-
-[".local/bin/circleci"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "CircleCI-Public/circleci-cli" (printf "circleci-cli_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
-  refreshPeriod = "168h"
-  executable = true
-  # upstream flattened the tarball (~v1.0.47876): binary at root, no version dir
-  path = "circleci"
-
-[".local/bin/trivy"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "aquasecurity/trivy" "trivy_*_Linux-64bit.tar.gz" | quote }}
-  refreshPeriod = "168h"
-  executable = true
-  path = "trivy"
-
-[".local/bin/opencode"]
-    type = "archive-file"
-    url = "https://github.com/anomalyco/opencode/releases/latest/download/opencode-linux-x64.tar.gz"
-    refreshPeriod = "72h"
-    executable = true
-    path = "opencode"
-
-# beads — dependency-aware issue tracker; domestique's plan-of-record backend.
-# Repo moved steveyegge/beads → gastownhall/beads (old name 301-redirects).
-[".local/bin/bd"]
-  type = "archive-file"
-  url = {{ gitHubLatestReleaseAssetURL "gastownhall/beads" (printf "beads_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
-  refreshPeriod = "168h"
-  executable = true
-  path = "bd"
 
 # Wonderbrushed — hand-drawn freedesktop icon theme (CC-BY-SA-4.0).
 # Select it in COSMIC via ~/.config/cosmic/com.system76.CosmicTk/v1/icon_theme,

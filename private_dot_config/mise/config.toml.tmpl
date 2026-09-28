@@ -1,0 +1,77 @@
+# Global toolchain and CLI versions: the single list of what every machine gets.
+# A repo's own mise.toml, .tool-versions or idiomatic version file overrides these.
+# .chezmoiscripts/run_onchange_after_00-mise-install installs on change; update-all
+# upgrades.
+
+[tools]
+# languages
+go = "latest"
+java = "temurin-25"
+node = "lts"
+rust = "stable" # via rustup, at the standard ~/.rustup and ~/.cargo
+terraform = "latest"
+zig = "latest"
+
+# JVM build tools (formerly sdkman)
+gradle = "latest"
+kotlin = "latest"
+maven = "latest"
+mvnd = "latest"
+spring-boot = "latest"
+
+# shell and CLI
+age = "latest"
+atuin = "latest"
+bat = "latest"
+bottom = "latest"
+btop = "latest"
+chezmoi = "latest"
+delta = "latest"
+direnv = "latest"
+fzf = "latest"
+gh = "latest"
+hyperfine = "latest"
+jq = "latest"
+just = "latest"
+lsd = "latest"
+neovim = "latest"
+oha = "latest"
+opencode = "latest"
+pandoc = "latest"
+ripgrep = "latest"
+starship = "latest"
+uv = "latest"
+vhs = "latest"
+zoxide = "latest"
+"github:gastownhall/beads" = "latest" # bd
+"github:wtfutil/wtf" = "latest"
+
+# cargo-only; binstall fetches prebuilt binaries where they exist
+cargo-binstall = "latest"
+"cargo:cargo-lambda" = "latest"
+"cargo:cargo-watch" = "latest"
+
+# containers, k8s, CI
+act = "latest"
+circleci = "latest"
+dive = "latest"
+helm = "latest"
+k9s = "latest"
+kubectl = "1.33.3"
+pack = "latest"
+tilt = "latest"
+trivy = "latest"
+"github:one2nc/cloudlens" = "latest"
+{{- if .work }}
+
+# work machines only
+aws-cli = "latest"
+azure-cli = "latest"
+eksctl = "latest"
+sops = "latest"
+{{- end }}
+
+[settings]
+# Off by default in mise, but Stravito/infrastructure pins terraform through
+# .terraform-version — without this, every repo silently gets the global version.
+idiomatic_version_file_enable_tools = ["terraform", "go"]

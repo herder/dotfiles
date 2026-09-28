@@ -13,5 +13,4 @@ echo "Installing macOS packages via Homebrew"
 brew install {{ .packages.macos.brew | quoteList | join " " }}
 brew install --cask {{ .packages.macos.cask | quoteList | join " " }}
 {{ end }}
-# cargo tools live in run_onchange_after_install-cargo-tools: this runs before the
-# rust toolchain exists on a fresh machine.
+# Everything else comes from mise: .chezmoiscripts/run_onchange_after_00-mise-install.

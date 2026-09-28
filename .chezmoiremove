@@ -5,3 +5,31 @@
 .zsh.after/goenv.zsh
 .zsh.after/rbenv.zsh
 .config/tfenv/use-gpgv
+
+# Moved to mise (2026-09-28). Left behind in ~/.local/bin they would shadow mise's
+# shims outside interactive shells. ~/.local/bin/mise stays: mise self-updates it.
+.zsh.after/bob.zsh
+.local/bin/act
+.local/bin/atuin
+.local/bin/aws
+.local/bin/aws-cli
+.local/bin/aws_completer
+.local/bin/bd
+.local/bin/bob
+.local/bin/chezmoi
+.local/bin/circleci
+.local/bin/cloudlens
+.local/bin/dive
+.local/bin/eksctl
+.local/bin/helm
+.local/bin/just
+.local/bin/k9s
+.local/bin/kubectl
+.local/bin/opencode
+.local/bin/pack
+.local/bin/starship
+.local/bin/tilt
+.local/bin/trivy
+.local/bin/uv
+.local/bin/uvx
+.local/bin/wtf

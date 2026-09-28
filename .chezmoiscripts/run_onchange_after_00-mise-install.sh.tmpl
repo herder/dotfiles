@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Installs ~/.config/mise/config.toml. The 00 sorts it first among after-scripts,
+# so the rest may assume cargo, gh, uv and friends.
+# config hash: {{ include "private_dot_config/mise/config.toml.tmpl" | sha256sum }}
+set -euo pipefail
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+command -v mise >/dev/null || curl -fsSL https://mise.run | sh
+# resolving `latest` for ~50 tools blows the unauthenticated 60 req/h GitHub API limit
+export GITHUB_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-$(op read 'op://Private/GH CLI/token' --account {{ .opAccount }} 2>/dev/null || true)}}"
+mise install --yes
+# mise pins rust per shell via RUSTUP_TOOLCHAIN; bare ~/.cargo/bin proxies need a default
+rustup show active-toolchain >/dev/null 2>&1 || mise exec -- rustup default stable
+# vim: ft=bash

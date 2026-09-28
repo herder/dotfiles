@@ -49,6 +49,8 @@ path=(
   ~/bin
   $path
 )
+# non-interactive shells and IDEs; .zsh.after/mise.zsh does full activation on top
+(( $+commands[mise] )) && eval "$(mise activate zsh --shims)"
 
 fpath=(
   ~/.zfunc

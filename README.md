@@ -26,10 +26,10 @@ What it does, in order:
 3. Proves `op read` works on the first item chezmoi's config template needs, and waits until
    the SSH agent actually offers a key — `chezmoi apply` clones a private repo over SSH.
 4. Installs zsh and makes it the login shell.
-5. Installs chezmoi to `~/.local/bin` and runs `chezmoi init --apply herder/dotfiles`
+5. Installs mise to `~/.local/bin` and runs `chezmoi init --apply herder/dotfiles` through it
    (HTTPS clone; a `personal` machine flips origin to SSH during apply).
 
-Expect an hour or more: sdkman installs six JVM SDKs, Ollama pulls a model, fonts and an icon
+Expect an hour or more: mise installs ~50 tools, Ollama pulls a model, fonts and an icon
 theme download. sudo re-prompts when its timestamp lapses. If a script fails, chezmoi stops at
 that script and names it; fix and re-run `chezmoi apply` — `run_once` state is only recorded
 on success, so re-running is safe.
@@ -76,11 +76,12 @@ curated web-search plugin under `dot_local/share/pop-launcher`; Wonderbrushed ic
 headphone spatializer, EQ and speaker auto-gain filter chains, dock/DAC device rules, and a
 udev-triggered `reset-ifi-audio`.
 
-**Dev tools** — SDKMAN (JVM), n (Node), rustup + cargo-binstall with a tool list in
-`packages.yaml`, uv, Docker Compose, AWS CLI, kubectl, k9s, helm, tilt, dive, act, pack,
-trivy, just, tfenv, CircleCI CLI, gh, beads (`bd`), opencode. Binaries come from GitHub
-releases as chezmoi externals (`.chezmoiexternal.toml.tmpl`), apt packages from
-`.chezmoidata/packages.yaml`.
+**Dev tools** — [mise](https://mise.jdx.dev) owns every language (Java, Kotlin, Gradle,
+Maven, Node, Go, Rust via rustup, Terraform) and CLI (gh, kubectl, helm, k9s, just, uv,
+neovim, fzf, starship, atuin, beads `bd`, …), declared once in
+`private_dot_config/mise/config.toml.tmpl` and installed by
+`run_onchange_after_00-mise-install`. Distro packages (`.chezmoidata/packages.yaml`) are
+only what needs root or system integration; chezmoi externals only non-binaries.
 
 **Fonts** — IosevkaTerm, JetBrainsMono, CascadiaCode (Nerd Fonts).
 
@@ -113,7 +114,7 @@ the repo.
 - **Plain (non-`before`/`after`) scripts run before `~/.config` and `~/.local` exist.**
   chezmoi orders entries by target name and scripts sort as `.chezmoiscripts/…`, which comes
   before `.config/…`, `.local/…` and `.ssh/…`. A script that needs a managed file or an
-  external binary (uv, just, …) must therefore be `run_*_after_*`; plain scripts may only
+  mise-installed tool (uv, gh, cargo, …) must therefore be `run_*_after_*`; plain scripts may only
   rely on distro packages and the network.
 - `~/.claude` is **not** managed here. It is a separate checkout of `herder/claude-private`,
   cloned once by `run_once_install_claude_private` and thereafter owned by its own hooks.

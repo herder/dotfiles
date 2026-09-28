@@ -7,7 +7,7 @@
 set -eufo pipefail
 
 crontab - <<'EOF'
-PATH={{ .chezmoi.homeDir }}/.local/bin:/usr/local/bin:/usr/bin:/bin
+PATH={{ .chezmoi.homeDir }}/.local/share/mise/shims:{{ .chezmoi.homeDir }}/.local/bin:/usr/local/bin:/usr/bin:/bin
 # Refresh GitHub task status in Obsidian vault (every 15 min, weekdays 8-18)
 */15 8-18 * * 1-5 task-gh-refresh
 EOF

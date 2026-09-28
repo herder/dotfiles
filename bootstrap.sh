@@ -263,22 +263,10 @@ set_default_shell() {
 
 set_default_shell
 
-# --- Install chezmoi ---
+# --- Install mise (which then provides chezmoi and every other tool) ---
 
-install_chezmoi() {
-  if command -v chezmoi >/dev/null 2>&1; then
-    echo "chezmoi already installed."
-    return
-  fi
-
-  echo "Installing chezmoi..."
-  local bin_dir="$HOME/.local/bin"
-  mkdir -p "$bin_dir"
-  sh -c "$(curl -fsSL https://get.chezmoi.io)" -- -b "$bin_dir"
-  export PATH="$bin_dir:$PATH"
-}
-
-install_chezmoi
+export PATH="$HOME/.local/bin:$PATH"
+command -v mise >/dev/null 2>&1 || curl -fsSL https://mise.run | sh
 
 # --- chezmoi init --apply ---
 
@@ -288,7 +276,7 @@ echo " Applying dotfiles with chezmoi"
 echo "============================================"
 echo ""
 
-chezmoi init --apply herder/dotfiles
+mise exec chezmoi@latest -- chezmoi init --apply herder/dotfiles
 
 echo ""
 echo "============================================"
