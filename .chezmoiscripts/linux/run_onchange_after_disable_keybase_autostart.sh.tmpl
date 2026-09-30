@@ -17,11 +17,13 @@
 # weekly-tick: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
 
-autostart="$HOME/.config/autostart/keybase.desktop"
-if [ -e "$autostart" ] || [ -L "$autostart" ]; then
-    rm -f "$autostart"
-    echo "Removed Keybase autostart: $autostart"
-fi
+# Keybase itself writes keybase_autostart.desktop; keybase.desktop is the older name.
+for autostart in "$HOME"/.config/autostart/keybase{,_autostart}.desktop; do
+    if [ -e "$autostart" ] || [ -L "$autostart" ]; then
+        rm -f "$autostart"
+        echo "Removed Keybase autostart: $autostart"
+    fi
+done
 
 # vim: ft=bash
 {{- end -}}
