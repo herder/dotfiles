@@ -2,8 +2,8 @@
 #!/usr/bin/env bash
 # weekly-trigger: {{ div (now | unixEpoch) 604800 }}
 set -euo pipefail
-# chezmoi may be invoked from a shell without the user bin dirs on PATH (externals live in ~/.local/bin)
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+# chezmoi may be invoked from a shell without the user bin dirs or mise shims on PATH
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 . "$HOME/.cargo/env"
 
 dir=$(mktemp -d)
@@ -12,7 +12,7 @@ trap 'rm -rf "$dir"' EXIT
 git clone --depth 1 https://github.com/Lcstyle/clipboard-manager.git "$dir"
 cd "$dir"
 just build-release
-sudo env PATH="$PATH" "$HOME/.local/bin/just" install
+sudo env PATH="$PATH" "$(mise which just)" install
 
 echo 'COSMIC_DATA_CONTROL_ENABLED=1' | sudo tee /etc/environment.d/cosmic.conf > /dev/null
 {{- end -}}
