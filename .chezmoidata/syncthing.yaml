@@ -16,3 +16,5 @@ syncthing:
     sync:
       label: Sync
       path: Sync
+      # Explicit so devices outside the cluster (Janna's Mac) don't get it.
+      devices: [biglebowski, sobchak, lebowski]
