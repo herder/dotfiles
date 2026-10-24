@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Play half a second of silence to the iFi as soon as its sink appears.
+# After (re-)enumeration — dock, resume — the iFi garbles the first stream
+# into loud noise; later streams are clean. Silence takes the hit instead.
+# Started by udev via SYSTEMD_USER_WANTS (prime-ifi-audio.service).
+
+set -euo pipefail
+
+PREFIX="alsa_output.usb-iFi_"
+MAX_WAIT=20
+
+log() { logger -t prime-ifi-audio "$*"; }
+
+find_node() {
+    pw-cli ls Node | grep -oP "node.name = \"\K${PREFIX}[^\"]*(?=\")" | head -1
+}
+
+for ((i = 0; i < MAX_WAIT; i++)); do
+    if node=$(find_node) && [ -n "$node" ]; then
+        # 0.5 s of s16 stereo @ 48 kHz
+        head -c 96000 /dev/zero |
+            pw-cat --playback --raw --rate 48000 --channels 2 --format s16 --target "$node" -
+        log "primed $node after ${i}s"
+        exit 0
+    fi
+    sleep 1
+done
+
+log "no ${PREFIX}* sink after ${MAX_WAIT}s, not primed"
+exit 1

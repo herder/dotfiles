@@ -1,0 +1,7 @@
+[Unit]
+Description=Prime the iFi DAC with silence after it (re)appears
+After=pipewire.service wireplumber.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/prime-ifi-audio

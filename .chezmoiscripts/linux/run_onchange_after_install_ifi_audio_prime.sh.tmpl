@@ -1,0 +1,18 @@
+{{ if and (eq .chezmoi.os "linux") (not .ephemeral) (not .headless) -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# udev: when the iFi's ALSA card appears, have the user's systemd start
+# prime-ifi-audio.service, which plays silence before any real sound can.
+# unit hash: {{ include "private_dot_config/systemd/user/prime-ifi-audio.service" | sha256sum }}
+
+RULE_FILE="/etc/udev/rules.d/99-prime-ifi-audio.rules"
+
+sudo tee "$RULE_FILE" > /dev/null << 'UDEV'
+ACTION=="add", SUBSYSTEM=="sound", KERNEL=="card*", ATTRS{idVendor}=="2fc6", ATTRS{idProduct}=="f082", TAG+="systemd", ENV{SYSTEMD_USER_WANTS}+="prime-ifi-audio.service"
+UDEV
+
+sudo udevadm control --reload-rules
+systemctl --user daemon-reload
+echo "Installed iFi silence-priming udev rule"
+{{ end -}}
