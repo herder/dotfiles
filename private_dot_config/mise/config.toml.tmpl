@@ -36,7 +36,7 @@ just = "latest"
 lsd = "latest"
 neovim = "latest"
 oha = "latest"
-opencode = "latest"
+opencode = { version = "latest", allow_builds = ["@opencode/cli"] }
 pandoc = "latest"
 ripgrep = "latest"
 starship = "latest"
@@ -57,11 +57,13 @@ circleci = "latest"
 dive = "latest"
 helm = "latest"
 k9s = "latest"
-kubectl = "1.33.3"
+kubectl = "latest"
 pack = "latest"
 tilt = "latest"
 trivy = "latest"
 "github:one2nc/cloudlens" = "latest"
+ollama = "latest"
+claude = "latest"
 {{- if .work }}
 
 # work machines only
@@ -74,4 +76,4 @@ sops = "latest"
 [settings]
 # Off by default in mise, but Stravito/infrastructure pins terraform through
 # .terraform-version — without this, every repo silently gets the global version.
-idiomatic_version_file_enable_tools = ["terraform", "go"]
+idiomatic_version_file_enable_tools = ["terraform", "go", "java", "node", "npm", "python", "rust", "yarn", "ruby"]
