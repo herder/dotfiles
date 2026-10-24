@@ -52,7 +52,7 @@ sync_address = "{{ onepasswordRead "op://Private/atuin-sync/url" .opAccount }}"
 ## To use workspace mode by default when available, set this to true and
 ## set filter_mode to "workspace" or leave it unspecified and 
 ## set search.filters to include "workspace" before other filter modes.
-# workspaces = false
+workspaces = true
 
 ## which filter mode to use when atuin is invoked from a shell up-key binding
 ## the accepted values are identical to those of "filter_mode"
@@ -156,7 +156,7 @@ enter_accept = true
 ## keybinding is defined.  If this is set to "emacs", "vim-insert", or
 ## "vim-normal", the startup keymap mode in the Atuin search is forced to be
 ## the specified one.
-# keymap_mode = "auto"
+keymap_mode = "auto"
 
 ## Cursor style in each keymap mode.  If specified, the cursor style is changed
 ## in entering the cursor shape.  Available values are "default" and
@@ -231,7 +231,8 @@ records = true
 
 [daemon]
 ## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
-# enabled = false
+enabled = true
+autostart = true
 
 ## How often the daemon should sync in seconds
 # sync_frequency = 300
@@ -270,3 +271,14 @@ records = true
 ## The "workspace" mode is skipped when not in a workspace or workspaces = false.
 ## Default filter mode can be overridden with the filter_mode setting.
 # filters = [ "global", "host", "session", "workspace", "directory" ]
+filters = [ "workspace", "global", "host", "session", "directory" ]
+
+[tmux]
+## Search in a tmux popup instead of taking over the pane
+enabled = true
+
+[threads]
+## Capture Claude Code etc. sessions for `atuin resume` / `atuin threads search`
+capture = true
+## Tool inputs/outputs would sync decrypted secrets and work transcripts to sobchak
+capture_tools = false
