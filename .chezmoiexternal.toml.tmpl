@@ -20,13 +20,14 @@
 # which keys on the *directory* name ("Wonderbrushed"), not index.theme's Name=.
 # Inherits=breeze-dark,hicolor — both present on Pop, so fallbacks resolve.
 # Upstream does not flag betas as prereleases, so /releases/latest (what
-# gitHubLatestReleaseAssetURL uses) tracks beta tags too. Zip is ~237MB and
+# gitHubLatestReleaseAssetURL uses) tracks beta tags too. Archive is ~237MB and
 # growing fast (66→103→237MB over three releases), hence the 30-day refresh.
+# Shipped as .zip until 0.45-beta.1, .tar.gz since.
 # exclude drops the shipped source art and a stray editor backup file.
 {{- if and (eq .chezmoi.os "linux") (not .ephemeral) (not .headless) }}
 [".local/share/icons/Wonderbrushed"]
   type = "archive"
-  url = {{ gitHubLatestReleaseAssetURL "Bhavneeth-Games/Wonderbrushed" "Wonderbrushed.zip" | quote }}
+  url = {{ gitHubLatestReleaseAssetURL "Bhavneeth-Games/Wonderbrushed" "Wonderbrushed.tar.gz" | quote }}
   refreshPeriod = "720h"
   stripComponents = 1
   exclude = ["**/Original Files/**", "**/*~"]
