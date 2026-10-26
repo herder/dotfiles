@@ -97,7 +97,7 @@ the repo.
 | `task`, `task-*` | task management against the Obsidian vault (`add/list/done/edit/sync/tickle/priority/tui`, GitHub status refresh) |
 | `daily-note` | open/create today's Obsidian daily note |
 | `gh-standup` | Mon–Fri systemd timer: summarises yesterday's GitHub activity and DMs it on Slack (work only) |
-| `claude-whose-pr` | which Claude Code session owns a PR, via worktree lock files |
+| `claude-whose-pr` | which Claude Code session owns a PR or issue, via worktree lock files |
 | `remind` | desktop notification at a future time via `at(1)` |
 | `audio-switch`, `monitor-switch`, `kbd-layout` | fzf sink/source switcher, DDC/CI input switching, current xkb layout |
 | `update-all` (`bin/`) | `chezmoi update`, then apt, toolchains, plugin managers, cargo/npm/gh extensions, Ollama models |

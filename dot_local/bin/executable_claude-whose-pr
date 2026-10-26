@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Which Claude Code session owns a pull request?
+# Which Claude Code session owns a pull request or an issue?
 #
 # Usage: claude-whose-pr [--pane] <org/repo#N>
 #        claude-whose-pr [--pane] <org/repo> <N>
+#        claude-whose-pr [--pane] https://github.com/<org>/<repo>/(pull|issues)/<N>
 # --pane prints only the tmux pane of the live owning session (for claude-goto-pr)
 # and fails if there is none.
 # Examples:
@@ -12,6 +13,9 @@
 # Derives the answer instead of storing it:
 #   PR -> head branch (gh) -> the worktree holding that branch (git)
 #      -> that worktree's claude-session.lock -> the owning session.
+#   An issue has no branch of its own, so it fans out first: its linked
+#   branches (`gh issue develop`) and the head branches of the PRs that close
+#   it, each walked as above.
 #
 # Nothing is indexed, so nothing goes stale when a worktree changes hands. A
 # session may own many worktrees across many repos; that does not matter here
@@ -30,6 +34,11 @@ if [[ ${1:-} == --pane ]]; then
     exec 3>&1 1>/dev/null
 fi
 
+# A pasted URL is the other natural thing to type.
+if [[ $# -eq 1 && $1 =~ ^https?://github\.com/([^/]+/[^/]+)/(pull|issues)/([0-9]+) ]]; then
+    set -- "${BASH_REMATCH[1]}" "${BASH_REMATCH[3]}"
+fi
+
 case $# in
     1) [[ $1 == *#* ]] || die "expected <org/repo#N> or <repo#N>, got '$1'"
        repo=${1%%#*}; num=${1##*#} ;;
@@ -40,11 +49,12 @@ Examples:
   ${0##*/} Stravito/platform#9779
   ${0##*/} platform#9779          # org inferred from the cwd's origin remote
   ${0##*/} Stravito/auth 226
+  ${0##*/} https://github.com/Stravito/infrastructure/issues/4238
 USAGE
        exit 2 ;;
 esac
 
-[[ $num =~ ^[0-9]+$ ]] || die "PR number must be numeric, got '$num'"
+[[ $num =~ ^[0-9]+$ ]] || die "number must be numeric, got '$num'"
 
 # `platform#9779` is the natural thing to type. Infer the org from the current
 # repo's origin, but ONLY when the name matches -- inferring across repos would
@@ -64,29 +74,62 @@ fi
 org=${repo%%/*}
 name=${repo##*/}
 
-pr=$(gh pr view "$num" --repo "$repo" --json headRefName,state,title,url 2>/dev/null) \
-    || die "cannot read $repo#$num (does it exist? is gh authenticated?)"
+# One query answers "PR or issue?" and fetches what each needs: a PR's head
+# branch, or an issue's linked branches and closing PRs.
+# shellcheck disable=SC2016 # $owner etc. are GraphQL variables, not shell
+ref=$(gh api graphql -f owner="$org" -f name="$name" -F num="$num" -f query='
+  query($owner: String!, $name: String!, $num: Int!) {
+    repository(owner: $owner, name: $name) {
+      issueOrPullRequest(number: $num) {
+        __typename
+        ... on PullRequest { title state url headRefName }
+        ... on Issue {
+          title state url
+          linkedBranches(first: 20) { nodes { ref { name } } }
+          closedByPullRequestsReferences(first: 20, includeClosedPrs: true) {
+            nodes { number headRefName }
+          }
+        }
+      }
+    }
+  }' --jq '.data.repository.issueOrPullRequest' 2>/dev/null) || ref=
+if [[ -z $ref || $ref == null ]]; then
+    die "cannot read $repo#$num (does it exist? is gh authenticated?)"
+fi
 
-branch=$(jq -r '.headRefName' <<<"$pr")
-state=$(jq -r '.state' <<<"$pr")
-title=$(jq -r '.title' <<<"$pr")
-url=$(jq -r '.url' <<<"$pr")
+kind=$(jq -r '.__typename' <<<"$ref")
+state=$(jq -r '.state' <<<"$ref")
+title=$(jq -r '.title' <<<"$ref")
+url=$(jq -r '.url' <<<"$ref")
 
-printf '%s#%s  [%s]  %s\n%s\n\n' "$repo" "$num" "$state" "$title" "$url"
-printf 'head branch: %s\n' "$branch"
+printf '%s#%s  [%s %s]  %s\n%s\n\n' "$repo" "$num" "$kind" "$state" "$title" "$url"
+
+# "<branch>\t<where it came from>", one per line, deduplicated by branch.
+if [[ $kind == PullRequest ]]; then
+    branches=$(jq -r '"\(.headRefName)\thead branch"' <<<"$ref")
+else
+    branches=$(jq -r '
+        ([.linkedBranches.nodes[] | "\(.ref.name)\tlinked branch"]
+         + [.closedByPullRequestsReferences.nodes[] | "\(.headRefName)\thead of PR #\(.number)"])
+        | unique_by(split("\t")[0]) | .[]' <<<"$ref")
+    [[ -n $branches ]] || printf 'no linked branch and no PR closes it\n'
+fi
 
 clone="$HOME/src/git/github.com/$org/$name"
 [[ -d $clone/.git ]] || die "no local clone at $clone"
+worktrees=$(git -C "$clone" worktree list --porcelain 2>/dev/null)
 
-# Walk the worktree registry for the branch. `git worktree list --porcelain`
-# emits stanzas of `worktree <path>` / `branch refs/heads/<name>`, so pair them
-# up rather than assuming field order.
-worktree=$(git -C "$clone" worktree list --porcelain 2>/dev/null | awk -v want="refs/heads/$branch" '
-    /^worktree /  { path = $2 }
-    /^branch /    { if ($2 == want) { print path; exit } }
-')
-
-if [[ -n ${worktree:-} ]]; then
+# Prints the worktree and lock for one branch; records a live owner in live_pids.
+live_pids=()
+report_branch() {
+    local branch=$1 worktree lock lock_pid
+    # `git worktree list --porcelain` emits stanzas of `worktree <path>` /
+    # `branch refs/heads/<name>`, so pair them up rather than assuming order.
+    worktree=$(awk -v want="refs/heads/$branch" '
+        /^worktree /  { path = $2 }
+        /^branch /    { if ($2 == want) { print path; exit } }
+    ' <<<"$worktrees")
+    [[ -n $worktree ]] || { printf 'worktree:    none\n'; return 1; }
     printf 'worktree:    %s\n' "$worktree"
     lock="$(git -C "$worktree" rev-parse --git-dir)/claude-session.lock"
     if [[ -r $lock ]]; then
@@ -100,7 +143,7 @@ if [[ -n ${worktree:-} ]]; then
         if [[ -n ${lock_pid:-} && -r /proc/$lock_pid/cmdline ]] \
            && tr '\0' ' ' < "/proc/$lock_pid/cmdline" | grep -qi claude; then
             printf '\nProcess %s is alive — the lock looks current.\n' "$lock_pid"
-            live_pid=$lock_pid
+            live_pids+=("$lock_pid")
         else
             printf '\n*** STALE: process %s is gone, so that session has ended. ***\n' "${lock_pid:-?}"
             printf 'The work may well be continuing under a new session name (a resumed\n'
@@ -111,10 +154,19 @@ if [[ -n ${worktree:-} ]]; then
         printf '\nNo session lock: the worktree exists but no session has claimed it.\n'
         printf 'Either the work predates the lock convention, or nobody is on it.\n'
     fi
-else
-    printf 'worktree:    none (branch not checked out in any worktree)\n'
-    printf '\nThe worktree was probably removed after merge. Searching session\n'
-    printf 'transcripts for a session that mentioned this PR...\n\n'
+}
+
+any_worktree=0
+while IFS=$'\t' read -r branch source; do
+    [[ -n $branch ]] || continue
+    printf '\n%s: %s\n' "$source" "$branch"
+    report_branch "$branch" && any_worktree=1
+done <<<"$branches"
+
+if (( ! any_worktree )); then
+    printf '\nNo worktree holds any of its branches: removed after merge, or the work\n'
+    printf 'was never branched. Searching session transcripts for a session that\n'
+    printf 'mentioned it...\n\n'
     # Match the URL and the fully-qualified shorthand; a bare "#N" would collide
     # with unrelated issue numbers in other repos.
     found=0
@@ -124,10 +176,10 @@ else
         # Subagent transcripts are named agent-*; only bare UUIDs are sessions a
         # human was driving, which is what "whose" is actually asking about.
         case $id in
-            agent-*) kind='subagent' ;;
-            *)       kind='session ' ;;
+            agent-*) who='subagent' ;;
+            *)       who='session ' ;;
         esac
-        printf '  %s %s  (last written %s)\n' "$kind" "$id" \
+        printf '  %s %s  (last written %s)\n' "$who" "$id" \
             "$(date -r "$t" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '?')"
     done < <(grep -rl -e "$url" -e "$repo#$num" \
                  --include='*.jsonl' "$HOME/.claude/projects" 2>/dev/null | head -10)
@@ -138,12 +190,12 @@ fi
 
 # Live cross-check. Claude Code sets each pane's title to its current task, and
 # the tmux-claude-desc hook rewrites GitHub references into <repo>#<N>, so an
-# active pane working this PR shows up here even with no lock.
+# active pane working this PR or issue shows up here even with no lock.
 if [[ -n ${TMUX:-} ]] || tmux list-panes -a >/dev/null 2>&1; then
     panes=$(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_id}	#{pane_title}' 2>/dev/null \
             | grep -F "$name#$num" || true)
     if [[ -n $panes ]]; then
-        printf '\n--- live panes whose title names this PR ---\n%s\n' "$panes"
+        printf '\n--- live panes whose title names it ---\n%s\n' "$panes"
     fi
 fi
 
@@ -162,8 +214,12 @@ pane_of_pid() {
     return 1
 }
 
-if [[ -n ${live_pid:-} ]]; then
-    pane_of_pid "$live_pid" >&3 || die "owning session (pid $live_pid) is not in a tmux pane"
+# An issue can have several branches; only one distinct live owner is an answer.
+mapfile -t live_pids < <(printf '%s\n' "${live_pids[@]}" | sort -u | grep . || true)
+if (( ${#live_pids[@]} > 1 )); then
+    die "several live sessions hold branches of $repo#$num (pids ${live_pids[*]}); run claude-whose-pr without --pane"
+elif (( ${#live_pids[@]} == 1 )); then
+    pane_of_pid "${live_pids[0]}" >&3 || die "owning session (pid ${live_pids[0]}) is not in a tmux pane"
 elif [[ -n ${panes:-} && $(wc -l <<<"$panes") -eq 1 ]]; then
     # No live lock, but exactly one pane says it is on this PR.
     awk -F'\t' '{ sub(/.*\./, "", $1); print $1 }' <<<"$panes" >&3

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Switch tmux to the Claude Code session that owns a pull request.
+# Switch tmux to the Claude Code session that owns a pull request or an issue.
 #
-# Usage: claude-goto-pr <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
+# Usage: claude-goto-pr <org/repo#N>   |   <repo#N>   |   <org/repo> <N> |   <github URL>
 #
 # Ownership is claude-whose-pr's call; this only moves the client there.
 set -euo pipefail
