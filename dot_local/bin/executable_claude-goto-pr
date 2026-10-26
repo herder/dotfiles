@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Switch tmux to the Claude Code session that owns a pull request.
+#
+# Usage: claude-goto-pr <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
+#
+# Ownership is claude-whose-pr's call; this only moves the client there.
+set -euo pipefail
+
+pane=$(claude-whose-pr --pane "$@")
+tmux switch-client -t "$pane"
+tmux select-window -t "$pane"
+tmux select-pane -t "$pane"
+printf 'switched to %s\n' "$pane"

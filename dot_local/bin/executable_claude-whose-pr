@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Which Claude Code session owns a pull request?
 #
-# Usage: claude-whose-pr <org/repo#N>
-#        claude-whose-pr <org/repo> <N>
+# Usage: claude-whose-pr [--pane] <org/repo#N>
+#        claude-whose-pr [--pane] <org/repo> <N>
+# --pane prints only the tmux pane of the live owning session (for claude-goto-pr)
+# and fails if there is none.
 # Examples:
 #   claude-whose-pr Stravito/platform#9779
 #   claude-whose-pr Stravito/auth 226
@@ -21,12 +23,19 @@ set -euo pipefail
 
 die() { printf '%s: %s\n' "${0##*/}" "$*" >&2; exit 1; }
 
+pane_mode=0
+if [[ ${1:-} == --pane ]]; then
+    pane_mode=1; shift
+    # Keep the report logic single-sourced: run it as usual, discard the prose.
+    exec 3>&1 1>/dev/null
+fi
+
 case $# in
     1) [[ $1 == *#* ]] || die "expected <org/repo#N> or <repo#N>, got '$1'"
        repo=${1%%#*}; num=${1##*#} ;;
     2) repo=$1; num=$2 ;;
     *) cat >&2 <<USAGE
-Usage: ${0##*/} <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
+Usage: ${0##*/} [--pane] <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
 Examples:
   ${0##*/} Stravito/platform#9779
   ${0##*/} platform#9779          # org inferred from the cwd's origin remote
@@ -91,6 +100,7 @@ if [[ -n ${worktree:-} ]]; then
         if [[ -n ${lock_pid:-} && -r /proc/$lock_pid/cmdline ]] \
            && tr '\0' ' ' < "/proc/$lock_pid/cmdline" | grep -qi claude; then
             printf '\nProcess %s is alive — the lock looks current.\n' "$lock_pid"
+            live_pid=$lock_pid
         else
             printf '\n*** STALE: process %s is gone, so that session has ended. ***\n' "${lock_pid:-?}"
             printf 'The work may well be continuing under a new session name (a resumed\n'
@@ -135,4 +145,28 @@ if [[ -n ${TMUX:-} ]] || tmux list-panes -a >/dev/null 2>&1; then
     if [[ -n $panes ]]; then
         printf '\n--- live panes whose title names this PR ---\n%s\n' "$panes"
     fi
+fi
+
+(( pane_mode )) || exit 0
+
+# The lock's own `pane:` field goes stale when a session is resumed elsewhere, so
+# find the pane from the live pid: climb its ancestors to a pane's shell.
+pane_of_pid() {
+    local p=$1 map id
+    map=$(tmux list-panes -a -F '#{pane_pid} #{pane_id}')
+    while [[ -n $p && $p -gt 1 ]]; do
+        id=$(awk -v p="$p" '$1 == p { print $2; exit }' <<<"$map")
+        [[ -n $id ]] && { printf '%s\n' "$id"; return 0; }
+        p=$(ps -o ppid= -p "$p" | tr -d ' ')
+    done
+    return 1
+}
+
+if [[ -n ${live_pid:-} ]]; then
+    pane_of_pid "$live_pid" >&3 || die "owning session (pid $live_pid) is not in a tmux pane"
+elif [[ -n ${panes:-} && $(wc -l <<<"$panes") -eq 1 ]]; then
+    # No live lock, but exactly one pane says it is on this PR.
+    awk -F'\t' '{ sub(/.*\./, "", $1); print $1 }' <<<"$panes" >&3
+else
+    die "no live session owns $repo#$num (run claude-whose-pr without --pane for details)"
 fi
