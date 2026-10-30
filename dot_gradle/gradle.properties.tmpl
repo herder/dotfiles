@@ -1,0 +1,9 @@
+{{- /* Overrides the platform repo's 3 GB daemons, which OOM compiling its full test suite. Linux work machines with 64 GB+ only. */ -}}
+{{- if and .work (eq .chezmoi.os "linux") -}}
+{{-   $memGB := output "awk" "/^MemTotal:/ { print int($2 / 1048576) }" "/proc/meminfo" | trim | atoi -}}
+{{-   if ge $memGB 64 }}
+# Replaces, not extends, a project's org.gradle.jvmargs: keep its system properties.
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=1g -Djib.skipExistingImages=true
+kotlin.daemon.jvmargs=-Xmx8g
+{{-   end }}
+{{- end }}
