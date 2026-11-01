@@ -8,6 +8,9 @@ ExecStart=%h/.local/share/mise/shims/ollama serve
 WorkingDirectory=%h
 # mise's ollama tarball has no ROCm runners; Vulkan drives the GPU instead.
 Environment=OLLAMA_VULKAN=1
+# Ollama's 4096 default truncates OpenCode's system prompt and tool list, dropping
+# the user turn (qwen3.x: "no user query found in messages"). Default it for all.
+Environment=OLLAMA_CONTEXT_LENGTH=32768
 Restart=always
 RestartSec=3
 

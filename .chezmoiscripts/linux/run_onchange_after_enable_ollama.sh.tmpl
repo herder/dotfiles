@@ -39,24 +39,19 @@ for _ in $(seq 30); do curl -fsS http://127.0.0.1:11434/api/version >/dev/null 2
 ollama pull gemma3:1b
 
 # Coding models for OpenCode, by GPU (see .chezmoitemplates/ollama-profile).
-# update-all keeps the bases fresh weekly. OpenCode can't pass num_ctx and ollama's
-# default is too small for its tool-calling system prompt, hence the 32k variants.
+# update-all keeps them fresh weekly; the unit sets their 32k context.
 {{- $profile := includeTemplate "ollama-profile" . }}
 # profile: {{ $profile }}
 {{- if eq $profile "discrete" }}
 # qwen3.8:27b is the stronger one but spills ~13% to CPU at 32k on a 20GB card;
 # qwen3-coder (30B-A3B MoE) fits fully and runs ~2x faster.
-models="qwen3.8:27b=qwen3.8:27b-32k qwen3-coder:latest=qwen3-coder-32k"
+models="qwen3.8:27b qwen3-coder:latest"
 {{- else if eq $profile "unified" }}
-models="qwen3.6:35b-a3b=qwen3.6-35b-a3b-32k"
+models="qwen3.6:35b-a3b"
 {{- else }}
 models=""
 {{- end }}
-for pair in $models; do
-  base=${pair%%=*} variant=${pair#*=}
-  ollama pull "$base"
-  ollama create "$variant" -f <(printf 'FROM %s\nPARAMETER num_ctx 32768\n' "$base")
-done
+for model in $models; do ollama pull "$model"; done
 
 # vim: ft=bash
 {{- end }}

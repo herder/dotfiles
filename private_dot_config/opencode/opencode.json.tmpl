@@ -10,16 +10,16 @@
       "models": {
 {{- $profile := includeTemplate "ollama-profile" . }}
 {{- if eq $profile "discrete" }}
-        "qwen3.8:27b-32k": {
+        "qwen3.8:27b": {
           "name": "Qwen3.8 27B",
           "tools": true
         },
-        "qwen3-coder-32k": {
+        "qwen3-coder:latest": {
           "name": "Qwen3 Coder 30B-A3B (fast)",
           "tools": true
         },
 {{- else if eq $profile "unified" }}
-        "qwen3.6-35b-a3b-32k": {
+        "qwen3.6:35b-a3b": {
           "name": "Qwen3.6 35B-A3B",
           "tools": true
         },
@@ -28,7 +28,9 @@
           "name": "Gemma 3 1B (fast)"
         }
       }
-    },
+    }
+{{- /* Same hardware gate as run_onchange_after_install_ryzen_ai_npu */}}
+{{- if glob "/sys/bus/pci/drivers/amdxdna/[0-9a-f]*" }},
     "flm": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "FastFlowLM (Ryzen AI NPU)",
@@ -49,5 +51,6 @@
         }
       }
     }
+{{- end }}
   }
 }
