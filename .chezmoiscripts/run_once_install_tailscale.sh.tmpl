@@ -1,9 +1,0 @@
-{{- if get . "tailscale" -}}
-#!/usr/bin/env bash
-set -euo pipefail
-if ! command -v tailscale >/dev/null 2>&1; then
-  curl -fsSL https://tailscale.com/install.sh | sh
-fi
-echo "Tailscale installed; join with: sudo tailscale up"
-# vim: ft=bash
-{{- end -}}

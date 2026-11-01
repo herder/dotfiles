@@ -9,7 +9,17 @@ command -v mise >/dev/null || curl -fsSL https://mise.run | sh
 # resolving `latest` for ~50 tools blows the unauthenticated 60 req/h GitHub API limit
 export GITHUB_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-$(op read 'op://Private/GH CLI/token' --account {{ .opAccount }} 2>/dev/null || true)}}"
 # system packages first: build-essential and the -dev headers are what source builds need
+{{- if and (eq .osid "linux-pop") .tailscale }}
+# install.sh's list names the same repo with another Signed-By; apt refuses both
+[ ! -e /etc/apt/sources.list.d/tailscale.list ] || sudo rm /etc/apt/sources.list.d/tailscale.list
+{{- end }}
 mise bootstrap packages apply --yes
+{{- if and (eq .osid "linux-pop") .tailscale }}
+# mise adds sources only on the way to installing; an already-installed tailscale
+# would otherwise be left with no repo and stop updating without a word
+[ -e /etc/apt/sources.list.d/mise-tailscale.sources ] \
+  || { echo "mise did not write mise-tailscale.sources; tailscale has no apt repo" >&2; exit 1; }
+{{- end }}
 mise install --yes
 # mise pins rust per shell via RUSTUP_TOOLCHAIN; bare ~/.cargo/bin proxies need a default
 rustup show active-toolchain >/dev/null 2>&1 || mise exec -- rustup default stable

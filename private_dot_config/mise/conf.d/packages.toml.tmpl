@@ -19,7 +19,6 @@
 "pacman:openssh" = "latest"
 "pacman:system-config-printer" = "latest"
 "pacman:systemd-resolvconf" = "latest"
-"pacman:tailscale" = "latest"
 "pacman:tig" = "latest"
 "pacman:ttf-jetbrains-mono-nerd" = "latest"
 "pacman:ttf-nerd-fonts-symbols" = "latest"
@@ -37,6 +36,9 @@
 "aur:moreutils" = "latest"
 "aur:sshrc" = "latest"
 "aur:sunshine" = "latest"
+{{-   if .tailscale }}
+"pacman:tailscale" = "latest"
+{{-   end }}
 {{- else if eq .osid "linux-pop" }}
 # toolchain: stock Pop!_OS ships no compiler; rustup and keyd assume one
 "apt:build-essential" = "latest"
@@ -94,6 +96,9 @@
 "apt:libpam-fprintd" = "latest"
 "apt:tlp" = "latest"
 {{-   end }}
+{{-   if .tailscale }}
+"apt:tailscale" = "latest"
+{{-   end }}
 {{- else if eq .osid "darwin" }}
 "brew:android-platform-tools" = "latest"
 "brew:atool" = "latest"
@@ -113,4 +118,14 @@
 "brew-cask:slack" = "latest"
 "brew-cask:steam" = "latest"
 "brew-cask:tor-browser" = "latest"
+{{- end }}
+
+{{- if and (eq .osid "linux-pop") .tailscale }}
+
+# suites defaults to the Ubuntu codename. Key verified 2026-11-01 against the
+# keyring Tailscale's install.sh had installed.
+[bootstrap.apt.sources.tailscale]
+uris = "https://pkgs.tailscale.com/stable/ubuntu"
+key = "https://pkgs.tailscale.com/stable/ubuntu/{{ .chezmoi.osRelease.ubuntuCodename }}.noarmor.gpg"
+fingerprint = "2596 A99E AAB3 3821 893C 0A79 458C A832 957F 5868"
 {{- end }}
