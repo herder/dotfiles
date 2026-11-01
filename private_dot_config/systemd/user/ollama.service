@@ -1,0 +1,15 @@
+[Unit]
+Description=Ollama (mise build, Vulkan)
+After=network-online.target
+
+[Service]
+# The shim resolves mise's current ollama, so `mise upgrade` needs only a restart.
+ExecStart=%h/.local/share/mise/shims/ollama serve
+WorkingDirectory=%h
+# mise's ollama tarball has no ROCm runners; Vulkan drives the GPU instead.
+Environment=OLLAMA_VULKAN=1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

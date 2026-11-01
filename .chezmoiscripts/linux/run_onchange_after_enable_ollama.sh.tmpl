@@ -1,0 +1,58 @@
+{{- if not .headless -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The server is mise's ollama under a user unit (see ollama.service); the old
+# install.sh copy ran as root with ROCm and was never upgraded by anything.
+# unit hash: {{ include "private_dot_config/systemd/user/ollama.service" | sha256sum }}
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+# linux/ scripts sort before 00-mise-install, so this may run first on a new machine
+command -v ollama >/dev/null || mise install --yes ollama
+
+systemctl --user show-environment >/dev/null 2>&1 \
+  || { echo "no systemd user manager; cannot enable ollama.service" >&2; exit 1; }
+
+# Migrate off install.sh's root copy: same port, so it must go before ours starts.
+# Uninstall steps per https://github.com/ollama/ollama/blob/main/docs/linux.md#uninstall
+if [ -e /etc/systemd/system/ollama.service ] || [ -e /usr/local/bin/ollama ]; then
+  echo "Removing the install.sh ollama (root service, ROCm)..."
+  sudo systemctl disable --now ollama.service 2>/dev/null || true
+  legacy=/usr/share/ollama/.ollama/models
+  if sudo test -d "$legacy"; then
+    mkdir -p "$HOME/.ollama/models"
+    sudo rsync -a --remove-source-files "$legacy/" "$HOME/.ollama/models/"
+    sudo chown -R "$USER:" "$HOME/.ollama/models"
+  fi
+  sudo rm -f /etc/systemd/system/ollama.service /usr/local/bin/ollama
+  sudo rm -rf /usr/local/lib/ollama
+  sudo systemctl daemon-reload
+  if id ollama >/dev/null 2>&1; then sudo userdel -r ollama 2>/dev/null || true; fi
+  if getent group ollama >/dev/null; then sudo groupdel ollama || true; fi
+fi
+
+systemctl --user daemon-reload
+systemctl --user enable ollama.service
+systemctl --user restart ollama.service
+for _ in $(seq 30); do curl -fsS http://127.0.0.1:11434/api/version >/dev/null 2>&1 && break; sleep 1; done
+
+# Pull a small model for HAL 9000 quips (~1GB)
+ollama pull gemma3:1b
+
+# Pull a coding model for OpenCode (~19GB, needs >=16GB VRAM).
+# Once installed, update-all keeps it fresh weekly.
+min_vram=$((16 * 1024 * 1024 * 1024))
+max_vram=$(cat /sys/class/drm/card*/device/mem_info_vram_total 2>/dev/null | sort -rn | head -1)
+if [ -n "${max_vram:-}" ] && [ "$max_vram" -ge "$min_vram" ]; then
+  echo "GPU with >= 16GB VRAM detected — pulling coding model..."
+  ollama pull devstral:24b
+  # Create a variant with 32k context for OpenCode's agentic tool use.
+  # Ollama defaults to 4096 tokens which is too small for tool-calling system prompts.
+  ollama create devstral:24b-32k -f <(cat <<'MODELFILE'
+FROM devstral:24b
+PARAMETER num_ctx 32768
+MODELFILE
+)
+fi
+
+# vim: ft=bash
+{{- end }}

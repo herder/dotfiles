@@ -8,3 +8,8 @@
 # Pairs with .chezmoiscripts/linux/run_onchange_after_install_aws_vpn.sh.tmpl.
 .local/share/applications/awsvpnclient.desktop
 {{ end }}
+
+{{ if .headless }}
+# Pairs with .chezmoiscripts/linux/run_onchange_after_enable_ollama.sh.tmpl.
+.config/systemd/user/ollama.service
+{{ end }}

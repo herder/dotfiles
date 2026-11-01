@@ -71,6 +71,8 @@ main() {
         printf '   mise\n'
         run mise self-update --yes
         run mise upgrade
+        # the ollama unit runs mise's binary; a running server keeps the old one
+        systemctl --user try-restart ollama.service 2>/dev/null || true
     else
         skip "mise"
     fi
