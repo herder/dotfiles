@@ -8,20 +8,24 @@
         "baseURL": "http://localhost:11434/v1"
       },
       "models": {
+{{- /* OpenCode compacts against the advertised 256k unless told the 32k the unit serves */}}
 {{- $profile := includeTemplate "ollama-profile" . }}
 {{- if eq $profile "discrete" }}
         "qwen3.8:27b": {
           "name": "Qwen3.8 27B",
-          "tools": true
+          "tools": true,
+          "limit": { "context": 32768, "output": 8192 }
         },
         "qwen3-coder:latest": {
           "name": "Qwen3 Coder 30B-A3B (fast)",
-          "tools": true
+          "tools": true,
+          "limit": { "context": 32768, "output": 8192 }
         },
 {{- else if eq $profile "unified" }}
         "qwen3.6:35b-a3b": {
           "name": "Qwen3.6 35B-A3B",
-          "tools": true
+          "tools": true,
+          "limit": { "context": 32768, "output": 8192 }
         },
 {{- end }}
         "gemma3:1b": {

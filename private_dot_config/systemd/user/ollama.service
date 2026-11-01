@@ -11,6 +11,10 @@ Environment=OLLAMA_VULKAN=1
 # Ollama's 4096 default truncates OpenCode's system prompt and tool list, dropping
 # the user turn (qwen3.x: "no user query found in messages"). Default it for all.
 Environment=OLLAMA_CONTEXT_LENGTH=32768
+# q8 KV halves the cache: qwen3.8:27b at 32k spills 6% to CPU instead of 13% on
+# a 20GB card, and the spill is what sinks tok/s as the context fills.
+Environment=OLLAMA_FLASH_ATTENTION=1
+Environment=OLLAMA_KV_CACHE_TYPE=q8_0
 Restart=always
 RestartSec=3
 
