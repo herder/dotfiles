@@ -8,6 +8,8 @@
         "baseURL": "http://localhost:11434/v1"
       },
       "models": {
+{{- $profile := includeTemplate "ollama-profile" . }}
+{{- if eq $profile "discrete" }}
         "qwen3.8:27b-32k": {
           "name": "Qwen3.8 27B",
           "tools": true
@@ -16,6 +18,12 @@
           "name": "Qwen3 Coder 30B-A3B (fast)",
           "tools": true
         },
+{{- else if eq $profile "unified" }}
+        "qwen3.6-35b-a3b-32k": {
+          "name": "Qwen3.6 35B-A3B",
+          "tools": true
+        },
+{{- end }}
         "gemma3:1b": {
           "name": "Gemma 3 1B (fast)"
         }

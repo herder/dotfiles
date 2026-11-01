@@ -1,0 +1,15 @@
+{{- /* Which ollama coding models this machine's GPU suits: discrete | unified | none.
+     discrete: a card with >=16GB of its own VRAM — dense models, 800 GB/s.
+     unified: an APU whose VRAM carve-out plus GTT reaches 32GB — only MoE models
+     with few active params are usable at LPDDR bandwidth (~137 GB/s).
+     A dGPU's GTT is system RAM over PCIe, hence only counted when no card qualifies
+     on VRAM alone. Shared by the ollama enable script and the opencode config. */ -}}
+{{- output "sh" "-c" `
+for d in /sys/class/drm/card*/device; do
+  [ -r "$d/mem_info_vram_total" ] || continue
+  v=$(cat "$d/mem_info_vram_total"); g=$(cat "$d/mem_info_gtt_total" 2>/dev/null || echo 0)
+  [ "$v" -ge $((16 << 30)) ] && { echo discrete; exit; }
+  [ $((v + g)) -ge $((32 << 30)) ] && unified=1
+done
+[ -n "${unified:-}" ] && echo unified || echo none
+` | trim -}}
