@@ -33,28 +33,5 @@
         }
       }
     }
-{{- /* Same hardware gate as run_onchange_after_install_ryzen_ai_npu */}}
-{{- if glob "/sys/bus/pci/drivers/amdxdna/[0-9a-f]*" }},
-    "flm": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "FastFlowLM (Ryzen AI NPU)",
-      "options": {
-        "baseURL": "http://localhost:52625/v1"
-      },
-      "models": {
-        "gpt-oss:20b": {
-          "name": "gpt-oss 20B (NPU)",
-          "tools": true
-        },
-        "qwen3-4b": {
-          "name": "Qwen3 4B (NPU)",
-          "tools": true
-        },
-        "gemma3:1b": {
-          "name": "Gemma 3 1B (NPU, fast)"
-        }
-      }
-    }
-{{- end }}
   }
 }
