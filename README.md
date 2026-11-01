@@ -1,7 +1,7 @@
 # dotfiles
 
 [chezmoi](https://www.chezmoi.io/)-managed dotfiles. The exercised target is **Pop!_OS 24.04
-with COSMIC** on x86_64; `bootstrap.sh` and `packages.yaml` carry pacman and Homebrew paths
+with COSMIC** on x86_64; `bootstrap.sh` and the mise packages file carry pacman and Homebrew paths
 too, but almost every script is gated on `osid == linux-pop` and the other two are not
 regularly tested.
 
@@ -80,8 +80,11 @@ udev-triggered `reset-ifi-audio`.
 Maven, Node, Go, Rust via rustup, Terraform) and CLI (gh, kubectl, helm, k9s, just, uv,
 neovim, fzf, starship, atuin, beads `bd`, …), declared once in
 `private_dot_config/mise/config.toml.tmpl` and installed by
-`run_onchange_after_00-mise-install`. Distro packages (`.chezmoidata/packages.yaml`) are
-only what needs root or system integration; chezmoi externals only non-binaries.
+`run_onchange_after_00-mise-install`. Distro packages are mise
+[bootstrap packages](https://mise.jdx.dev/bootstrap/packages/) in
+`private_dot_config/mise/conf.d/packages.toml.tmpl`, applied by the same script before
+`mise install`: only what needs root or system integration. `mise bootstrap packages status`
+shows drift. chezmoi externals only non-binaries.
 
 **Fonts** — IosevkaTerm, JetBrainsMono, CascadiaCode (Nerd Fonts).
 
@@ -109,8 +112,6 @@ the repo.
   changes, which is how weekly refreshes work (`# weekly-tick: {{ div (now | unixEpoch) 604800 }}`).
   **A non-zero exit from any script aborts the whole apply**, so scripts are `set -euo pipefail`
   and idempotent.
-- `run_onchange_before_install-basic-packages` runs before anything else and only installs
-  distro packages. Anything needing rust, gh or a display belongs in an `after` script.
 - **Plain (non-`before`/`after`) scripts run before `~/.config` and `~/.local` exist.**
   chezmoi orders entries by target name and scripts sort as `.chezmoiscripts/…`, which comes
   before `.config/…`, `.local/…` and `.ssh/…`. A script that needs a managed file or an
