@@ -4,16 +4,28 @@
 set -euo pipefail
 
 NAS=${NAS:-admin@nas1.localdomain}
-NTFY_TOPIC_FILE="$HOME/.config/nas-raid-check/ntfy-topic"
+KDC=(io.github.hepp3n.kdeconnect /io/github/hepp3n/kdeconnect/Daemon io.github.hepp3n.kdeconnect.Daemon)
+
+# KDE Connect only reaches the phone while it's on the LAN: wait up to 12h for it.
+phone_ping() {
+  local msg=$1 id
+  for _ in $(seq 144); do
+    id=$(busctl --user --json=short call "${KDC[@]}" ListDevices 2>/dev/null \
+      | jq -r '.data[0][] | select(.[2] == "phone" and .[3] and .[4]) | .[0]' | head -1) || true
+    if [[ -n $id ]] && busctl --user call "${KDC[@]}" SendPing ss "$id" "$msg"; then
+      return 0
+    fi
+    sleep 300
+  done
+  echo "phone unreachable for 12h; alert only on the desktop" >&2
+  return 1
+}
 
 notify() {
   local title=$1 body=$2
   echo "$title: $body" >&2
   notify-send -u critical -a nas-raid-check "$title" "$body" 2>/dev/null || true
-  if [[ -r $NTFY_TOPIC_FILE ]]; then
-    curl -fsS -m 20 -H "Title: $title" -H "Priority: high" -H "Tags: warning" \
-      -d "$body" "https://ntfy.sh/$(<"$NTFY_TOPIC_FILE")" >/dev/null || true
-  fi
+  phone_ping "$title: $body" || true
 }
 
 if ! mdstat=$(ssh -o BatchMode=yes -o ConnectTimeout=15 "$NAS" cat /proc/mdstat 2>&1); then
