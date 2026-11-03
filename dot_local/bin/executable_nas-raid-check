@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Alert when any md array on nas1 is degraded, or when nas1 can't be asked.
+# Disk 1 sat dead for six weeks unnoticed (2026-09-21 → 11-03); QTS never said.
+set -euo pipefail
+
+NAS=${NAS:-admin@nas1.localdomain}
+NTFY_TOPIC_FILE="$HOME/.config/nas-raid-check/ntfy-topic"
+
+notify() {
+  local title=$1 body=$2
+  echo "$title: $body" >&2
+  notify-send -u critical -a nas-raid-check "$title" "$body" 2>/dev/null || true
+  if [[ -r $NTFY_TOPIC_FILE ]]; then
+    curl -fsS -m 20 -H "Title: $title" -H "Priority: high" -H "Tags: warning" \
+      -d "$body" "https://ntfy.sh/$(<"$NTFY_TOPIC_FILE")" >/dev/null || true
+  fi
+}
+
+if ! mdstat=$(ssh -o BatchMode=yes -o ConnectTimeout=15 "$NAS" cat /proc/mdstat 2>&1); then
+  notify "nas1 RAID check failed" "Could not read /proc/mdstat: ${mdstat:0:200}"
+  exit 1
+fi
+
+# Status lines look like "... [3/2] [_UU]"; any "_" is a missing member.
+degraded=$(awk '/^md[0-9]+ :/ {md=$1} /\[[U_]+\]/ && /_/ {match($0, /\[[0-9]+\/[0-9]+\] \[[U_]+\]/); print md " " substr($0, RSTART, RLENGTH)}' <<<"$mdstat")
+recovering=$(grep -oE '(recovery|resync|reshape) *= *[0-9.]+%' <<<"$mdstat" || true)
+
+if [[ -n $degraded ]]; then
+  notify "nas1 RAID degraded" "$(tr '\n' ';' <<<"$degraded")${recovering:+ — $recovering}"
+  exit 1
+fi
+echo "nas1 RAID healthy"

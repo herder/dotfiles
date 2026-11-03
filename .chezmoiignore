@@ -9,6 +9,13 @@
 .local/share/applications/awsvpnclient.desktop
 {{ end }}
 
+{{ if ne .chezmoi.hostname "sobchak" }}
+# Pairs with .chezmoiscripts/linux/run_onchange_after_enable_nas_raid_check_timer.sh.tmpl.
+.local/bin/nas-raid-check
+.config/systemd/user/nas-raid-check.service
+.config/systemd/user/nas-raid-check.timer
+{{ end }}
+
 {{ if .headless }}
 # Pairs with .chezmoiscripts/linux/run_onchange_after_enable_ollama.sh.tmpl.
 .config/systemd/user/ollama.service

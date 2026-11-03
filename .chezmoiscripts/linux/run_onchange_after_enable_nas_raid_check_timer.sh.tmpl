@@ -1,0 +1,15 @@
+{{ if eq .chezmoi.hostname "sobchak" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# chezmoi deploys units but never enables them; see gh-standup's enable script.
+# timer hash: {{ include "private_dot_config/systemd/user/nas-raid-check.timer" | sha256sum }}
+# service hash: {{ include "private_dot_config/systemd/user/nas-raid-check.service" | sha256sum }}
+
+systemctl --user show-environment >/dev/null 2>&1 \
+  || { echo "no systemd user manager; cannot enable nas-raid-check.timer" >&2; exit 1; }
+
+systemctl --user daemon-reload
+systemctl --user enable --now nas-raid-check.timer
+echo "Enabled nas-raid-check.timer"
+{{ end -}}

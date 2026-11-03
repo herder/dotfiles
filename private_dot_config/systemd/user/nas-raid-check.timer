@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly nas1 RAID health check
+
+[Timer]
+OnCalendar=Sun 10:00
+Persistent=true
+Unit=nas-raid-check.service
+
+[Install]
+WantedBy=timers.target
