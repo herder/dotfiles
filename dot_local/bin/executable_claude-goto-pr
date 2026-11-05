@@ -1,12 +1,26 @@
 #!/usr/bin/env bash
-# Switch tmux to the Claude Code session that owns a pull request or an issue.
+# Switch tmux to the Claude Code session that owns a pull request or an issue,
+# reviving it in a new window if only a dead session owns it.
 #
 # Usage: claude-goto-pr <org/repo#N>   |   <repo#N>   |   <org/repo> <N> |   <github URL>
 #
 # Ownership is claude-whose-pr's call; this only moves the client there.
 set -euo pipefail
 
-pane=$(claude-whose-pr --pane "$@")
+IFS=$'\t' read -r kind a b < <(claude-whose-pr --target "$@")
+
+case $kind in
+    pane)
+        pane=$a ;;
+    resume)
+        # Through the shell, so the window survives the session exiting.
+        pane=$(tmux new-window -P -F '#{pane_id}' -c "$b")
+        tmux send-keys -t "$pane" "claude --resume $a" Enter
+        printf 'revived session %s in %s\n' "$a" "$b" ;;
+    *)
+        exit 1 ;;  # claude-whose-pr already said why
+esac
+
 tmux switch-client -t "$pane"
 tmux select-window -t "$pane"
 tmux select-pane -t "$pane"

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Which Claude Code session owns a pull request or an issue?
 #
-# Usage: claude-whose-pr [--pane] <org/repo#N>
-#        claude-whose-pr [--pane] <org/repo> <N>
-#        claude-whose-pr [--pane] https://github.com/<org>/<repo>/(pull|issues)/<N>
-# --pane prints only the tmux pane of the live owning session (for claude-goto-pr)
-# and fails if there is none.
+# Usage: claude-whose-pr [--target] <org/repo#N>
+#        claude-whose-pr [--target] <org/repo> <N>
+#        claude-whose-pr [--target] https://github.com/<org>/<repo>/(pull|issues)/<N>
+# --target prints only where claude-goto-pr should go, one tab-separated line:
+#   pane    <tmux pane id>          a live session owns it
+#   resume  <session uuid>  <cwd>   only a dead session owns it; resume it from <cwd>
+# and fails if there is neither.
 # Examples:
 #   claude-whose-pr Stravito/platform#9779
 #   claude-whose-pr Stravito/auth 226
@@ -28,7 +30,7 @@ set -euo pipefail
 die() { printf '%s: %s\n' "${0##*/}" "$*" >&2; exit 1; }
 
 pane_mode=0
-if [[ ${1:-} == --pane ]]; then
+if [[ ${1:-} == --target ]]; then
     pane_mode=1; shift
     # Keep the report logic single-sourced: run it as usual, discard the prose.
     exec 3>&1 1>/dev/null
@@ -44,7 +46,7 @@ case $# in
        repo=${1%%#*}; num=${1##*#} ;;
     2) repo=$1; num=$2 ;;
     *) cat >&2 <<USAGE
-Usage: ${0##*/} [--pane] <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
+Usage: ${0##*/} [--target] <org/repo#N>   |   <repo#N>   |   <org/repo> <N>
 Examples:
   ${0##*/} Stravito/platform#9779
   ${0##*/} platform#9779          # org inferred from the cwd's origin remote
@@ -119,10 +121,31 @@ clone="$HOME/src/git/github.com/$org/$name"
 [[ -d $clone/.git ]] || die "no local clone at $clone"
 worktrees=$(git -C "$clone" worktree list --porcelain 2>/dev/null)
 
-# Prints the worktree and lock for one branch; records a live owner in live_pids.
+# Live sessions register themselves in ~/.claude/sessions/<pid>.json. A session
+# resumed elsewhere keeps its uuid but not its pid, so this finds it where the
+# lock's pid cannot.
+live_pid_of_uuid() {
+    local f pid
+    for f in "$HOME"/.claude/sessions/*.json; do
+        [[ -r $f ]] || continue
+        pid=$(jq -r --arg u "$1" 'select(.sessionId == $u) | .pid' "$f" 2>/dev/null) || continue
+        [[ -n $pid ]] && is_claude_pid "$pid" && { printf '%s\n' "$pid"; return 0; }
+    done
+    return 1
+}
+
+# Checks the cmdline too, since pids get recycled and a stranger's process would
+# otherwise read as live.
+is_claude_pid() {
+    grep -qai claude "/proc/$1/cmdline" 2>/dev/null
+}
+
+# Prints the worktree and lock for one branch; records a live owner in live_pids
+# and a dead one (as "<uuid>") in dead_uuids.
 live_pids=()
+dead_uuids=()
 report_branch() {
-    local branch=$1 worktree lock lock_pid
+    local branch=$1 worktree lock lock_pid lock_uuid resumed_pid
     # `git worktree list --porcelain` emits stanzas of `worktree <path>` /
     # `branch refs/heads/<name>`, so pair them up rather than assuming order.
     worktree=$(awk -v want="refs/heads/$branch" '
@@ -136,15 +159,18 @@ report_branch() {
         printf '\n--- owning session ---\n'
         cat "$lock"
         # A lock outlives the session that wrote it -- a resumed session comes
-        # back under a new name, and a crashed one never cleans up. The recorded
-        # pid is the cheapest local liveness signal; check the cmdline too, since
-        # pids get recycled and a stranger's process would otherwise read as live.
+        # back under a new name and pid, and a crashed one never cleans up.
         lock_pid=$(awk -F': *' '/^pid:/ {print $2; exit}' "$lock")
-        if [[ -n ${lock_pid:-} && -r /proc/$lock_pid/cmdline ]] \
-           && tr '\0' ' ' < "/proc/$lock_pid/cmdline" | grep -qi claude; then
+        lock_uuid=$(awk -F': *' '/^uuid:/ {print $2; exit}' "$lock")
+        if [[ -n ${lock_pid:-} ]] && is_claude_pid "$lock_pid"; then
             printf '\nProcess %s is alive — the lock looks current.\n' "$lock_pid"
             live_pids+=("$lock_pid")
+        elif [[ -n ${lock_uuid:-} ]] && resumed_pid=$(live_pid_of_uuid "$lock_uuid"); then
+            printf '\nProcess %s is gone, but session %s lives on as pid %s (resumed).\n' \
+                "${lock_pid:-?}" "$lock_uuid" "$resumed_pid"
+            live_pids+=("$resumed_pid")
         else
+            [[ -n ${lock_uuid:-} ]] && dead_uuids+=("$lock_uuid")
             printf '\n*** STALE: process %s is gone, so that session has ended. ***\n' "${lock_pid:-?}"
             printf 'The work may well be continuing under a new session name (a resumed\n'
             printf 'session is renamed), so treat this as "nobody is holding it right now"\n'
@@ -217,12 +243,28 @@ pane_of_pid() {
 # An issue can have several branches; only one distinct live owner is an answer.
 mapfile -t live_pids < <(printf '%s\n' "${live_pids[@]}" | sort -u | grep . || true)
 if (( ${#live_pids[@]} > 1 )); then
-    die "several live sessions hold branches of $repo#$num (pids ${live_pids[*]}); run claude-whose-pr without --pane"
+    die "several live sessions hold branches of $repo#$num (pids ${live_pids[*]}); run claude-whose-pr without --target"
 elif (( ${#live_pids[@]} == 1 )); then
-    pane_of_pid "${live_pids[0]}" >&3 || die "owning session (pid ${live_pids[0]}) is not in a tmux pane"
+    pane=$(pane_of_pid "${live_pids[0]}") || die "owning session (pid ${live_pids[0]}) is not in a tmux pane"
+    printf 'pane\t%s\n' "$pane" >&3
+    exit 0
 elif [[ -n ${panes:-} && $(wc -l <<<"$panes") -eq 1 ]]; then
     # No live lock, but exactly one pane says it is on this PR.
-    awk -F'\t' '{ sub(/.*\./, "", $1); print $1 }' <<<"$panes" >&3
+    awk -F'\t' '{ sub(/.*\./, "", $1); print "pane\t" $1 }' <<<"$panes" >&3
+    exit 0
+fi
+
+# Nobody live: fall back to the one dead session whose lock claims it. Resume
+# from the directory it started in -- transcripts are filed per project dir.
+mapfile -t dead_uuids < <(printf '%s\n' "${dead_uuids[@]}" | sort -u | grep . || true)
+if (( ${#dead_uuids[@]} > 1 )); then
+    die "no live session owns $repo#$num, and several dead ones do (${dead_uuids[*]}); run claude-whose-pr without --target"
+elif (( ${#dead_uuids[@]} == 1 )); then
+    transcript=$(find "$HOME/.claude/projects" -maxdepth 2 -name "${dead_uuids[0]}.jsonl" -print -quit)
+    [[ -n $transcript ]] || die "session ${dead_uuids[0]} owns $repo#$num but its transcript is gone; nothing to resume"
+    cwd=$(jq -rn 'first(inputs | select(.cwd) | .cwd)' "$transcript" 2>/dev/null)
+    [[ -d $cwd ]] || die "session ${dead_uuids[0]} started in '$cwd', which no longer exists"
+    printf 'resume\t%s\t%s\n' "${dead_uuids[0]}" "$cwd" >&3
 else
-    die "no live session owns $repo#$num (run claude-whose-pr without --pane for details)"
+    die "no session, live or dead, owns $repo#$num (run claude-whose-pr without --target for details)"
 fi
