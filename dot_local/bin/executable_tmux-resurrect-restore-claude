@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # tmux-resurrect post-restore-all hook.
 # Reads the .claude sidecar written by tmux-resurrect-save-claude and re-attaches
-# each restored pane to its prior Claude session via `claude --resume <id>`.
+# each restored pane to its prior Claude session via `claude --resume <id> <nudge>`.
+# The nudge is submitted as the first prompt, so the session wakes up and acts
+# instead of sitting idle with a stale transcript.
 #
 # Skips any pane that already has a live Claude — prevents the resume command
 # from being typed into a running Claude's input on manual prefix+Ctrl-r.
@@ -10,6 +12,9 @@
 # the enclosing resurrect restore to fail.
 
 set -uo pipefail
+
+# Single-quoted into the pane's shell below: no apostrophes.
+nudge='tmux restored this session. Continue if you were mid-task; otherwise give a one-line status.'
 
 command -v claude >/dev/null 2>&1 || exit 0
 command -v tmux >/dev/null 2>&1 || exit 0
@@ -65,5 +70,5 @@ while IFS=$'\t' read -r pane sid _cwd; do
   [[ -z "$pane" || -z "$sid" ]] && continue
   [[ -n "${pane_exists[$pane]+x}" ]] || continue
   [[ -n "${pane_has_claude[$pane]+x}" ]] && continue
-  tmux send-keys -t "$pane" "claude --resume $sid" Enter
+  tmux send-keys -t "$pane" "claude --resume $sid '$nudge'" Enter
 done < "$sidecar"
