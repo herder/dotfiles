@@ -39,7 +39,7 @@ main() {
     if has apt; then
         printf '   apt\n'
         run sudo apt update
-        run sudo apt upgrade -y
+        run sudo apt full-upgrade -y
         run sudo apt autoremove -y
     elif has yay; then
         printf '   yay\n'
