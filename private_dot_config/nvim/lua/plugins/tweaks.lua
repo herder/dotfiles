@@ -1,16 +1,12 @@
--- stylua: ignore
-  -- add melange colorscheme
 return {
-  { "savq/melange-nvim" },
-  {"rebelot/kanagawa.nvim"},
-
-  -- Configure LazyVim to load gruvbox
   {
-    "LazyVim/LazyVim",
+    "rebelot/kanagawa.nvim",
     opts = {
-      colorscheme = "kanagawa",
+      colors = { theme = { all = { ui = { bg_gutter = "none" } } } },
     },
   },
-
-
+  {
+    "LazyVim/LazyVim",
+    opts = { colorscheme = "kanagawa" },
+  },
 }

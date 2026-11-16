@@ -85,6 +85,10 @@ TMPPREFIX="${TMPDIR%/}/zsh"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
+# Claude Code clamps to 256 colours under tmux unless told otherwise; tmux.conf
+# already passes RGB through (terminal-features '*:RGB').
+export CLAUDE_CODE_TMUX_TRUECOLOR=1
+
 # Leading `warn` keeps other Rust programs' defaults; bare cosmic_comp=info silences them.
 export RUST_LOG='warn,cosmic_comp=info'
 

@@ -1,0 +1,138 @@
+# Kanagawa (Wave) — colours from rebelot/kanagawa.nvim.
+"$schema" = 'https://starship.rs/config-schema.json'
+
+palette = 'kanagawa'
+
+format = """
+[](fg:wave_blue)\
+$directory\
+[](fg:wave_blue bg:ink4)\
+$git_branch$git_state$git_status\
+[](fg:ink4 bg:ink5)\
+$java$kotlin$gradle$nodejs$python$rust$golang$terraform\
+[](fg:ink5)\
+$aws$kubernetes\
+$fill\
+$cmd_duration$status$jobs\
+$line_break\
+$character"""
+
+add_newline = true
+
+[palettes.kanagawa]
+ink0 = '#16161d'
+ink4 = '#2a2a37'
+ink5 = '#363646'
+fuji_white = '#dcd7ba'
+fuji_gray = '#727169'
+old_white = '#c8c093'
+wave_blue = '#223249'
+crystal_blue = '#7e9cd8'
+spring_blue = '#7fb4ca'
+wave_aqua = '#7aa89f'
+spring_green = '#98bb6c'
+carp_yellow = '#e6c384'
+surimi_orange = '#ffa066'
+wave_red = '#e46876'
+oni_violet = '#957fb8'
+sakura_pink = '#d27e99'
+
+[fill]
+symbol = ' '
+
+[directory]
+style = 'fg:fuji_white bg:wave_blue bold'
+format = '[ $path ]($style)[$read_only]($read_only_style)'
+read_only = "\U000f033e "
+read_only_style = 'fg:wave_red bg:wave_blue'
+truncation_length = 3
+truncation_symbol = '…/'
+repo_root_style = 'fg:crystal_blue bg:wave_blue bold'
+repo_root_format = '[ $before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path ]($style)[$read_only]($read_only_style)'
+before_repo_root_style = 'fg:old_white bg:wave_blue'
+
+[git_branch]
+symbol = ""
+style = 'fg:oni_violet bg:ink4'
+format = '[ $symbol $branch ]($style)'
+
+[git_state]
+style = 'fg:carp_yellow bg:ink4'
+format = '[\($state( $progress_current/$progress_total)\) ]($style)'
+
+[git_status]
+style = 'fg:sakura_pink bg:ink4'
+format = '[($all_status$ahead_behind )]($style)'
+
+[java]
+symbol = ""
+style = 'fg:surimi_orange bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[kotlin]
+symbol = ""
+style = 'fg:oni_violet bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[gradle]
+symbol = ""
+style = 'fg:wave_aqua bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[nodejs]
+symbol = ""
+style = 'fg:spring_green bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[python]
+symbol = ""
+style = 'fg:carp_yellow bg:ink5'
+format = '[ $symbol( $version)( \($virtualenv\)) ]($style)'
+
+[rust]
+symbol = ""
+style = 'fg:surimi_orange bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[golang]
+symbol = ""
+style = 'fg:spring_blue bg:ink5'
+format = '[ $symbol( $version) ]($style)'
+
+[terraform]
+symbol = "\U000f1062"
+style = 'fg:oni_violet bg:ink5'
+format = '[ $symbol( $workspace) ]($style)'
+
+[aws]
+symbol = ""
+style = 'fg:surimi_orange'
+format = ' [$symbol $profile( \($region\))]($style)'
+
+[kubernetes]
+disabled = false
+symbol = "\U000f10fe"
+style = 'fg:spring_blue'
+format = ' [$symbol $context( \($namespace\))]($style)'
+
+[cmd_duration]
+min_time = 2000
+style = 'fg:carp_yellow'
+format = "[\U000f199f $duration]($style) "
+
+[status]
+disabled = false
+symbol = '✘'
+style = 'fg:wave_red'
+format = '[$symbol $status]($style) '
+
+[jobs]
+symbol = "\U000f04b2"
+style = 'fg:wave_aqua'
+
+[character]
+success_symbol = '[❯](bold spring_green)'
+error_symbol = '[❯](bold wave_red)'
+vimcmd_symbol = '[❮](bold oni_violet)'
+vimcmd_visual_symbol = '[❮](bold carp_yellow)'
+vimcmd_replace_symbol = '[❮](bold sakura_pink)'
