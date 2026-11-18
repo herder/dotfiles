@@ -144,6 +144,7 @@ is_claude_pid() {
 # and a dead one (as "<uuid>") in dead_uuids.
 live_pids=()
 dead_uuids=()
+worktree_paths=()
 report_branch() {
     local branch=$1 worktree lock lock_pid lock_uuid resumed_pid
     # `git worktree list --porcelain` emits stanzas of `worktree <path>` /
@@ -154,6 +155,9 @@ report_branch() {
     ' <<<"$worktrees")
     [[ -n $worktree ]] || { printf 'worktree:    none\n'; return 1; }
     printf 'worktree:    %s\n' "$worktree"
+    # Sessions write it both ways, so match both.
+    worktree_paths+=("$worktree")
+    [[ $worktree == "$HOME"/* ]] && worktree_paths+=("~${worktree#"$HOME"}")
     lock="$(git -C "$worktree" rev-parse --git-dir)/claude-session.lock"
     if [[ -r $lock ]]; then
         printf '\n--- owning session ---\n'
@@ -225,6 +229,56 @@ if [[ -n ${TMUX:-} ]] || tmux list-panes -a >/dev/null 2>&1; then
     fi
 fi
 
+# Lockless fallback, only when no lock is live: live sessions whose transcript
+# names the worktree, a branch, the URL or org/repo#N. Two strengths, since
+# merely reading the PR (or running this script) also mentions it:
+#   worked  -- one of its own tool calls touched the worktree path
+#   mention -- anything else; never the session running this script
+self_pids=()
+p=$$
+while [[ -n $p && $p -gt 1 ]]; do
+    is_claude_pid "$p" && self_pids+=("$p")
+    p=$(ps -o ppid= -p "$p" | tr -d ' ')
+done
+worked_pids=()
+mention_pids=()
+if (( ${#live_pids[@]} == 0 )); then
+    patterns=(-e "$url" -e "$repo#$num")
+    for w in "${worktree_paths[@]}"; do patterns+=(-e "$w"); done
+    while IFS=$'\t' read -r branch _; do
+        # A default-branch name would match every transcript.
+        [[ -n $branch && $branch != main && $branch != master ]] && patterns+=(-e "$branch")
+    done <<<"$branches"
+    found_live=""
+    while IFS= read -r t; do
+        id=$(basename "$t" .jsonl)
+        [[ $id == agent-* ]] && continue
+        pid=$(live_pid_of_uuid "$id") || continue
+        [[ " ${worked_pids[*]} ${mention_pids[*]} " == *" $pid "* ]] && continue
+        strength=mention
+        for w in "${worktree_paths[@]}"; do
+            # Tool calls are their own assistant lines; prose and tool results are not.
+            # -c, not -q: an early exit SIGPIPEs the upstream greps, which pipefail reports as no match.
+            if (( $(grep -F -- "$w" "$t" | grep -F '"type":"assistant"' | grep -cF '"type":"tool_use"' || true) > 0 )); then
+                strength=worked; break
+            fi
+        done
+        if [[ $strength == worked ]]; then
+            worked_pids+=("$pid")
+        elif [[ " ${self_pids[*]} " == *" $pid "* ]]; then
+            continue
+        else
+            mention_pids+=("$pid")
+        fi
+        sname=$(jq -r '.name // "?"' "$HOME/.claude/sessions/$pid.json" 2>/dev/null || echo '?')
+        found_live+=$(printf '  %-7s  %s  session %s  pid %s  (last written %s)' "$strength" "$sname" "$id" "$pid" \
+            "$(date -r "$t" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '?')")$'\n'
+    done < <(grep -rlF "${patterns[@]}" --include='*.jsonl' "$HOME/.claude/projects" 2>/dev/null || true)
+    if [[ -n $found_live ]]; then
+        printf '\n--- live sessions whose transcript names it (no lock) ---\n%s' "$found_live"
+    fi
+fi
+
 (( pane_mode )) || exit 0
 
 # The lock's own `pane:` field goes stale when a session is resumed elsewhere, so
@@ -253,6 +307,22 @@ elif [[ -n ${panes:-} && $(wc -l <<<"$panes") -eq 1 ]]; then
     awk -F'\t' '{ sub(/.*\./, "", $1); print "pane\t" $1 }' <<<"$panes" >&3
     exit 0
 fi
+for tier in worked mention; do
+    declare -n candidates="${tier}_pids"
+    # Investigating a worktree from here also "works" in it; among several, the caller isn't the one sought.
+    if (( ${#candidates[@]} > 1 )); then
+        mapfile -t candidates < <(for c in "${candidates[@]}"; do
+            [[ " ${self_pids[*]} " == *" $c "* ]] || printf '%s\n' "$c"; done)
+    fi
+    if (( ${#candidates[@]} == 1 )); then
+        pane=$(pane_of_pid "${candidates[0]}") || die "the one live session that $tier $repo#$num (pid ${candidates[0]}) is not in a tmux pane"
+        printf 'pane\t%s\n' "$pane" >&3
+        exit 0
+    elif (( ${#candidates[@]} > 1 )); then
+        die "no lock, and several live sessions ($tier: pids ${candidates[*]}) could own $repo#$num; run claude-whose-pr without --target"
+    fi
+    unset -n candidates
+done
 
 # Nobody live: fall back to the one dead session whose lock claims it. Resume
 # from the directory it started in -- transcripts are filed per project dir.
