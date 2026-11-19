@@ -2,10 +2,25 @@
 # Switch tmux to the Claude Code session that owns a pull request or an issue,
 # reviving it in a new window if only a dead session owns it.
 #
-# Usage: claude-goto-pr <org/repo#N>   |   <repo#N>   |   <org/repo> <N> |   <github URL>
+# Usage: claude-goto-pr [--display] <org/repo#N> | <repo#N> | <org/repo> <N> | <github URL>
+#
+# --display reports through tmux display-message, for the prefix+G binding: run-shell
+# output would otherwise open view mode over the pane you ran it from. Prefer the key
+# to /goto-pr — a slash command is a model turn and interrupts that session's work.
 #
 # Ownership is claude-whose-pr's call; this only moves the client there.
 set -euo pipefail
+
+# run-shell inherits the tmux server's PATH, which may predate ~/.local/bin.
+PATH="$HOME/.local/bin:$PATH"
+
+if [[ ${1:-} == --display ]]; then
+    shift
+    status=0
+    out=$("$0" "$@" 2>&1) || status=$?
+    tmux display-message -d 8000 "goto-pr: ${out//$'\n'/ — }"
+    exit "$status"
+fi
 
 IFS=$'\t' read -r kind a b < <(claude-whose-pr --target "$@")
 

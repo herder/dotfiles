@@ -204,6 +204,10 @@ if-shell '[ -x ~/.claude/tmux-claude-state.sh ]' {
   set-hook -g window-pane-changed "run-shell -b '~/.claude/tmux-claude-alert.sh clear-active'"
 }
 
+# Jump to the Claude session owning a PR/issue (URL or org/repo#N). A key, not
+# /goto-pr: the slash command is a model turn and interrupts the session it's typed in.
+bind G command-prompt -p "goto PR/issue:" { run-shell -b "~/.local/bin/claude-goto-pr --display '%%'" }
+
 # Restore default new-window on shifted key
 bind C new-window
 
