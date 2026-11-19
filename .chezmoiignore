@@ -7,6 +7,9 @@
 
 # Pairs with .chezmoiscripts/linux/run_onchange_after_install_aws_vpn.sh.tmpl.
 .local/share/applications/awsvpnclient.desktop
+
+# Completion for the Stravito developer CLI.
+.zsh.after/strav.zsh
 {{ end }}
 
 {{ if ne .chezmoi.hostname "sobchak" }}
