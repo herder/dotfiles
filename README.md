@@ -69,7 +69,7 @@ session picker and survive resurrect save/restore (`tmux-claude-desc`, `tmux-res
 
 **Desktop (COSMIC)** — panel, background, compositor and custom shortcuts under
 `private_dot_config/cosmic`; [pop-launcher](https://github.com/pop-os/launcher) scripts and a
-curated web-search plugin under `dot_local/share/pop-launcher`; Wonderbrushed icon theme;
+curated web-search plugin under `dot_local/share/pop-launcher`;
 `sudo-askpass` graphical prompt.
 
 **Audio (PipeWire/WirePlumber)** — bit-perfect route for the iFi USB DAC, SOFA-based
