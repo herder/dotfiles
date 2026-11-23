@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# tmux status widget: condition glyph + temperature from wttr.in.
+# status-interval is 2s, so never fetch inline: print the cache, refresh it in the
+# background when older than TTL. Location: ~/.config/tmux-weather/location if
+# present (anything wttr.in accepts), else wttr.in's IP geolocation.
+set -u
+
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-weather"
+loc_file="${XDG_CONFIG_HOME:-$HOME/.config}/tmux-weather/location"
+ttl=900       # refresh after 15 min
+max_age=7200  # hide rather than show weather older than 2 h
+
+refresh() {
+  local loc="" json code temp sunrise sunset now icon color
+  [[ -r $loc_file ]] && loc=$(<"$loc_file")
+  json=$(curl -fsS --max-time 10 "https://wttr.in/${loc// /+}?format=j1") || return
+  read -r code temp sunrise sunset < <(jq -r '[
+      .current_condition[0].weatherCode,
+      .current_condition[0].temp_C,
+      (.weather[0].astronomy[0].sunrise | strptime("%I:%M %p") | strftime("%H%M")),
+      (.weather[0].astronomy[0].sunset  | strptime("%I:%M %p") | strftime("%H%M"))
+    ] | @tsv' <<<"$json") || return
+  [[ $code =~ ^[0-9]+$ && $temp =~ ^-?[0-9]+$ ]] || return
+
+  now=$(date +%H%M)
+  local night=0
+  ((10#$now < 10#$sunrise || 10#$now >= 10#$sunset)) && night=1
+
+  # WWO condition codes: https://www.worldweatheronline.com/weather-api/api/docs/weather-icons.aspx
+  case $code in
+    113)                 if ((night)); then icon=$'\U000F0594' color='#938AA9'; else icon=$'\U000F0599' color='#E6C384'; fi ;; # clear
+    116)                 if ((night)); then icon=$'\U000F0F31' color='#938AA9'; else icon=$'\U000F0595' color='#E6C384'; fi ;; # partly cloudy
+    119|122)             icon=$'\U000F0590' color='#C8C093' ;; # cloudy / overcast
+    143|248|260)         icon=$'\U000F0591' color='#727169' ;; # mist / fog
+    200|386|389|392|395) icon=$'\U000F067E' color='#FFA066' ;; # thunder
+    176|263|266|293|296|353)
+                         icon=$'\U000F0597' color='#7FB4CA' ;; # light rain
+    299|302|305|308|356|359)
+                         icon=$'\U000F0596' color='#7E9CD8' ;; # heavy rain
+    179|182|185|281|284|311|314|317|320|350|362|365|374|377)
+                         icon=$'\U000F067F' color='#A3D4D5' ;; # sleet / freezing rain
+    227|230|323|326|329|332|335|338|368|371)
+                         icon=$'\U000F0598' color='#DCD7BA' ;; # snow
+    *)                   icon='?' color='#727169' ;;
+  esac
+
+  printf '#[fg=%s]%s #[fg=#DCD7BA]%s°' "$color" "$icon" "$temp" >"$cache.tmp" && mv "$cache.tmp" "$cache"
+}
+
+age() { echo $(($(date +%s) - $(stat -c %Y "$1" 2>/dev/null || echo 0))); }
+
+if [[ ${1:-} == --refresh ]]; then
+  mkdir -p "${cache%/*}"
+  exec 9>"$cache.lock"
+  flock -n 9 || exit 0
+  touch "$cache.lock"  # attempt stamp: back off while wttr.in is down
+  refresh
+  exit
+fi
+
+(($(age "$cache") > ttl && $(age "$cache.lock") > 60)) && setsid "$0" --refresh </dev/null >/dev/null 2>&1 &
+(($(age "$cache") <= max_age)) && cat "$cache" 2>/dev/null
+exit 0
