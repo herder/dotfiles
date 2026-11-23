@@ -62,6 +62,8 @@ bind -r L resize-pane -R 5
 setw -g mode-keys vi
 set -s copy-command 'wl-copy'
 set -s set-clipboard on
+# cosmic-term ignores OSC 52, so forward apps' clipboard writes to Wayland ourselves.
+set-hook -g pane-set-clipboard 'run-shell -b "tmux save-buffer - | wl-copy"'
 bind-key -T copy-mode-vi v send-keys -X begin-selection
 bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
 
