@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # tmux status widget: condition glyph + temperature from wttr.in.
 # status-interval is 2s, so never fetch inline: print the cache, refresh it in the
-# background when older than TTL. Location: ~/.config/tmux-weather/location if
-# present (anything wttr.in accepts), else wttr.in's IP geolocation.
+# background when older than TTL. Location: see location().
 set -u
 
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-weather"
@@ -10,9 +9,28 @@ loc_file="${XDG_CONFIG_HOME:-$HOME/.config}/tmux-weather/location"
 ttl=900       # refresh after 15 min
 max_age=7200  # hide rather than show weather older than 2 h
 
+# The location file wins. Otherwise geolocate the network we're physically on: a
+# Tailscale (Mullvad) exit node makes wttr.in's own IP lookup see the exit, but
+# netcheck's STUN goes over the underlay. Coordinates are cached per underlay IP.
+location() {
+  [[ -r $loc_file ]] && { cat "$loc_file"; return; }
+  command -v tailscale >/dev/null || return
+  local ip coords cached
+  ip=$(timeout 15 tailscale netcheck --format=json 2>/dev/null | jq -r '.GlobalV4 // empty')
+  ip=${ip%:*}
+  [[ -n $ip ]] || return
+  if [[ -r $cache.geo ]] && read -r cached coords <"$cache.geo" && [[ $cached == "$ip" ]]; then
+    echo "$coords"; return
+  fi
+  coords=$(curl -fsS --max-time 10 "https://ipinfo.io/$ip/json" | jq -r '.loc // empty')
+  [[ $coords =~ ^-?[0-9.]+,-?[0-9.]+$ ]] || return
+  echo "$ip $coords" >"$cache.geo"
+  echo "$coords"
+}
+
 refresh() {
-  local loc="" json code temp sunrise sunset now icon color
-  [[ -r $loc_file ]] && loc=$(<"$loc_file")
+  local loc json code temp sunrise sunset now icon color
+  loc=$(location)
   json=$(curl -fsS --max-time 10 "https://wttr.in/${loc// /+}?format=j1") || return
   read -r code temp sunrise sunset < <(jq -r '[
       .current_condition[0].weatherCode,
