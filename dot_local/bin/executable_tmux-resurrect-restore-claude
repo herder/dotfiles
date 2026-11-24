@@ -5,6 +5,9 @@
 # The nudge is submitted as the first prompt, so the session wakes up and acts
 # instead of sitting idle with a stale transcript.
 #
+# A session never /renamed would come back as "<repo>-<hex>"; it is resumed with
+# --name set to its latest AI title instead, so it stays recognisable.
+#
 # Skips any pane that already has a live Claude — prevents the resume command
 # from being typed into a running Claude's input on manual prefix+Ctrl-r.
 #
@@ -66,9 +69,24 @@ if [[ -n "$agents_json" ]] && command -v jq >/dev/null 2>&1 \
   done < <(echo "$agents_json" | jq -r '.[] | select(.kind == "interactive") | .pid' 2>/dev/null)
 fi
 
+# The transcript's latest AI title, unless the session has a /rename name (which
+# --resume keeps). Empty when neither applies.
+resume_name() {
+  local f
+  f=$(compgen -G "$HOME/.claude/projects/*/$1.jsonl" | head -n1) || return 0
+  [[ -n "$f" ]] || return 0
+  grep -q '"type":"custom-title"' "$f" && return 0
+  grep '"type":"ai-title"' "$f" | tail -n1 | jq -r '.aiTitle // empty' 2>/dev/null | tr -d '\n'
+}
+
 while IFS=$'\t' read -r pane sid _cwd; do
   [[ -z "$pane" || -z "$sid" ]] && continue
   [[ -n "${pane_exists[$pane]+x}" ]] || continue
   [[ -n "${pane_has_claude[$pane]+x}" ]] && continue
-  tmux send-keys -t "$pane" "claude --resume $sid '$nudge'" Enter
+  name_arg=""
+  if command -v jq >/dev/null 2>&1; then
+    name="$(resume_name "$sid")"
+    [[ -n "$name" ]] && name_arg=" --name $(printf '%q' "$name")"
+  fi
+  tmux send-keys -t "$pane" "claude --resume $sid$name_arg '$nudge'" Enter
 done < "$sidecar"
