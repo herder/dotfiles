@@ -22,4 +22,8 @@
 {{ if .headless }}
 # Pairs with .chezmoiscripts/linux/run_onchange_after_enable_ollama.sh.tmpl.
 .config/systemd/user/ollama.service
+
+# Pairs with .chezmoiscripts/linux/run_onchange_after_enable_playerctld.sh.tmpl.
+.config/systemd/user/playerctld.service
+.local/share/dbus-1/services/org.mpris.MediaPlayer2.playerctld.service
 {{ end }}

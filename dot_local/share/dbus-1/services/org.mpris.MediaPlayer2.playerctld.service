@@ -1,0 +1,6 @@
+# Shadows /usr/share's copy so bus activation starts playerctld.service, not a
+# stray process that would hold the name and make the unit fail.
+[D-BUS Service]
+Name=org.mpris.MediaPlayer2.playerctld
+Exec=/usr/bin/playerctld
+SystemdService=playerctld.service

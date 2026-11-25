@@ -1,3 +1,7 @@
 {
     (modifiers: [Ctrl, Shift], key: "backslash"): Spawn("1password --quick-access"),
+    // qbz first: KDE Connect's phone mirror of the same Qobuz session wins playerctld's "last active".
+    (modifiers: [], key: "XF86AudioPlay"): Spawn("playerctl -p com.blitzfc.qbz,playerctld play-pause"),
+    (modifiers: [], key: "XF86AudioNext"): Spawn("playerctl -p com.blitzfc.qbz,playerctld next"),
+    (modifiers: [], key: "XF86AudioPrev"): Spawn("playerctl -p com.blitzfc.qbz,playerctld previous"),
 }

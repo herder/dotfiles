@@ -1,0 +1,19 @@
+{{ if and (eq .chezmoi.os "linux") (not .headless) -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# COSMIC's media keys run bare `playerctl next` etc. (cosmic-settings-daemon
+# depends on playerctl); playerctld makes that target the last active player.
+# unit hash: {{ include "private_dot_config/systemd/user/playerctld.service" | sha256sum }}
+# dbus hash: {{ include "dot_local/share/dbus-1/services/org.mpris.MediaPlayer2.playerctld.service" | sha256sum }}
+command -v playerctld >/dev/null || { echo "playerctld not installed; skipping"; exit 0; }
+systemctl --user show-environment >/dev/null 2>&1 \
+  || { echo "no systemd user manager; cannot enable playerctld.service" >&2; exit 1; }
+
+systemctl --user daemon-reload
+systemctl --user enable playerctld.service
+# Restart only inside a graphical session; elsewhere graphical-session.target starts it.
+if systemctl --user is-active --quiet graphical-session.target; then
+  systemctl --user restart playerctld.service
+fi
+{{ end -}}

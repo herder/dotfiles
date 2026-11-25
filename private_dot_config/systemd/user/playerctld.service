@@ -1,0 +1,15 @@
+[Unit]
+Description=playerctld: route bare playerctl (COSMIC media keys) to the last active player
+# Without it, playerctl picks the first MPRIS name on the bus, often a paused browser.
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=dbus
+BusName=org.mpris.MediaPlayer2.playerctld
+# Bare playerctld stays in the foreground; "daemon" would fork.
+ExecStart=/usr/bin/playerctld
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
