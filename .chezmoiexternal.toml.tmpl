@@ -48,12 +48,19 @@
 {{-   range (list
         "IosevkaTerm"
         "JetBrainsMono"
-        "CascadiaCode") }}
+        "CascadiaCode"
+        "Monaspace") }}
 ["{{ $fontDir }}/{{ . }}"]
     url = {{ printf "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/%s.zip" . | quote }}
     type = "archive"
-    include = ["*.ttf"]
+    include = ["*.ttf", "*.otf"] # Monaspace ships otf only
     refreshPeriod = "168h"
 {{-   end }}
+# Not in nerd-fonts; upstream ships its own NF build. Unhinted suits HiDPI.
+["{{ $fontDir }}/MapleMono"]
+    url = "https://github.com/subframe7536/maple-font/releases/latest/download/MapleMono-NF-unhinted.zip"
+    type = "archive"
+    include = ["*.ttf"]
+    refreshPeriod = "168h"
 {{- end }}
 

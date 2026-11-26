@@ -86,7 +86,7 @@ neovim, fzf, starship, atuin, beads `bd`, …), declared once in
 `mise install`: only what needs root or system integration. `mise bootstrap packages status`
 shows drift. chezmoi externals only non-binaries.
 
-**Fonts** — IosevkaTerm, JetBrainsMono, CascadiaCode (Nerd Fonts).
+**Fonts** — IosevkaTerm, JetBrainsMono, CascadiaCode, Monaspace (Nerd Fonts); Maple Mono NF (upstream).
 
 **Security** — 1Password SSH agent (`IdentityAgent` in `~/.ssh/config`), SSH commit signing,
 YubiKey (`libpam-u2f`, `yubikey-luks`), [keyd](https://github.com/rvaiya/keyd) caps→esc on
