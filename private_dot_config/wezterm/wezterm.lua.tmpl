@@ -29,9 +29,8 @@ local function indexed()
 end
 
 local cosmic_dark = {
-	-- background is the COSMIC Dark theme's background.base
 	foreground = "#c4c4c4",
-	background = "#1b1b1b",
+	background = "{{ .cosmic_theme.dark.bg_color }}",
 	cursor_bg = "#c4c4c4",
 	cursor_border = "#c4c4c4",
 	cursor_fg = "#1b1b1b",
@@ -41,9 +40,8 @@ local cosmic_dark = {
 }
 
 local cosmic_light = {
-	-- cosmic-term takes the background from the COSMIC Light theme; this is its fallback
 	foreground = "#1b1b1b",
-	background = "#e8e8e8",
+	background = "{{ .cosmic_theme.light.bg_color }}",
 	cursor_bg = "#1b1b1b",
 	cursor_border = "#1b1b1b",
 	cursor_fg = "#e8e8e8",
@@ -52,13 +50,19 @@ local cosmic_light = {
 	indexed = indexed(),
 }
 
--- cosmic-term's app_theme defaults to "Match desktop"
+-- cosmic-term: ANSI colours are its built-in COSMIC palette, background is the desktop
+-- theme's (Kanagawa, .chezmoidata/cosmic-theme.yaml); app_theme defaults to "Match desktop"
 config.color_schemes = { ["COSMIC Dark"] = cosmic_dark, ["COSMIC Light"] = cosmic_light }
 local appearance = wezterm.gui and wezterm.gui.get_appearance() or "Dark"
 config.color_scheme = appearance:find("Dark") and "COSMIC Dark" or "COSMIC Light"
 
--- cosmic-term default opacity = 100
-config.window_background_opacity = 1.0
+-- COSMIC frosted glass: the theme's frost level indexes its alpha_map. WezTerm can't ask
+-- COSMIC to blur behind it, so this is the same opacity without the frost.
+{{- $builder := "private_dot_config/cosmic/com.system76.CosmicTheme.Dark.Builder/v2/" }}
+{{- $frost := regexReplaceAll "([a-z])([0-9])" (include (print $builder "frosted.tmpl") | trim | snakecase) "${1}_${2}" }}
+{{- $alpha := regexFind (printf "\\b%s: [0-9.]+" $frost) (include (print $builder "alpha_map.tmpl")) | splitList ": " | last }}
+{{- if not $alpha }}{{ fail (printf "wezterm: frost level %q not in alpha_map" $frost) }}{{ end }}
+config.window_background_opacity = {{ if eq (include (print $builder "frosted_windows.tmpl") | trim) "true" }}{{ $alpha }}{{ else }}1.0{{ end }}
 -- Header bar off (show_headerbar = false), tabs only shown with the header bar
 config.window_decorations = "RESIZE"
 config.enable_tab_bar = false
