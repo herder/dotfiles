@@ -99,9 +99,11 @@ capture() {
     local title desc
     title=$(tmux display -p -t "$pane" '#{pane_title}' 2>/dev/null) || exit 0
     desc=$(clean "$title")
-    # skip the default "claude: <repo>" placeholder — no real task yet
+    # placeholders: the SessionStart "claude: <repo>" (no task yet) clears; Claude's
+    # generic "Claude Code" is a non-title, so keep whatever we had
     case "$desc" in
         claude:*|"") tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true ;;
+        "Claude Code") ;;
         *)
             local path enriched
             path=$(tmux display -p -t "$pane" '#{pane_current_path}' 2>/dev/null) || path=""

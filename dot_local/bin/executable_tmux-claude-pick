@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# tmux-claude-pick — fzf over every Claude pane: state, task, repo@branch, location.
+# The branch is the stable handle (worktrees are named after the work); the task
+# title is whatever Claude made of the first prompt. Bound to prefix+f.
+#
+#   tmux-claude-pick [client]   # pick and switch that client (popup passes #{client_name})
+#   tmux-claude-pick --list     # just print the rows
+set -euo pipefail
+
+# run-shell/popups inherit the tmux server's PATH, which may predate mise.
+PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
+list() {
+    local id state title desc path cmd loc glyph rank task where top branch
+    # every field is prefixed with "=": read collapses runs of tab (whitespace IFS), so
+    # an empty field would shift the rest, and tmux escapes control-char separators
+    while IFS=$'\t' read -r id state title desc path cmd loc; do
+        id=${id#=} state=${state#=} title=${title#=} desc=${desc#=} path=${path#=} cmd=${cmd#=} loc=${loc#=}
+        [[ $cmd == claude ]] || continue
+        case $state in
+            blocked) glyph='󰂚' rank=0 ;;
+            done)    glyph='✔' rank=1 ;;
+            working) glyph='▶' rank=2 ;;
+            *)       glyph='·' rank=3 ;;  # column -t would eat a space
+        esac
+        task=${desc:-${title#✳ }}
+        where=${path/#$HOME/\~}
+        if top=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null); then
+            branch=$(git -C "$path" branch --show-current 2>/dev/null) || branch=""
+            where="${top##*/}@${branch:-detached}"
+        fi
+        printf '%s\t%s\t%s %s\t%s\t%s\n' "$rank" "$id" "$glyph" "$task" "$where" "$loc"
+    done < <(tmux list-panes -a -F \
+        $'=#{pane_id}\t=#{@claude-state}\t=#{pane_title}\t=#{@claude_desc}\t=#{pane_current_path}\t=#{pane_current_command}\t=#{session_name}:#{window_index}.#{pane_index}') \
+        | sort -t$'\t' -k1,1n -k5,5 | cut -f2- | column -t -s$'\t' -o '  ' \
+        | sed -E 's/^(%[0-9]+) +/\1\t/'
+}
+
+if [[ ${1:-} == --list ]]; then list; exit; fi
+client=${1:-}
+
+# shellcheck disable=SC2016  # $FZF_PREVIEW_LINES is fzf's to expand
+pane=$(list | fzf --delimiter=$'\t' --with-nth=2 --no-sort --reverse \
+        --preview 'tmux capture-pane -ep -t {1} | tail -n "$FZF_PREVIEW_LINES"' \
+        --preview-window 'down,50%,border-top' | cut -f1) || exit 0
+[[ -n $pane ]] || exit 0
+
+tmux switch-client ${client:+-c "$client"} -t "$pane"
+tmux select-window -t "$pane"
+tmux select-pane -t "$pane"
