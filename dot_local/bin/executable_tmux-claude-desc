@@ -93,29 +93,42 @@ refresh_all() {
     done < <(tmux list-sessions -F '#{session_id}' 2>/dev/null)
 }
 
+# Claude's latest aiTitle for the live session in this pane, from its transcript.
+ai_title() {
+    local pane=$1 pid uuid t
+    while read -r pid uuid; do
+        [ -d "/proc/$pid" ] || continue
+        for t in "$HOME"/.claude/projects/*/"$uuid".jsonl; do
+            [ -r "$t" ] || continue
+            tac "$t" | grep -m1 -oE '"aiTitle":"[^"]+"' | sed -E 's/^"aiTitle":"(.*)"$/\1/'
+            return
+        done
+    done < <(PATH="$HOME/.local/share/mise/shims:$PATH" jq -r --arg p ".$pane" \
+        'select(.tmux and (.tmux | endswith($p))) | "\(.pid) \(.sessionId)"' \
+        "$HOME"/.claude/sessions/*.json 2>/dev/null)
+}
+
+# Best description first: a claimed worktree's task line (written on purpose; the
+# session started in the main checkout, so locks, not cwd); Claude's pane title; its
+# transcript aiTitle when the title is a placeholder ("claude: <repo>" from
+# SessionStart, generic "Claude Code"). Nothing usable keeps the old one; only
+# SessionEnd clears.
 capture() {
     local pane=${TMUX_PANE:-}
     [ -z "$pane" ] && exit 0
-    local title desc
-    title=$(tmux display -p -t "$pane" '#{pane_title}' 2>/dev/null) || exit 0
-    desc=$(clean "$title")
-    # placeholders: the SessionStart "claude: <repo>" (no task yet) clears; Claude's
-    # generic "Claude Code" is a non-title, so keep whatever we had
-    case "$desc" in
-        claude:*|"") tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true ;;
-        "Claude Code") ;;
-        *)
-            local path enriched
+    local desc path
+    desc=$("$HOME/.local/bin/claude-pane-worktrees" "$pane" 2>/dev/null | cut -f4) || desc=""
+    desc=$(clean "$desc")
+    if [ -z "$desc" ]; then
+        desc=$(clean "$(tmux display -p -t "$pane" '#{pane_title}' 2>/dev/null)")
+        case "$desc" in claude:*|"Claude Code") desc=$(clean "$(ai_title "$pane")") ;; esac
+        case "$desc" in claude:*|"Claude Code") desc="" ;; esac
+        if [ -n "$desc" ]; then
             path=$(tmux display -p -t "$pane" '#{pane_current_path}' 2>/dev/null) || path=""
-            enriched=$(enrich "$desc" "$path") || enriched=$desc
-            if [ -n "$enriched" ] && [ "$enriched" != "$desc" ]; then
-                desc=$enriched
-                # push back so the pane-border pill shows it too; Claude Code may
-                # overwrite next turn, and the next capture just re-enriches
-                tmux select-pane -t "$pane" -T "$desc" 2>/dev/null || true
-            fi
-            tmux set-option -p -t "$pane" @claude_desc "$desc" ;;
-    esac
+            desc=$(enrich "$desc" "$path") || true
+        fi
+    fi
+    [ -n "$desc" ] && tmux set-option -p -t "$pane" @claude_desc "$desc"
     local sid
     sid=$(tmux display -p -t "$pane" '#{session_id}') || exit 0
     refresh_one "$sid"

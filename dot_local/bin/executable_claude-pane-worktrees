@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# claude-pane-worktrees — which worktrees each live Claude pane holds, from the
+# worktree claude-session.lock files (pid, or uuid once resumed, -> pane via the
+# ~/.claude/sessions registry). Sessions start in the main checkout and claim
+# worktrees as they go, so this, not the pane cwd, says what a pane is working on.
+#
+#   claude-pane-worktrees [pane-id]
+#
+# One TSV row per pane: pane-id, latest-claimed repo@branch, worktree count, and the
+# task line of the latest-claimed lock that has one (may be empty).
+set -euo pipefail
+
+# hooks and run-shell may predate mise on PATH; jq comes from it
+PATH="$HOME/.local/share/mise/shims:$PATH"
+
+declare -A pane_of_pid=() pane_of_uuid=() wt=() wtask=() wclaimed=() wcount=()
+
+while IFS=$'\t' read -r pid uuid tm; do
+    [[ -d /proc/$pid ]] || continue  # registry files outlive their process
+    pane_of_pid[$pid]=${tm##*.} pane_of_uuid[$uuid]=${tm##*.}
+done < <(jq -r 'select(.tmux) | "\(.pid)\t\(.sessionId)\t\(.tmux)"' \
+    "$HOME"/.claude/sessions/*.json 2>/dev/null)
+
+for lock in "$HOME"/src/git/github.com/*/*/.git/worktrees/*/claude-session.lock; do
+    [[ -r $lock ]] || continue
+    lpid="" luuid="" lbranch="" ltask="" lclaimed=""
+    while IFS=: read -r k v; do
+        v=${v# }
+        case $k in
+            pid) lpid=$v ;; uuid) luuid=$v ;; branch) lbranch=$v ;;
+            task) ltask=$v ;; claimed) lclaimed=$v ;;
+        esac
+    done <"$lock"
+    pane=""
+    [[ -n $lpid ]] && pane=${pane_of_pid[$lpid]:-}
+    [[ -z $pane && -n $luuid ]] && pane=${pane_of_uuid[$luuid]:-}
+    [[ -n $pane ]] || continue
+    [[ -z ${1:-} || $pane == "$1" ]] || continue
+    repo=${lock%/.git/worktrees/*}; repo=${repo##*/}
+    wcount[$pane]=$(( ${wcount[$pane]:-0} + 1 ))
+    if [[ -z ${wt[$pane]:-} || $lclaimed > ${wclaimed[$pane]:-} ]]; then
+        wt[$pane]=$repo@$lbranch wclaimed[$pane]=$lclaimed
+        [[ -n $ltask ]] && wtask[$pane]=$ltask
+    fi
+done
+
+for pane in "${!wt[@]}"; do
+    printf '%s\t%s\t%s\t%s\n' "$pane" "${wt[$pane]}" "${wcount[$pane]}" "${wtask[$pane]:-}"
+done
