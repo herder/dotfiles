@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# tmux-claude-pick — fzf over every Claude pane: state, task, repo@branch, location.
-# Branches and task line come from the worktree locks (claude-pane-worktrees), since
-# sessions start in the main checkout; without a lock, Claude's pane title and the
-# cwd. Bound to prefix+f.
+# tmux-claude-pick — fzf over every pane: Claude panes first (state, task, worktree),
+# then the rest (command, repo@branch or cwd). Branches and task line come from the
+# worktree locks (claude-pane-worktrees), since sessions start in the main checkout;
+# without a lock, the captured @claude_desc and the cwd. Bound to prefix+s.
 #
 #   tmux-claude-pick [client]   # pick and switch that client (popup passes #{client_name})
 #   tmux-claude-pick --list     # just print the rows
@@ -28,14 +28,14 @@ list() {
     # an empty field would shift the rest, and tmux escapes control-char separators
     while IFS=$'\t' read -r id state title desc path cmd loc; do
         id=${id#=} state=${state#=} title=${title#=} desc=${desc#=} path=${path#=} cmd=${cmd#=} loc=${loc#=}
-        [[ $cmd == claude ]] || continue
-        case $state in
-            blocked) glyph='󰂚' rank=0 ;;
-            done)    glyph='✔' rank=1 ;;
-            working) glyph='▶' rank=2 ;;
-            *)       glyph='·' rank=3 ;;  # column -t would eat a space
-        esac
         task=${wtask[$id]:-${desc:-${title#✳ }}}
+        case $cmd:$state in
+            claude:blocked) glyph='󰂚' rank=0 ;;
+            claude:done)    glyph='✔' rank=1 ;;
+            claude:working) glyph='▶' rank=2 ;;
+            claude:*)       glyph='·' rank=3 ;;
+            *)              glyph=$'\u2007' rank=4 task=$cmd ;;  # figure space: column -t eats a plain one
+        esac
         where=${path/#$HOME/\~}
         if [[ -n ${wt[$id]:-} ]]; then
             where=${wt[$id]}

@@ -216,35 +216,29 @@ bind G command-prompt -p "goto PR/issue:" { run-shell -b "~/.local/bin/claude-go
 # Restore default new-window on shifted key
 bind C new-window
 
-# -- Claude session descriptions -----------------------------------------------
-# Fold each Claude pane's task title into a " [ … | … ]" suffix stored on the
-# SESSION-scoped @claude_session_desc option (NOT the session name — a decorated
-# name breaks session-wizard's directory-derived create/reuse). `prefix s` shows
-# it via choose-tree's -F; names stay clean so session-wizard stays correct.
-# Capture is driven by Claude Code hooks; here we only handle cleanup + manual refresh.
-# Script: ~/.local/bin/tmux-claude-desc (chezmoi: dot_local/bin/executable_tmux-claude-desc).
+# -- pane pickers ----------------------------------------------------------------
+# prefix+s: fzf over every pane, Claude panes first (state, task, worktree from the
+# claude-session locks — tmux-claude-pick, claude-pane-worktrees); "which pane is doing
+# X". run-shell expands #{client_name} so the popup switches the client that asked.
+bind s run-shell 'tmux display-popup -E -w 90% -h 80% -T " panes " "~/.local/bin/tmux-claude-pick #{client_name}"'
+# f was the picker for a while; back to the stock find-window
+bind f command-prompt "find-window -Z -- '%%'"
+
+# prefix+w: the structural view — native choose-tree with a Claude state glyph at
+# every level: 󰂚 blocked, ✔ done, ▶ working, nothing when idle. Session lines take
+# the SESSION aggregate @claude_session_state (glyphs + counts, maintained by
+# ~/.claude/tmux-claude-state.sh) because a format can't sum over a session's panes;
+# window and pane lines resolve the pane-scoped @claude-state directly — on a window
+# line that's its active pane. Pane lines show the pane's Claude task if it has one.
+bind w choose-tree -Zs -F '#{?session_format,#{session_name}#{?@claude_session_state, #{@claude_session_state},},#{?window_format,#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{window_index}: #{window_name}#{window_flags},#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{?@claude_desc,#{@claude_desc},#{pane_current_command}}}}'
+
 # window-layout-changed fires when a pane is split/killed/resized (tmux has no
-# pane-close hook); a closed pane drops its @claude_desc, so a recompute prunes the
-# session aggregate. Over-fires on resize, but refresh only writes when it changes.
-# Same claude-private guard as above — without Claude Code there are no pane titles
-# to fold, so the whole thing is moot anyway.
+# pane-close hook): recompute the session state aggregate so closed panes drop out.
+# Same claude-private guard as above.
 if-shell '[ -x ~/.claude/tmux-claude-state.sh ]' {
-  set-hook -g window-layout-changed "run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'"
-  bind T run-shell -b '~/.local/bin/tmux-claude-desc refresh; ~/.claude/tmux-claude-state.sh refresh'
-
-  # Fuzzy-pick any Claude pane by task, repo@branch or session (replaces find-window).
-  # run-shell expands #{client_name} so the popup switches the client that asked.
-  bind f run-shell 'tmux display-popup -E -w 90% -h 80% -T " claude panes " "~/.local/bin/tmux-claude-pick #{client_name}"'
+  set-hook -g window-layout-changed "run-shell -b '~/.claude/tmux-claude-state.sh refresh'"
+  bind T run-shell -b '~/.claude/tmux-claude-state.sh refresh'
 }
-
-# Session picker: native choose-tree, sessions collapsed, decorated with the Claude
-# task on session lines (window/pane lines keep their own name/title) and a Claude
-# state glyph at every level: 󰂚 blocked, ✔ done, ▶ working, nothing when idle.
-# Session lines take the SESSION aggregate @claude_session_state (glyphs + counts,
-# maintained by ~/.claude/tmux-claude-state.sh) because a format can't sum over a
-# session's panes; window and pane lines resolve the pane-scoped @claude-state
-# directly — on a window line that's its active pane.
-bind s choose-tree -Zs -F '#{?session_format,#{session_name}#{?@claude_session_state, #{@claude_session_state},}#{@claude_session_desc},#{?window_format,#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{window_index}: #{window_name}#{window_flags},#{?#{==:#{@claude-state},blocked},󰂚 ,#{?#{==:#{@claude-state},done},✔ ,#{?#{==:#{@claude-state},working},▶ ,}}}#{pane_current_command}}}'
 
 # -- plugins (tpm) -------------------------------------------------------------
 

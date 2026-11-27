@@ -1,35 +1,20 @@
 #!/bin/bash
-# tmux-claude-desc — fold each Claude pane's task into a SESSION-scoped
-# @claude_session_desc option so the session picker can show what each session is
-# doing. The session NAME is left untouched (a decorated name breaks
-# session-wizard's directory-derived create/reuse); choose-tree reads the option
-# via its -F format instead. See dot_tmux.conf.tmpl `bind s`.
+# tmux-claude-desc — keep each Claude pane's task in its pane-scoped @claude_desc,
+# which the pane border, the prefix+s picker (tmux-claude-pick) and the alert jump read.
+# Driven by Claude Code hooks (UserPromptSubmit, Stop, SessionEnd).
 #
-#   tmux-claude-desc capture   # snapshot THIS pane's title -> @claude_desc, refresh its session
-#   tmux-claude-desc clear     # drop THIS pane's contribution (Claude exiting), refresh its session
-#   tmux-claude-desc refresh   # recompute every session (cleanup after a pane closes)
-#
-# A pane contributes only via its own @claude_desc pane-option; the session's
-# @claude_session_desc is always recomputed from scratch from all contributing
-# panes. So panes never clobber each other, and a closed pane drops out
-# automatically (its options die with it).
+#   tmux-claude-desc capture   # refresh THIS pane's @claude_desc
+#   tmux-claude-desc clear     # drop it (Claude exiting)
 
 set -euo pipefail
 
-# ── tunables ─────────────────────────────────────────────────────────
-# Titles are shown full-length: the picker (choose-tree) has the whole terminal
-# width, so no truncation — just clean and join the panes' descriptions.
-SEP=' | '        # separator between pane descriptions inside the suffix
-
 [ -z "${TMUX:-}" ] && exit 0
 
-# strip leading status glyph (Claude prefixes a spinner/marker), drop chars that
-# would break the "[ a | b ]" format, collapse and trim whitespace.
+# strip leading status glyph (Claude prefixes a spinner/marker), collapse and trim
+# whitespace.
 clean() {
-    printf '%s' "$1" | sed -E 's/^[^[:alnum:]]+//; s/[][|]/ /g; s/[[:space:]]+/ /g; s/^ +//; s/ +$//'
+    printf '%s' "$1" | sed -E 's/^[^[:alnum:]]+//; s/[[:space:]]+/ /g; s/^ +//; s/ +$//'
 }
-
-join_by() { local sep=$1 out=$2; shift 2; printf '%s' "$out"; printf '%s' "${@/#/$sep}"; }
 
 # Rewrite vague issue references ("work on github issue 123") into the
 # identifiable "<repo>#<N>: <issue title>" form. Repo comes from the pane cwd's
@@ -63,34 +48,6 @@ enrich() {
     else
         printf '%s#%s: %s' "$repo" "$num" "$desc"
     fi
-}
-
-# recompute a session's @claude_session_desc from all its panes' @claude_desc.
-refresh_one() {
-    local sid=$1
-
-    local descs=() seen="" d
-    while IFS= read -r d; do
-        [ -z "$d" ] && continue
-        case "$seen" in *"|$d|"*) continue ;; esac
-        seen="$seen|$d|"
-        descs+=("$d")
-    done < <(tmux list-panes -s -t "$sid" -F '#{@claude_desc}' 2>/dev/null)
-
-    local suffix=""
-    [ "${#descs[@]}" -gt 0 ] && suffix=" [$(join_by "$SEP" "${descs[@]}")]"
-
-    local cur
-    cur=$(tmux show-options -t "$sid" -qv @claude_session_desc 2>/dev/null) || cur=""
-    [ "$suffix" = "$cur" ] || tmux set-option -t "$sid" @claude_session_desc "$suffix" 2>/dev/null || true
-}
-
-refresh_all() {
-    local sid
-    while IFS= read -r sid; do
-        [ -z "$sid" ] && continue
-        refresh_one "$sid"
-    done < <(tmux list-sessions -F '#{session_id}' 2>/dev/null)
 }
 
 # Claude's latest aiTitle for the live session in this pane, from its transcript.
@@ -128,24 +85,17 @@ capture() {
             desc=$(enrich "$desc" "$path") || true
         fi
     fi
-    [ -n "$desc" ] && tmux set-option -p -t "$pane" @claude_desc "$desc"
-    local sid
-    sid=$(tmux display -p -t "$pane" '#{session_id}') || exit 0
-    refresh_one "$sid"
+    [ -z "$desc" ] || tmux set-option -p -t "$pane" @claude_desc "$desc"
 }
 
 clear_pane() {
     local pane=${TMUX_PANE:-}
     [ -z "$pane" ] && exit 0
     tmux set-option -p -t "$pane" -u @claude_desc 2>/dev/null || true
-    local sid
-    sid=$(tmux display -p -t "$pane" '#{session_id}' 2>/dev/null) || exit 0
-    refresh_one "$sid"
 }
 
-case "${1:-refresh}" in
+case "${1:-}" in
     capture) capture ;;
     clear)   clear_pane ;;
-    refresh) refresh_all ;;
-    *) echo "usage: tmux-claude-desc {capture|clear|refresh}" >&2; exit 2 ;;
+    *) echo "usage: tmux-claude-desc {capture|clear}" >&2; exit 2 ;;
 esac

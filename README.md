@@ -61,8 +61,9 @@ plugins from `dot_zsh_plugins.txt`, zsh-vi-mode, [starship](https://starship.rs/
 direnv. `dot_zsh.before/` and `dot_zsh.after/` hold per-topic snippets.
 
 **Terminal** — [wezterm](https://wezfurlong.org/wezterm/); tmux with an own `dot_tmux.conf.tmpl`
-(tpm, tmux-resurrect) and hooks that fold each Claude Code pane's task into the `prefix+s`
-session picker and survive resurrect save/restore (`tmux-claude-desc`, `tmux-resurrect-*`).
+(tpm, tmux-resurrect) and hooks that track each Claude Code pane's task and worktrees for the
+`prefix+s` fzf pane picker and survive resurrect save/restore (`tmux-claude-desc`,
+`tmux-claude-pick`, `tmux-resurrect-*`).
 
 **Editor** — Neovim via [bob](https://github.com/MordechaiHadad/bob), a LazyVim-based config in
 `private_dot_config/nvim`, `.ideavimrc` for JetBrains.
