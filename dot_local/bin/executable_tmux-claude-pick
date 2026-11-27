@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # tmux-claude-pick — fzf over every Claude pane: state, task, repo@branch, location.
-# The branch is the stable handle (worktrees are named after the work); the task
-# title is whatever Claude made of the first prompt. Bound to prefix+f.
+# Sessions start in the main checkout and claim worktrees as they go, so the pane's
+# cwd says little: the worktree claude-session.lock files (pid/uuid -> pane via
+# ~/.claude/sessions) give the branches and the task line written at claim time.
+# Without a lock, fall back to Claude's pane title and the cwd. Bound to prefix+f.
 #
 #   tmux-claude-pick [client]   # pick and switch that client (popup passes #{client_name})
 #   tmux-claude-pick --list     # just print the rows
@@ -10,8 +12,43 @@ set -euo pipefail
 # run-shell/popups inherit the tmux server's PATH, which may predate mise.
 PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
+# pane id -> the latest-claimed worktree (repo@branch), its task line, and how many it holds
+declare -A wt=() wtask=() wclaimed=() wcount=()
+locks() {
+    local -A pane_of_pid=() pane_of_uuid=()
+    local pid uuid tm lock k v lpid luuid lbranch ltask lclaimed pane repo
+    while IFS=$'\t' read -r pid uuid tm; do
+        [[ -d /proc/$pid ]] || continue  # registry files outlive their process
+        pane_of_pid[$pid]=${tm##*.} pane_of_uuid[$uuid]=${tm##*.}
+    done < <(jq -r 'select(.tmux) | "\(.pid)\t\(.sessionId)\t\(.tmux)"' \
+        "$HOME"/.claude/sessions/*.json 2>/dev/null)
+    for lock in "$HOME"/src/git/github.com/*/*/.git/worktrees/*/claude-session.lock; do
+        [[ -r $lock ]] || continue
+        lpid="" luuid="" lbranch="" ltask="" lclaimed=""
+        while IFS=: read -r k v; do
+            v=${v# }
+            case $k in
+                pid) lpid=$v ;; uuid) luuid=$v ;; branch) lbranch=$v ;;
+                task) ltask=$v ;; claimed) lclaimed=$v ;;
+            esac
+        done <"$lock"
+        # a resumed session keeps its uuid under a new pid
+        pane=""
+        [[ -n $lpid ]] && pane=${pane_of_pid[$lpid]:-}
+        [[ -z $pane && -n $luuid ]] && pane=${pane_of_uuid[$luuid]:-}
+        [[ -n $pane ]] || continue
+        repo=${lock%/.git/worktrees/*}; repo=${repo##*/}
+        wcount[$pane]=$(( ${wcount[$pane]:-0} + 1 ))
+        if [[ -z ${wt[$pane]:-} || $lclaimed > ${wclaimed[$pane]:-} ]]; then
+            wt[$pane]=$repo@$lbranch wclaimed[$pane]=$lclaimed
+            [[ -n $ltask ]] && wtask[$pane]=$ltask
+        fi
+    done
+}
+
 list() {
     local id state title desc path cmd loc glyph rank task where top branch
+    locks
     # every field is prefixed with "=": read collapses runs of tab (whitespace IFS), so
     # an empty field would shift the rest, and tmux escapes control-char separators
     while IFS=$'\t' read -r id state title desc path cmd loc; do
@@ -23,9 +60,12 @@ list() {
             working) glyph='▶' rank=2 ;;
             *)       glyph='·' rank=3 ;;  # column -t would eat a space
         esac
-        task=${desc:-${title#✳ }}
+        task=${wtask[$id]:-${desc:-${title#✳ }}}
         where=${path/#$HOME/\~}
-        if top=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null); then
+        if [[ -n ${wt[$id]:-} ]]; then
+            where=${wt[$id]}
+            (( wcount[$id] > 1 )) && where+=" +$(( wcount[$id] - 1 ))"
+        elif top=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null); then
             branch=$(git -C "$path" branch --show-current 2>/dev/null) || branch=""
             where="${top##*/}@${branch:-detached}"
         fi
