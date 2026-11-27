@@ -1,22 +1,71 @@
--- Pull in the wezterm API
+-- Mirrors COSMIC Terminal (cosmic-term): its chezmoi-managed config where one exists,
+-- otherwise its built-in defaults from pop-os/cosmic-term src/{config,terminal_theme}.rs.
 local wezterm = require("wezterm")
+local config = wezterm.config_builder()
 
--- This table will hold the configuration.
-local config = {}
-
--- In newer versions of wezterm, use the config_builder which will
--- help provide clearer error messages
-if wezterm.config_builder then
-	config = wezterm.config_builder()
-end
-
--- config.debug_key_events = false
-
--- This is where you actually apply your config choices
 -- Single source: COSMIC Terminal's font_name (a quoted string, valid Lua as-is)
 config.font = wezterm.font({{ include "private_dot_config/cosmic/com.system76.CosmicTerm/v1/font_name" | trim }})
-config.font_size = 11.0
+-- cosmic-term's default font_size is 14px; WezTerm sizes in points (px * 0.75)
+config.font_size = 10.5
+config.line_height = 1.0
+-- cosmic-term default use_bright_bold = false
+config.bold_brightens_ansi_colors = "No"
 
+-- cosmic-term's xterm-256 cube and grays come from ransid, not the xterm values
+local function indexed()
+	local t = {}
+	local function c(v)
+		return v == 0 and 0 or v * 0x28 + 0x28
+	end
+	for i = 16, 231 do
+		local n = i - 16
+		t[i] = string.format("#%02x%02x%02x", c(math.floor(n / 36) % 6), c(math.floor(n / 6) % 6), c(n % 6))
+	end
+	for i = 232, 255 do
+		local g = (i - 232) * 10 + 8
+		t[i] = string.format("#%02x%02x%02x", g, g, g)
+	end
+	return t
+end
+
+local cosmic_dark = {
+	-- background is the COSMIC Dark theme's background.base
+	foreground = "#c4c4c4",
+	background = "#1b1b1b",
+	cursor_bg = "#c4c4c4",
+	cursor_border = "#c4c4c4",
+	cursor_fg = "#1b1b1b",
+	ansi = { "#1b1b1b", "#f16161", "#7cb987", "#ddc74c", "#6296be", "#be6dee", "#49bac8", "#bebebe" },
+	brights = { "#808080", "#ff8985", "#97d5a0", "#fae365", "#7db1da", "#d68eff", "#49bac8", "#c4c4c4" },
+	indexed = indexed(),
+}
+
+local cosmic_light = {
+	-- cosmic-term takes the background from the COSMIC Light theme; this is its fallback
+	foreground = "#1b1b1b",
+	background = "#e8e8e8",
+	cursor_bg = "#1b1b1b",
+	cursor_border = "#1b1b1b",
+	cursor_fg = "#e8e8e8",
+	ansi = { "#1b1b1b", "#a24f50", "#437e4f", "#7d6e1e", "#516d94", "#9a30ca", "#227a85", "#d7d7d7" },
+	brights = { "#000000", "#890418", "#185529", "#534800", "#2e496d", "#6b0091", "#00525a", "#e8e8e8" },
+	indexed = indexed(),
+}
+
+-- cosmic-term's app_theme defaults to "Match desktop"
+config.color_schemes = { ["COSMIC Dark"] = cosmic_dark, ["COSMIC Light"] = cosmic_light }
+local appearance = wezterm.gui and wezterm.gui.get_appearance() or "Dark"
+config.color_scheme = appearance:find("Dark") and "COSMIC Dark" or "COSMIC Light"
+
+-- cosmic-term default opacity = 100
+config.window_background_opacity = 1.0
+-- Header bar off (show_headerbar = false), tabs only shown with the header bar
+config.window_decorations = "RESIZE"
+config.enable_tab_bar = false
+
+-- Disable all default key bindings - interferes with tmux/vi-zsh-mode/vim
+-- https://github.com/wez/wezterm/discussions/2891#discussioncomment-4491770
+config.disable_default_key_bindings = true
 config.keys = {
 	{
 		action = wezterm.action.SendKey({ key = "w", mods = "CTRL" }),
@@ -24,17 +73,5 @@ config.keys = {
 		key = "Backspace",
 	},
 }
--- Disable all default key bindings - interferes with tmux/vi-zsh-mode/vim
--- https://github.com/wez/wezterm/discussions/2891#discussioncomment-4491770
-config.disable_default_key_bindings = true
--- For example, changing the color scheme:
--- See here for all of em: https://wezfurlong.org/wezterm/colorschemes/
-config.color_scheme = "Kanagawa (Gogh)"
-config.window_background_opacity = 0.9
-config.window_decorations = "NONE"
-config.hide_tab_bar_if_only_one_tab = true
-config.use_fancy_tab_bar = true
-config.enable_tab_bar = false
-config.line_height = 1.0
--- and finally, return the configuration to wezterm
+
 return config
